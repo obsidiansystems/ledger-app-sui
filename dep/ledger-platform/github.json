@@ -1,0 +1,8 @@
+{
+  "owner": "obsidiansystems",
+  "repo": "ledger-platform",
+  "branch": "buildRustCrate",
+  "private": false,
+  "rev": "baf8e6e5904e6bb6c4fb5e6d8dd85594f88ea4b1",
+  "sha256": "1jh1rqxjqas7w59si54skjhswl9h2y1f0xgjq6zjl4lay2iwhpri"
+}
