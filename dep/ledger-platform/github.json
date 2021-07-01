@@ -3,6 +3,6 @@
   "repo": "ledger-platform",
   "branch": "buildRustCrate",
   "private": false,
-  "rev": "7a26074dbdbb3686595990f9d3b7fd46cf0a166a",
-  "sha256": "1zdn6z1b33hiv8ba2h65v095pmpfbi20w4x640niky07p4g07gsl"
+  "rev": "6a1bcc77464f929bd06c79ac54d7ea8b635b105e",
+  "sha256": "1jbsppbd57dvkrq3kc57laqfc64fcccn3md48h0h7qhmknmzrv93"
 }
