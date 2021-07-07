@@ -26,4 +26,7 @@ rec {
       };
     };
   };
+
+  # For CI
+  inherit (app) rootCrate;
 }
