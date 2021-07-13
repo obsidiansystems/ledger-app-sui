@@ -7,6 +7,8 @@ edition = "2018"
 [dependencies]
 nanos_sdk = { git = "https://github.com/LedgerHQ/ledger-nanos-sdk.git" } 
 nanos_ui = { git = "https://github.com/LedgerHQ/ledger-nanos-ui.git" } 
+ledger-parser-combinators = { git = "https://github.com/obsidiansystems/ledger-parser-combinators", branch = "jg-wip-darray_and_nof"}
+arrayvec = { version = "0.7.1", default-features = false }
 
 [patch."https://github.com/LedgerHQ/ledger-nanos-sdk.git".nanos_sdk]
 git = "https://github.com/ObsidianSystems/ledger-nanos-sdk.git"

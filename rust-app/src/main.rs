@@ -80,9 +80,111 @@ fn sign_ui(message: &[u8]) -> Result<Option<DerEncodedEcdsaSignature>, SyscallEr
     }
 }
 
+macro_rules! def_parsers {
+    {$stateset_name:ident $parsers:ident $parser_tags:ident { $($name:ident = $parser:expr; )+}} =>
+    {
+        enum StateSet<$($name),+>{
+            NoState,
+            $($name($name)),+
+        }
+        fn state_init<$($name),+>($(_: $name),+) -> StateSet<$($name),+> { StateSet::NoState }
+
+        type RX<'a, R> = Result<(R, &'a [u8]), (Option<OOB>, &'a [u8] )>;
+
+        #[derive(Copy, Clone)]
+        enum $parser_tags {
+            Reset,
+            $($name),+
+        }
+
+        use arrayvec::ArrayVec;
+
+        fn $stateset_name() -> impl for<'a> FnMut($parser_tags, &'a [u8]) -> RX<'a, ArrayVec<u8, 260> > {
+            $(#[allow(non_snake_case)] let $name = $parser;)+
+            let mut state_enum = state_init($($name.init_method()),+);
+
+            move |selector, chunk| {
+                match selector {
+                    $parser_tags::Reset => {
+                        state_enum = StateSet::NoState;
+                        Err((None, chunk))
+                    }
+                    $($parser_tags::$name => {
+                        match state_enum {
+                            StateSet::$name(_) => { }
+                            _ => state_enum = StateSet::$name($name.init_method())
+                        }
+                        match state_enum {
+                            StateSet::$name(ref mut a) => {
+                                $name.parse(a, chunk)
+                            }
+                            _ => { panic!("Unreachable"); }
+                        }
+                    })+
+                }
+            }
+        }
+    }
+}
+
+// Fiddly; this one's basically just fmap rather than the more monadic-like Action.
+// Relevant because it's inconvenient with current Action to return a non-copy item like ArrayVec.
+mod fa {
+    use ledger_parser_combinators::core_parsers::RV;
+    use ledger_parser_combinators::forward_parser::{ForwardParser, OOB};
+    type RX<'a, R> = Result<(R, &'a [u8]), (Option<OOB>, &'a [u8] )>;
+    type RR<'a, I> = RX<'a, <I as RV>::R>;
+
+    pub struct FinalAction<I : RV, O, F: Fn(&I::R) -> O> {
+        pub sub: I,
+        pub f: F
+    }
+    impl<I : RV, O, F: Fn(&I::R) -> O> RV for FinalAction<I,O,F> {
+        type R = O;
+    }
+    impl<I : RV + ForwardParser, O, F: Fn(&I::R) -> O> ForwardParser for FinalAction<I, O, F> {
+        type State = I::State;
+        fn init() -> Self::State { I::init() }
+        fn parse<'a, 'b>(&self, state: &'b mut Self::State, chunk: &'a [u8]) -> RR<'a, Self>{
+            let (ret, new_chunk) = self.sub.parse(state, chunk)?;
+            Ok(((self.f)(&ret), new_chunk))
+        }
+    }
+}
+
+use nanos_sdk::ecc::{CurvesId};
+
+use ledger_parser_combinators::core_parsers::{U32, Byte, DArray};
+use ledger_parser_combinators::forward_parser::{ForwardParser, OOB};
+use ledger_parser_combinators::endianness::Endianness;
+
+// Define the APDU-handling parsers; clustered together like this to allow us to infer a type for
+// the big enum of global parser states.
+
+def_parsers!{ mk_parsers Parsers ParserTag {
+    GetAddressParser = fa::FinalAction {
+        sub: DArray::<_,_,10>(Byte, U32::< { Endianness::Little } >),
+        f: | path | {
+            let mut raw_key = [0u8; 32];
+            match nanos_sdk::ecc::bip32_derive(CurvesId::Secp256k1, &path[..], &mut raw_key) {
+                Ok(_) => {
+                    let mut rv = ArrayVec::new();
+                    rv.copy_from_slice(&raw_key);
+                    rv
+                }
+                Err(_) => { panic!("Need to be able to reject from here; fix Action so we can"); }
+            }
+        }
+    };
+} }
+
 #[no_mangle]
 extern "C" fn sample_main() {
     let mut comm = io::Comm::new();
+    // let mut states = parser_states!();
+    let mut parsers = mk_parsers();
+
+    // with_parser_state!(parsers);
 
     loop {
         // Draw some 'welcome' screen
@@ -92,7 +194,7 @@ extern "C" fn sample_main() {
         // or an APDU command
         match comm.next_event() {
             io::Event::Button(ButtonEvent::RightButtonRelease) => nanos_sdk::exit_app(0),
-            io::Event::Command(ins) => match handle_apdu(&mut comm, ins) {
+            io::Event::Command(ins) => match handle_apdu(&mut comm, ins, &mut parsers) {
                 Ok(()) => comm.reply_ok(),
                 Err(sw) => comm.reply(sw),
             },
@@ -125,13 +227,40 @@ impl From<u8> for Ins {
 
 use nanos_sdk::io::Reply;
 
-fn handle_apdu(comm: &mut io::Comm, ins: Ins) -> Result<(), Reply> {
+
+
+fn handle_apdu<P: for<'a> FnMut(ParserTag, &'a [u8]) -> RX<'a, ArrayVec<u8, 260> > >(comm: &mut io::Comm, ins: Ins, mut parser: P) -> Result<(), Reply> {
     if comm.rx == 0 {
         return Err(io::StatusWords::NothingReceived.into());
     }
 
+    // Could be made standalone.
+    let mut run_parser_apdu = | tag | -> Result<(), Reply> {
+        let mut cursor = comm.get_data()?;
+
+        loop {
+            match parser(tag, cursor) {
+                Err((Some(OOB::Prompt(_prompt)), new_cursor)) => {
+                    // TODO: Actually do something UI with the prompt here.
+                    cursor=new_cursor;
+                }
+                Err((Some(OOB::Reject), _)) => { let _ = parser(ParserTag::Reset, cursor); break Ok(()) } // Rejection; reset the parser. Possibly send error message to host?
+                // Deliberately no catch-all on the Err((Some case; we'll get error messages if we
+                // add to OOB's out-of-band actions and forget to implement them.
+                Err((None, [])) => { break Ok(()) } // Finished the chunk with no further actions pending
+                Err((None, _)) => { let _ = parser(ParserTag::Reset, cursor); break Ok(()) } // Finished the parse incorrectly; reset and error message.
+                Ok((rv, [])) => {
+                    comm.append(&rv[..]);
+                    break Ok(())
+                } // Finished the chunk and the parse.
+                Ok((_, _)) => { let _ = parser(ParserTag::Reset, cursor); break Ok(()) } // Parse ended before the chunk did; reset.
+            }
+        }
+    };
+
     match ins {
-        Ins::GetPubkey => comm.append(&get_pubkey()?.W),
+        Ins::GetPubkey => { run_parser_apdu(ParserTag::GetAddressParser)? }
+        //{ parser(ParserTag::get_address_parser, comm.get_data()?); } // handle_pubkey_apdu(comm.get_data()?), // comm.append(&get_pubkey()?.W),
         Ins::Sign => {
             let out = sign_ui(comm.get_data()?)?;
             if let Some(o) = out {
