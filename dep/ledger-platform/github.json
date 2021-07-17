@@ -1,8 +1,8 @@
 {
   "owner": "obsidiansystems",
   "repo": "ledger-platform",
-  "branch": "buildRustCrate",
+  "branch": "bump-speculos",
   "private": false,
-  "rev": "7df96f862771455290c7a64b62cee069fe474d8a",
-  "sha256": "12za2nx6h0sl85pn1l1dwiq8lwrcq922w7y6j2mf47nswvyv6kx7"
+  "rev": "9eb4936f7d0d0eea2b5c7a9d3ece18cc4fcdbcb5",
+  "sha256": "1mybk35p0llyrak8ilijinzj53nr39h0r01k5ln497474ai8x5j4"
 }
