@@ -1,8 +1,8 @@
 {
   "owner": "obsidiansystems",
   "repo": "ledger-platform",
-  "branch": "buildRustCrate",
+  "branch": "rust-with-ledger-ropi",
   "private": false,
-  "rev": "7df96f862771455290c7a64b62cee069fe474d8a",
-  "sha256": "12za2nx6h0sl85pn1l1dwiq8lwrcq922w7y6j2mf47nswvyv6kx7"
+  "rev": "ce3463bb00310a14a8a9b1253d9c50851b46c2c7",
+  "sha256": "0z6s3zgg77nwix3y2cydvhkyqi38dk6cin51qzb8kn4dnrkxfzbw"
 }

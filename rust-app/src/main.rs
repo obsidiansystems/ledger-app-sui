@@ -1,21 +1,35 @@
-#![no_std]
-#![no_main]
+#![cfg_attr(target_os="nanos", no_std)]
+#![cfg_attr(target_os="nanos", no_main)]
 
+#[cfg(not(target_os="nanos"))]
+fn main() {
+}
+
+#[cfg(target_os="nanos")]
 mod crypto_helpers;
+#[cfg(target_os="nanos")]
+use crypto_helpers::*;
+#[cfg(target_os="nanos")]
 mod utils;
 
 use core::str::from_utf8;
-use crypto_helpers::*;
+#[cfg(target_os="nanos")]
 use nanos_sdk::buttons::ButtonEvent;
+#[cfg(target_os="nanos")]
 use nanos_sdk::ecc::DerEncodedEcdsaSignature;
+#[cfg(target_os="nanos")]
 use nanos_sdk::io;
+#[cfg(target_os="nanos")]
 use nanos_sdk::io::SyscallError;
+#[cfg(target_os="nanos")]
 use nanos_ui::ui;
 
+#[cfg(target_os="nanos")]
 nanos_sdk::set_panic!(nanos_sdk::exiting_panic);
 
 /// Display public key in two separate
 /// message scrollers
+#[cfg(target_os="nanos")]
 fn show_pubkey() {
     let pubkey = get_pubkey();
     match pubkey {
@@ -37,6 +51,7 @@ fn show_pubkey() {
 
 /// Basic nested menu. Will be subject
 /// to simplifications in the future.
+#[cfg(target_os="nanos")]
 #[allow(clippy::needless_borrow)]
 fn menu_example() {
     loop {
@@ -50,7 +65,7 @@ fn menu_example() {
                 }
             },
             2 => return,
-            3 => nanos_sdk::exit_app(0),
+            3 => nanos_sdk::exit_app(2),
             _ => (),
         }
     }
@@ -59,6 +74,7 @@ fn menu_example() {
 /// This is the UI flow for signing, composed of a scroller
 /// to read the incoming message, a panel that requests user
 /// validation, and an exit message.
+#[cfg(target_os="nanos")]
 fn sign_ui(message: &[u8]) -> Result<Option<DerEncodedEcdsaSignature>, SyscallError> {
     ui::popup("Message review");
 
@@ -80,104 +96,12 @@ fn sign_ui(message: &[u8]) -> Result<Option<DerEncodedEcdsaSignature>, SyscallEr
     }
 }
 
-macro_rules! def_parsers {
-    {$stateset_name:ident $parsers:ident $parser_tags:ident { $($name:ident = $parser:expr; )+}} =>
-    {
-        enum StateSet<$($name),+>{
-            NoState,
-            $($name($name)),+
-        }
-        fn state_init<$($name),+>($(_: $name),+) -> StateSet<$($name),+> { StateSet::NoState }
+#[cfg(target_os="nanos")]
+use rust_app::{mk_parsers, ParserTag, RX};
+use ledger_parser_combinators::forward_parser::OOB;
 
-        type RX<'a, R> = Result<(R, &'a [u8]), (Option<OOB>, &'a [u8] )>;
-
-        #[derive(Copy, Clone)]
-        enum $parser_tags {
-            Reset,
-            $($name),+
-        }
-
-        use arrayvec::ArrayVec;
-
-        fn $stateset_name() -> impl for<'a> FnMut($parser_tags, &'a [u8]) -> RX<'a, ArrayVec<u8, 260> > {
-            $(#[allow(non_snake_case)] let $name = $parser;)+
-            let mut state_enum = state_init($($name.init_method()),+);
-
-            move |selector, chunk| {
-                match selector {
-                    $parser_tags::Reset => {
-                        state_enum = StateSet::NoState;
-                        Err((None, chunk))
-                    }
-                    $($parser_tags::$name => {
-                        match state_enum {
-                            StateSet::$name(_) => { }
-                            _ => state_enum = StateSet::$name($name.init_method())
-                        }
-                        match state_enum {
-                            StateSet::$name(ref mut a) => {
-                                $name.parse(a, chunk)
-                            }
-                            _ => { panic!("Unreachable"); }
-                        }
-                    })+
-                }
-            }
-        }
-    }
-}
-
-// Fiddly; this one's basically just fmap rather than the more monadic-like Action.
-// Relevant because it's inconvenient with current Action to return a non-copy item like ArrayVec.
-mod fa {
-    use ledger_parser_combinators::core_parsers::RV;
-    use ledger_parser_combinators::forward_parser::{ForwardParser, OOB};
-    type RX<'a, R> = Result<(R, &'a [u8]), (Option<OOB>, &'a [u8] )>;
-    type RR<'a, I> = RX<'a, <I as RV>::R>;
-
-    pub struct FinalAction<I : RV, O, F: Fn(&I::R) -> O> {
-        pub sub: I,
-        pub f: F
-    }
-    impl<I : RV, O, F: Fn(&I::R) -> O> RV for FinalAction<I,O,F> {
-        type R = O;
-    }
-    impl<I : RV + ForwardParser, O, F: Fn(&I::R) -> O> ForwardParser for FinalAction<I, O, F> {
-        type State = I::State;
-        fn init() -> Self::State { I::init() }
-        fn parse<'a, 'b>(&self, state: &'b mut Self::State, chunk: &'a [u8]) -> RR<'a, Self>{
-            let (ret, new_chunk) = self.sub.parse(state, chunk)?;
-            Ok(((self.f)(&ret), new_chunk))
-        }
-    }
-}
-
-use nanos_sdk::ecc::{CurvesId};
-
-use ledger_parser_combinators::core_parsers::{U32, Byte, DArray};
-use ledger_parser_combinators::forward_parser::{ForwardParser, OOB};
-use ledger_parser_combinators::endianness::Endianness;
-
-// Define the APDU-handling parsers; clustered together like this to allow us to infer a type for
-// the big enum of global parser states.
-
-def_parsers!{ mk_parsers Parsers ParserTag {
-    GetAddressParser = fa::FinalAction {
-        sub: DArray::<_,_,10>(Byte, U32::< { Endianness::Little } >),
-        f: | path | {
-            let mut raw_key = [0u8; 32];
-            match nanos_sdk::ecc::bip32_derive(CurvesId::Secp256k1, &path[..], &mut raw_key) {
-                Ok(_) => {
-                    let mut rv = ArrayVec::new();
-                    rv.copy_from_slice(&raw_key);
-                    rv
-                }
-                Err(_) => { panic!("Need to be able to reject from here; fix Action so we can"); }
-            }
-        }
-    };
-} }
-
+#[cfg(target_os="nanos")]
+#[cfg(not(test))]
 #[no_mangle]
 extern "C" fn sample_main() {
     let mut comm = io::Comm::new();
@@ -225,10 +149,12 @@ impl From<u8> for Ins {
     }
 }
 
+#[cfg(target_os="nanos")]
 use nanos_sdk::io::Reply;
+// use nanos_sdk::debug_print;
+use arrayvec::ArrayVec;
 
-
-
+#[cfg(target_os="nanos")]
 fn handle_apdu<P: for<'a> FnMut(ParserTag, &'a [u8]) -> RX<'a, ArrayVec<u8, 260> > >(comm: &mut io::Comm, ins: Ins, mut parser: P) -> Result<(), Reply> {
     if comm.rx == 0 {
         return Err(io::StatusWords::NothingReceived.into());
@@ -236,10 +162,17 @@ fn handle_apdu<P: for<'a> FnMut(ParserTag, &'a [u8]) -> RX<'a, ArrayVec<u8, 260>
 
     // Could be made standalone.
     let mut run_parser_apdu = | tag | -> Result<(), Reply> {
+        //debug_print("Starting the parser\n");
         let mut cursor = comm.get_data()?;
+        
+        //debug_print(core::str::from_utf8(&utils::to_hex(cursor).unwrap()).unwrap());
+        //debug_print("\n");
 
         loop {
-            match parser(tag, cursor) {
+            //debug_print("Entering the parser\n");
+            let parse_rv = parser(tag, cursor);
+            //debug_print("Passed the parser\n");
+            match parse_rv {
                 Err((Some(OOB::Prompt(_prompt)), new_cursor)) => {
                     // TODO: Actually do something UI with the prompt here.
                     cursor=new_cursor;
