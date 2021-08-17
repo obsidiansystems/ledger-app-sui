@@ -162,19 +162,18 @@ fn handle_apdu<P: for<'a> FnMut(ParserTag, &'a [u8]) -> RX<'a, ArrayVec<u8, 260>
 
     // Could be made standalone.
     let mut run_parser_apdu = | tag | -> Result<(), Reply> {
-        //debug_print("Starting the parser\n");
         let mut cursor = comm.get_data()?;
-        
-        //debug_print(core::str::from_utf8(&utils::to_hex(cursor).unwrap()).unwrap());
-        //debug_print("\n");
 
         loop {
             //debug_print("Entering the parser\n");
             let parse_rv = parser(tag, cursor);
             //debug_print("Passed the parser\n");
             match parse_rv {
-                Err((Some(OOB::Prompt(_prompt)), new_cursor)) => {
+                Err((Some(OOB::Prompt(prompt)), new_cursor)) => {
                     // TODO: Actually do something UI with the prompt here.
+                    let mut pmpt = ArrayVec::<&str, 2>::new();
+                    pmpt.extend(prompt.into_iter().map(|a| a.as_str()));
+                    ui::MessageValidator::new(&pmpt, &[], &[]).ask();
                     cursor=new_cursor;
                 }
                 Err((Some(OOB::Reject), _)) => { let _ = parser(ParserTag::Reset, cursor); break Ok(()) } // Rejection; reset the parser. Possibly send error message to host?
@@ -184,6 +183,8 @@ fn handle_apdu<P: for<'a> FnMut(ParserTag, &'a [u8]) -> RX<'a, ArrayVec<u8, 260>
                 Err((None, _)) => { let _ = parser(ParserTag::Reset, cursor); break Ok(()) } // Finished the parse incorrectly; reset and error message.
                 Ok((rv, [])) => {
                     comm.append(&rv[..]);
+                    // Parse finished; reset.
+                    let _ = parser(ParserTag::Reset, b"");
                     break Ok(())
                 } // Finished the chunk and the parse.
                 Ok((_, _)) => { let _ = parser(ParserTag::Reset, cursor); break Ok(()) } // Parse ended before the chunk did; reset.

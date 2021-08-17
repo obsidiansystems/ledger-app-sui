@@ -86,9 +86,71 @@ mod tests {
                 data: payload
             };*/
 
-            let res = client.apdu_post(Apdu::new(encode(apdu))).await;
+            use tokio::task;
+            let res_async = client.apdu_post(Apdu::new(encode(apdu)));
+
+            let btns = async {
+                sleep(Duration::from_millis(2000)).await;
+                client.button_button_post(ButtonName::Right, Button { action: Action::PressAndRelease, delay: Some(0.5) }).await;
+                client.button_button_post(ButtonName::Right, Button { action: Action::PressAndRelease, delay: Some(0.5) }).await;
+                client.button_button_post(ButtonName::Both, Button { action: Action::PressAndRelease, delay: Some(0.5) }).await;
+            };
+            let (res, _) = futures::join!(res_async, btns);
 
             assert_eq!(res.ok(), Some(Apdu { data: "b0f212dd8651a02ab7e2ea38a718a2547b04efb4e31c9a42d5676bf41378d9e39000".to_string() }));
+            //println!("{:?}\n", client.events_get(None).await);
+            //assert_eq!(1,2);
+            //assert_eq!(client.events_get(None).await.ok().unwrap(), "");
+            client.events_delete().await;
+
+        }).await;
+        ()
+    }
+    
+    #[test]
+    async fn test_provide_pubkey_twice() {
+        with_speculos(|client| async move {
+            let payload = vec!(0x01,0x00,0x00,0x00,0x00);
+            let mut apdu = vec!(0x00, 0x02, payload.len() as u8, 0x00);
+            apdu.extend(payload);
+            /*let provide_pubkey = APDUCommand {
+                cla: 0,
+                ins: 2,
+                p1: payload.len() as u8,
+                p2: 0,
+                data: payload
+            };*/
+
+            let res_async = client.apdu_post(Apdu::new(encode(apdu)));
+
+            let btns = async {
+                sleep(Duration::from_millis(2000)).await;
+                client.button_button_post(ButtonName::Right, Button { action: Action::PressAndRelease, delay: Some(0.5) }).await;
+                client.button_button_post(ButtonName::Right, Button { action: Action::PressAndRelease, delay: Some(0.5) }).await;
+                client.button_button_post(ButtonName::Both, Button { action: Action::PressAndRelease, delay: Some(0.5) }).await;
+            };
+            let (res, _) = futures::join!(res_async, btns);
+            
+            assert_eq!(res.ok(), Some(Apdu { data: "b0f212dd8651a02ab7e2ea38a718a2547b04efb4e31c9a42d5676bf41378d9e39000".to_string() }));
+
+            let payload_2 = vec!(0x01,0x00,0x00,0x00,0x00);
+            let mut apdu_2 = vec!(0x00, 0x02, payload_2.len() as u8, 0x00);
+            apdu_2.extend(payload_2);
+            let res_async_2 = client.apdu_post(Apdu::new(encode(apdu_2)));
+
+            let btns = async {
+                sleep(Duration::from_millis(2000)).await;
+                client.button_button_post(ButtonName::Right, Button { action: Action::PressAndRelease, delay: Some(0.5) }).await;
+                client.button_button_post(ButtonName::Right, Button { action: Action::PressAndRelease, delay: Some(0.5) }).await;
+                client.button_button_post(ButtonName::Both, Button { action: Action::PressAndRelease, delay: Some(0.5) }).await;
+            };
+            let (res_2, _) = futures::join!(res_async_2, btns);
+
+            assert_eq!(res_2.ok(), Some(Apdu { data: "b0f212dd8651a02ab7e2ea38a718a2547b04efb4e31c9a42d5676bf41378d9e39000".to_string() }));
+            //println!("{:?}\n", client.events_get(None).await);
+            //assert_eq!(1,2);
+            //assert_eq!(client.events_get(None).await.ok().unwrap(), "");
+            client.events_delete().await;
 
         }).await;
         ()

@@ -87,7 +87,7 @@ macro_rules! def_parsers {
     {}
 }
 
-use ledger_parser_combinators::core_parsers::{U32, Byte, DArray};
+use ledger_parser_combinators::core_parsers::{U32, Byte, DArray, Action};
 use ledger_parser_combinators::forward_parser::{ForwardParser, OOB};
 use ledger_parser_combinators::endianness::Endianness;
 
@@ -143,7 +143,7 @@ impl core::fmt::Write for DBG {
 }
 
 def_parsers!{ mk_parsers ParserTag {
-    GetAddressParser = fa::FinalAction {
+    GetAddressParser = Action {
         sub: DArray::<_,_,10>(Byte, U32::< { Endianness::Little } >),
         f: | path | {
             let mut raw_key = [0u8; 32];
@@ -152,7 +152,10 @@ def_parsers!{ mk_parsers ParserTag {
                 Ok(_) => {
                     let mut rv = ArrayVec::<u8, 260>::new();
                     rv.try_extend_from_slice(&raw_key);
-                    rv
+                    let mut pmpt = [ArrayString::new(), ArrayString::new()];
+                    write!(pmpt[0], "Provide Public Key");
+                    write!(pmpt[1], "{:?}", path);
+                    (rv, Some(OOB::Prompt(pmpt)))
                 }
                 Err(_) => { panic!("Need to be able to reject from here; fix Action so we can"); }
             }
