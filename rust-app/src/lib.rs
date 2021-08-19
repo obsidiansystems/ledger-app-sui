@@ -1,4 +1,5 @@
 #![no_std]
+#![allow(incomplete_features)]
 #![feature(const_generics)]
 
 #![cfg_attr(all(target_os="nanos", test), no_main)]
@@ -14,8 +15,9 @@ extern "C" fn sample_main() {
     exit_app(0);
 }
 
+mod crypto_helpers;
 
-
+#[cfg(all(target_os="nanos", test))]
 use core::panic::PanicInfo;
 /// In case of runtime problems, return an internal error and exit the app
 #[cfg(all(target_os="nanos", test))]
@@ -29,13 +31,13 @@ pub fn exiting_panic(info: &PanicInfo) -> ! {
 }
 
 /// Custom type used to implement tests
-#[cfg(all(target_os = "nanos", test))]
-use nanos_sdk::TestType;
+//#[cfg(all(target_os = "nanos", test))]
+//use nanos_sdk::TestType;
 
 #[cfg(target_os="nanos")]
 #[macro_export]
 macro_rules! def_parsers {
-    {$stateset_name:ident $parser_tags:ident { $($name:ident = $parser:expr; )+}} =>
+    {$stateset_name:ident $parser_tags:ident { $($name:ident : $format:ty = $parser:expr; )+}} =>
     {
         enum StateSet<$($name),+>{
             NoState,
@@ -53,9 +55,16 @@ macro_rules! def_parsers {
 
         use arrayvec::ArrayVec;
 
+        pub fn init_interp_parser<Fmt, P : InterpParser<Fmt>>(p: &P) -> <P as InterpParser<Fmt>>::State {
+            <P as InterpParser<Fmt> >::init(p)
+        }
+        pub fn call_interp_parser<'a, 'b, Fmt, P : InterpParser<Fmt>>(p: &P, s: &'b mut <P as InterpParser<Fmt>>::State, c: &'a [u8]) -> RX<'a, <P as InterpParser<Fmt>>::Returning> {
+            <P as InterpParser<Fmt> >::parse(p, s, c)
+        }
+
         pub fn $stateset_name() -> impl for<'a> FnMut($parser_tags, &'a [u8]) -> RX<'a, ArrayVec<u8, 260> > {
             $(#[allow(non_snake_case)] let $name = $parser;)+
-            let mut state_enum = state_init($($name.init_method()),+);
+            let mut state_enum = state_init($(init_interp_parser::<$format,_>(&$name)),+); // This might be costing memory.
 
             move |selector, chunk| {
                 match selector {
@@ -66,11 +75,11 @@ macro_rules! def_parsers {
                     $($parser_tags::$name => {
                         match state_enum {
                             StateSet::$name(_) => { }
-                            _ => state_enum = StateSet::$name($name.init_method())
+                            _ => state_enum = StateSet::$name(init_interp_parser::<$format,_>(&$name))
                         }
                         match state_enum {
                             StateSet::$name(ref mut a) => {
-                                $name.parse(a, chunk)
+                                call_interp_parser::<$format, _>(&$name, a, chunk)
                             }
                             _ => { panic!("Unreachable"); }
                         }
@@ -87,15 +96,16 @@ macro_rules! def_parsers {
     {}
 }
 
-use ledger_parser_combinators::core_parsers::{U32, Byte, DArray, Action};
-use ledger_parser_combinators::forward_parser::{ForwardParser, OOB};
+use ledger_parser_combinators::core_parsers::{U32, Byte, DArray};
+use ledger_parser_combinators::interp_parser::{InterpParser, OOB};
 use ledger_parser_combinators::endianness::Endianness;
+
 
 // Fiddly; this one's basically just fmap rather than the more monadic-like Action.
 // Relevant because it's inconvenient with current Action to return a non-copy item like ArrayVec.
-mod fa {
+/*mod fa {
     use ledger_parser_combinators::core_parsers::RV;
-    use ledger_parser_combinators::forward_parser::{ForwardParser, OOB};
+    use ledger_parser_combinators::interp_parser::{InterpParser, OOB};
     type RX<'a, R> = Result<(R, &'a [u8]), (Option<OOB>, &'a [u8] )>;
     type RR<'a, I> = RX<'a, <I as RV>::R>;
 
@@ -114,7 +124,7 @@ mod fa {
             Ok(((self.f)(&ret), new_chunk))
         }
     }
-}
+}*/
 
 // Define the APDU-handling parsers; clustered together like this to allow us to infer a type for
 // the big enum of global parser states.
@@ -122,13 +132,13 @@ mod fa {
 #[cfg(all(target_os = "nanos", test))]
 use nanos_sdk::debug_print;
 #[cfg(not(all(target_os = "nanos", test)))]
-fn debug_print(s: &str) {
+fn debug_print(_s: &str) {
     
 }
 
 struct DBG;
 use core;
-use core::fmt;
+// use core::fmt;
 use core::fmt::Write;
 use arrayvec::ArrayString;
 impl core::fmt::Write for DBG {
@@ -142,16 +152,25 @@ impl core::fmt::Write for DBG {
     }
 }
 
+use ledger_parser_combinators::interp_parser::{ActionInterp, DefaultInterp, SubInterp, ObserveBytes, DropInterp};
+use blake2::{Blake2s, Digest};
+
+// Types defining the APDU payloads.
+
+// Payload for a public key request
+type Bip32Key = DArray<Byte, U32::< { Endianness::Little } >, 10>;
+
+// Payload for a signature request, content-agnostic.
+type SignParameters = (DArray<U32::< { Endianness::Little }>, Byte, 12000>, Bip32Key);
+
 def_parsers!{ mk_parsers ParserTag {
-    GetAddressParser = Action {
-        sub: DArray::<_,_,10>(Byte, U32::< { Endianness::Little } >),
-        f: | path | {
+    GetAddressParser : Bip32Key = ActionInterp(
+        | path : &ArrayVec<u32, 10> | {
             let mut raw_key = [0u8; 32];
-            use nanos_sdk::ecc::{CurvesId};
-            match nanos_sdk::ecc::bip32_derive(CurvesId::Secp256k1, &path[..], &mut raw_key) {
-                Ok(_) => {
+            match crypto_helpers::get_pubkey(path) {
+                Ok(key) => {
                     let mut rv = ArrayVec::<u8, 260>::new();
-                    rv.try_extend_from_slice(&raw_key);
+                    rv.try_extend_from_slice(&key.W[..]);
                     let mut pmpt = [ArrayString::new(), ArrayString::new()];
                     write!(pmpt[0], "Provide Public Key");
                     write!(pmpt[1], "{:?}", path);
@@ -159,22 +178,67 @@ def_parsers!{ mk_parsers ParserTag {
                 }
                 Err(_) => { panic!("Need to be able to reject from here; fix Action so we can"); }
             }
-        }
-    };
-} }
+
+        }, SubInterp(DefaultInterp));
+
+    SignParser : SignParameters = 
+        ActionInterp(
+            | (hash, key) : &(ArrayVec<u8, 260>, _) | {
+                // By the time we get here, we've approved and just need to do the signature.
+                match crypto_helpers::detecdsa_sign(hash, key) {
+                    Some((sig, len)) => (ArrayVec::<u8, 260>::new(), None),
+                    None => { panic!("Fix reject") }
+                }
+            },
+            (
+            ActionInterp(
+                | ( hash, _ ) : &( Blake2s, ArrayVec<(),12000> ) | {
+                    let the_hash = hash.clone().finalize();
+                    let mut pmpt = [ArrayString::new(), ArrayString::new()];
+                    write!(pmpt[0], "Sign Hash?");
+                    write!(pmpt[1], "{:X}", the_hash);
+                    // (the_hash[..], Some(OOB::Prompt(pmpt)))
+                    (ArrayVec::<u8, 260>::new(), Some(OOB::Prompt(pmpt)))
+
+                },
+                ObserveBytes( Blake2s::new(), 
+                    | hash: &mut Blake2s, bytes : &[u8] | {
+                        hash.update(bytes);
+                    },
+                    SubInterp(DropInterp)
+                )
+            ),
+            ActionInterp(
+                | path : &ArrayVec<u32, 10> | {
+                    use crypto_helpers::get_private_key;
+                    match get_private_key(path) {
+                        Ok(key) => {
+                            let mut pmpt = [ArrayString::new(), ArrayString::new()];
+                            write!(pmpt[0], "With key at path");
+                            write!(pmpt[1], "{:?}", path);
+                            (key, Some(OOB::Prompt(pmpt)))
+                        }
+                        Err(_) => { panic!("Reject here instead"); }
+                    }
+                },
+                SubInterp(DefaultInterp)
+            )));
+    }
+}
 
 
-#[cfg(all(target_os="nanos", test))]
+#[cfg(all(target_os="nanos", test, noodle))]
 mod tests {
     use ledger_parser_combinators::core_parsers::{U32, Byte, DArray, Array};
-    use ledger_parser_combinators::forward_parser::{ForwardParser, OOB};
+    // use ledger_parser_combinators::forward_parser::{ForwardParser, OOB};
     use ledger_parser_combinators::endianness::Endianness;
     use super::TestType;
     use testmacro::test_item as test;
     use nanos_sdk::{debug_print, assert_eq_err};
     use arrayvec::ArrayString;
-    use core::fmt::write;
+//    use core::fmt::write;
 
+    /*
 #[test]
     fn test_byte() {
     let mut parser = Byte;
@@ -235,5 +299,5 @@ fn test_getaddress() {
     debug_print("Continued\n");
     // parsers(super::ParserTag::GetAddressParser, &data);
 }
+*/
 }
-

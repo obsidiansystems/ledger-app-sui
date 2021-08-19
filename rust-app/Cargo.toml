@@ -8,6 +8,7 @@ autobins = false
 [dependencies]
 ledger-parser-combinators = { git = "https://github.com/obsidiansystems/ledger-parser-combinators", branch = "working-in-speculos"}
 arrayvec = { version = "0.7.1", default-features = false }
+blake2 = { version = "0.9.1", default-features = false }
 
 [features]
 speculos = ["nanos_sdk/speculos"]
@@ -24,7 +25,6 @@ testmacro = { git = "https://github.com/yhql/testmacro"}
 
 [target.x86_64-unknown-linux-gnu.dev-dependencies]
 ledger-apdu = { git = "https://github.com/zondax/ledger-rs.git" }
-transport-speculos = { path = "transport-speculos" }
 speculos-api = { path = "speculos-api" }
 tokio = { version = "1", features = ["full"] } # features = ["full"] }
 tokio-retry = "0.3.0"
@@ -32,6 +32,7 @@ hyper = { version = "0.14.10", features = ["client", "http1", "http2", "tcp"] }
 hex = "0.4.3"
 log = "0.4.14"
 async-std = { version = "1.9.0", features = ["attributes", "unstable"] }
+futures = "0.3.16"
 
 [[bin]]
 name = "rust-app"

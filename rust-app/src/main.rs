@@ -31,7 +31,7 @@ nanos_sdk::set_panic!(nanos_sdk::exiting_panic);
 /// message scrollers
 #[cfg(target_os="nanos")]
 fn show_pubkey() {
-    let pubkey = get_pubkey();
+    let pubkey = get_pubkey(&BIP32_PATH);
     match pubkey {
         Ok(pk) => {
             {
@@ -86,7 +86,7 @@ fn sign_ui(message: &[u8]) -> Result<Option<DerEncodedEcdsaSignature>, SyscallEr
     }
 
     if ui::Validator::new("Sign ?").ask() {
-        let k = get_private_key()?;
+        let k = get_private_key(&BIP32_PATH)?;
         let (sig, _sig_len) = detecdsa_sign(message, &k).unwrap();
         ui::popup("Done !");
         Ok(Some(sig))
@@ -98,7 +98,7 @@ fn sign_ui(message: &[u8]) -> Result<Option<DerEncodedEcdsaSignature>, SyscallEr
 
 #[cfg(target_os="nanos")]
 use rust_app::{mk_parsers, ParserTag, RX};
-use ledger_parser_combinators::forward_parser::OOB;
+use ledger_parser_combinators::interp_parser::OOB;
 
 #[cfg(target_os="nanos")]
 #[cfg(not(test))]
