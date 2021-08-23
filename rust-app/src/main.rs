@@ -194,13 +194,8 @@ fn handle_apdu<P: for<'a> FnMut(ParserTag, &'a [u8]) -> RX<'a, ArrayVec<u8, 260>
 
     match ins {
         Ins::GetPubkey => { run_parser_apdu(ParserTag::GetAddressParser)? }
-        //{ parser(ParserTag::get_address_parser, comm.get_data()?); } // handle_pubkey_apdu(comm.get_data()?), // comm.append(&get_pubkey()?.W),
-        Ins::Sign => {
-            let out = sign_ui(comm.get_data()?)?;
-            if let Some(o) = out {
-                comm.append(&o)
-            }
-        }
+        Ins::Sign => { run_parser_apdu(ParserTag::SignParser)? }
+        
         Ins::Menu => menu_example(),
         Ins::ShowPrivateKey => comm.append(&bip32_derive_secp256k1(&BIP32_PATH)?),
         Ins::Exit => nanos_sdk::exit_app(0),
