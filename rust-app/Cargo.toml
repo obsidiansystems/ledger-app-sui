@@ -8,7 +8,6 @@ autobins = false
 [dependencies]
 ledger-parser-combinators = { git = "https://github.com/obsidiansystems/ledger-parser-combinators", branch = "working-in-speculos"}
 arrayvec = { version = "0.7.1", default-features = false }
-blake2 = { version = "0.9.1", default-features = false }
 
 [features]
 speculos = ["nanos_sdk/speculos"]

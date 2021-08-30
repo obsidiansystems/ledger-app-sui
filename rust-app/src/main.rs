@@ -6,23 +6,26 @@ fn main() {
 }
 
 #[cfg(target_os="nanos")]
-mod crypto_helpers;
+use crate::crypto_helpers::*;
 #[cfg(target_os="nanos")]
-use crypto_helpers::*;
+use crate::interface::*;
+#[cfg(target_os="nanos")]
+use crate::implementation::*;
 #[cfg(target_os="nanos")]
 mod utils;
 
+#[cfg(target_os="nanos")]
 use core::str::from_utf8;
 #[cfg(target_os="nanos")]
 use nanos_sdk::buttons::ButtonEvent;
 #[cfg(target_os="nanos")]
-use nanos_sdk::ecc::DerEncodedEcdsaSignature;
-#[cfg(target_os="nanos")]
 use nanos_sdk::io;
 #[cfg(target_os="nanos")]
-use nanos_sdk::io::SyscallError;
-#[cfg(target_os="nanos")]
 use nanos_ui::ui;
+#[cfg(target_os="nanos")]
+use rust_app::DBG;
+#[cfg(target_os="nanos")]
+use core::fmt::Write;
 
 #[cfg(target_os="nanos")]
 nanos_sdk::set_panic!(nanos_sdk::exiting_panic);
@@ -71,33 +74,9 @@ fn menu_example() {
     }
 }
 
-/// This is the UI flow for signing, composed of a scroller
-/// to read the incoming message, a panel that requests user
-/// validation, and an exit message.
 #[cfg(target_os="nanos")]
-fn sign_ui(message: &[u8]) -> Result<Option<DerEncodedEcdsaSignature>, SyscallError> {
-    ui::popup("Message review");
-
-    {
-        let hex = utils::to_hex(message).map_err(|_| SyscallError::Overflow)?;
-        let m = from_utf8(&hex).map_err(|_| SyscallError::InvalidParameter)?;
-
-        ui::MessageScroller::new(m).event_loop();
-    }
-
-    if ui::Validator::new("Sign ?").ask() {
-        let k = get_private_key(&BIP32_PATH)?;
-        let (sig, _sig_len) = detecdsa_sign(message, &k).unwrap();
-        ui::popup("Done !");
-        Ok(Some(sig))
-    } else {
-        ui::popup("Cancelled");
-        Ok(None)
-    }
-}
-
+use rust_app::*;
 #[cfg(target_os="nanos")]
-use rust_app::{mk_parsers, ParserTag, RX};
 use ledger_parser_combinators::interp_parser::OOB;
 
 #[cfg(target_os="nanos")]
@@ -106,8 +85,11 @@ use ledger_parser_combinators::interp_parser::OOB;
 extern "C" fn sample_main() {
     let mut comm = io::Comm::new();
     // let mut states = parser_states!();
-    let mut parsers = mk_parsers();
+    // let mut parsers = mk_parsers();
+    let mut states = ParsersState::NoState;
 
+    use core::mem::size_of_val;
+    write!(DBG, "State struct uses {} bytes\n", size_of_val(&states)).unwrap_or(());
     // with_parser_state!(parsers);
 
     loop {
@@ -118,7 +100,7 @@ extern "C" fn sample_main() {
         // or an APDU command
         match comm.next_event() {
             io::Event::Button(ButtonEvent::RightButtonRelease) => nanos_sdk::exit_app(0),
-            io::Event::Command(ins) => match handle_apdu(&mut comm, ins, &mut parsers) {
+            io::Event::Command(ins) => match handle_apdu(&mut comm, ins, &mut states) {
                 Ok(()) => comm.reply_ok(),
                 Err(sw) => comm.reply(sw),
             },
@@ -151,54 +133,55 @@ impl From<u8> for Ins {
 
 #[cfg(target_os="nanos")]
 use nanos_sdk::io::Reply;
-// use nanos_sdk::debug_print;
+#[cfg(target_os="nanos")]
+use nanos_sdk::debug_print;
+#[cfg(target_os="nanos")]
 use arrayvec::ArrayVec;
 
 #[cfg(target_os="nanos")]
-fn handle_apdu<P: for<'a> FnMut(ParserTag, &'a [u8]) -> RX<'a, ArrayVec<u8, 260> > >(comm: &mut io::Comm, ins: Ins, mut parser: P) -> Result<(), Reply> {
+use ledger_parser_combinators::interp_parser::InterpParser;
+#[cfg(target_os="nanos")]
+fn run_parser_apdu<P : InterpParser<A, Returning = ArrayVec<u8, 260> >, A>(states: &mut ParsersState, get_state: fn(&mut ParsersState) -> &mut <P as InterpParser<A>>::State, parser: &P, comm: &mut io::Comm ) -> Result<(), Reply> {
+    let cursor = comm.get_data()?;
+
+    loop {
+        debug_print("Entering the parser\n");
+        let parse_rv = <P as InterpParser<A>>::parse(parser, get_state(states), cursor);
+        debug_print("Passed the parser\n");
+        match parse_rv {
+            Err((Some(OOB::Reject), _)) => { *states = ParsersState::NoState; break Ok(()) } // Rejection; reset the parser. Possibly send error message to host?
+            // Deliberately no catch-all on the Err((Some case; we'll get error messages if we
+            // add to OOB's out-of-band actions and forget to implement them.
+            Err((None, [])) => { break Ok(()) } // Finished the chunk with no further actions pending
+            Err((None, _)) => { *states=ParsersState::NoState; break Ok(()) } // Finished the parse incorrectly; reset and error message.
+            Ok((rv, [])) => {
+                comm.append(&rv[..]);
+                // Parse finished; reset.
+                *states = ParsersState::NoState;
+                break Ok(())
+            } // Finished the chunk and the parse.
+            Ok((_, _)) => { *states = ParsersState::NoState; break Ok(()) } // Parse ended before the chunk did; reset.
+                
+        }
+    }
+}
+
+#[cfg(target_os="nanos")]
+// fn handle_apdu<P: for<'a> FnMut(ParserTag, &'a [u8]) -> RX<'a, ArrayVec<u8, 260> > >(comm: &mut io::Comm, ins: Ins, parser: &mut P) -> Result<(), Reply> {
+fn handle_apdu(comm: &mut io::Comm, ins: Ins, parser: &mut ParsersState) -> Result<(), Reply> {
     if comm.rx == 0 {
         return Err(io::StatusWords::NothingReceived.into());
     }
 
-    // Could be made standalone.
-    let mut run_parser_apdu = | tag | -> Result<(), Reply> {
-        let mut cursor = comm.get_data()?;
-
-        loop {
-            //debug_print("Entering the parser\n");
-            let parse_rv = parser(tag, cursor);
-            //debug_print("Passed the parser\n");
-            match parse_rv {
-                Err((Some(OOB::Prompt(prompt)), new_cursor)) => {
-                    // TODO: Actually do something UI with the prompt here.
-                    let mut pmpt = ArrayVec::<&str, 2>::new();
-                    pmpt.extend(prompt.into_iter().map(|a| a.as_str()));
-                    ui::MessageValidator::new(&pmpt, &[], &[]).ask();
-                    cursor=new_cursor;
-                }
-                Err((Some(OOB::Reject), _)) => { let _ = parser(ParserTag::Reset, cursor); break Ok(()) } // Rejection; reset the parser. Possibly send error message to host?
-                // Deliberately no catch-all on the Err((Some case; we'll get error messages if we
-                // add to OOB's out-of-band actions and forget to implement them.
-                Err((None, [])) => { break Ok(()) } // Finished the chunk with no further actions pending
-                Err((None, _)) => { let _ = parser(ParserTag::Reset, cursor); break Ok(()) } // Finished the parse incorrectly; reset and error message.
-                Ok((rv, [])) => {
-                    comm.append(&rv[..]);
-                    // Parse finished; reset.
-                    let _ = parser(ParserTag::Reset, b"");
-                    break Ok(())
-                } // Finished the chunk and the parse.
-                Ok((_, _)) => { let _ = parser(ParserTag::Reset, cursor); break Ok(()) } // Parse ended before the chunk did; reset.
-            }
-        }
-    };
 
     match ins {
-        Ins::GetPubkey => { run_parser_apdu(ParserTag::GetAddressParser)? }
-        Ins::Sign => { run_parser_apdu(ParserTag::SignParser)? }
+        Ins::GetPubkey => { run_parser_apdu::<_, Bip32Key>(parser, get_get_address_state, &GET_ADDRESS_IMPL, comm)? }
+        Ins::Sign => { run_parser_apdu::<_, SignParameters>(parser, get_sign_state, &SIGN_IMPL, comm)? }
         
         Ins::Menu => menu_example(),
         Ins::ShowPrivateKey => comm.append(&bip32_derive_secp256k1(&BIP32_PATH)?),
         Ins::Exit => nanos_sdk::exit_app(0),
+        // _ => nanos_sdk::exit_app(0)
     }
     Ok(())
 }

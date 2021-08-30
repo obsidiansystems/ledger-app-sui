@@ -25,3 +25,5 @@ br = "build --release"
 stackcheck = "stack-sizes --release --bin rust-app --target=thumbv6m-none-eabi"
 unit = "test --features=speculos -Z build-std=core --lib"
 integ = "test --target=x86_64-unknown-linux-gnu --test=integration -- --test-threads 1"
+integ-build = "test --target=x86_64-unknown-linux-gnu --test=integration --no-run"
+
