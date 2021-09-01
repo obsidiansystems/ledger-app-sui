@@ -145,23 +145,28 @@ fn run_parser_apdu<P : InterpParser<A, Returning = ArrayVec<u8, 260> >, A>(state
     let cursor = comm.get_data()?;
 
     loop {
-        debug_print("Entering the parser\n");
+        write!(DBG, "Parsing APDU input: {:?}\n", cursor);
         let parse_rv = <P as InterpParser<A>>::parse(parser, get_state(states), cursor);
-        debug_print("Passed the parser\n");
+        write!(DBG, "Parser result: {:?}\n", parse_rv);
         match parse_rv {
-            Err((Some(OOB::Reject), _)) => { *states = ParsersState::NoState; break Ok(()) } // Rejection; reset the parser. Possibly send error message to host?
+            // Explicit rejection; reset the parser. Possibly send error message to host?
+            Err((Some(OOB::Reject), _)) => { *states = ParsersState::NoState; break Err(io::StatusWords::Unknown.into()) }
             // Deliberately no catch-all on the Err((Some case; we'll get error messages if we
             // add to OOB's out-of-band actions and forget to implement them.
-            Err((None, [])) => { break Ok(()) } // Finished the chunk with no further actions pending
-            Err((None, _)) => { *states=ParsersState::NoState; break Ok(()) } // Finished the parse incorrectly; reset and error message.
+            //
+            // Finished the chunk with no further actions pending, but not done.
+            Err((None, [])) => { break Ok(()) }
+            // Didn't consume the whole chunk; reset and error message.
+            Err((None, _)) => { *states=ParsersState::NoState; break Err(io::StatusWords::Unknown.into()) }
+            // Consumed the whole chunk and parser finished; send response.
             Ok((rv, [])) => {
                 comm.append(&rv[..]);
                 // Parse finished; reset.
                 *states = ParsersState::NoState;
                 break Ok(())
-            } // Finished the chunk and the parse.
-            Ok((_, _)) => { *states = ParsersState::NoState; break Ok(()) } // Parse ended before the chunk did; reset.
-                
+            }
+            // Parse ended before the chunk did; reset.
+            Ok((_, _)) => { *states = ParsersState::NoState; break Err(io::StatusWords::Unknown.into()) }
         }
     }
 }

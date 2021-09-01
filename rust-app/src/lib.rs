@@ -40,16 +40,13 @@ pub fn exiting_panic(info: &PanicInfo) -> ! {
 //#[cfg(all(target_os = "nanos", test))]
 //use nanos_sdk::TestType;
 
-#[cfg(all(target_os = "nanos"))]
+#[cfg(all(target_os = "nanos", speculos))]
 use nanos_sdk::debug_print;
-#[cfg(not(all(target_os = "nanos")))]
-fn debug_print(_s: &str) {
-    
-}
 
 pub struct DBG;
 use core;
 use arrayvec::ArrayString;
+#[cfg(all(target_os = "nanos", speculos))]
 impl core::fmt::Write for DBG {
     fn write_str(&mut self, s: &str) -> core::fmt::Result {
         // Dunno why the copy is required, might be some pic issue as this is going straight to
@@ -57,6 +54,12 @@ impl core::fmt::Write for DBG {
         let mut qq = ArrayString::<128>::new();
         qq.push_str(s);
         debug_print(qq.as_str());
+        Ok(())
+    }
+}
+#[cfg(all(target_os = "nanos", not(speculos)))]
+impl core::fmt::Write for DBG {
+    fn write_str(&mut self, _s: &str) -> core::fmt::Result {
         Ok(())
     }
 }
