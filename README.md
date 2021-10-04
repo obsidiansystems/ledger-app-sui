@@ -1,8 +1,11 @@
-# Rust Nano S Application 
+# Rust Nano S Application
 
 A simple application that receives a message, displays it, and requests user approval to sign. Can also display an example menu.
 
 ## Building
+
+This application has been packaged up with [Nix](https://nixos.org/).
+If you are on Linux and have Nix installed, builds and development environments are one command away.
 
 ### Prerequisites
 
