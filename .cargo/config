@@ -14,7 +14,7 @@ rustflags = [
   "--cfg", "target_os=\"nanos\"",
   "--emit=llvm-ir"
 ]
-linker = "clang"
+linker = "armv6m-unknown-none-eabi-clang"
 runner = "speculos -k 2.0"
 
 [build]

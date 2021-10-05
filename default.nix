@@ -31,5 +31,5 @@ rec {
   };
 
   # For CI
-  inherit (app) rootCrate;
+  rootCrate = app.rootCrate.build;
 }
