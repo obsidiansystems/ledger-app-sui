@@ -130,6 +130,29 @@ rec {
           "rustc-dep-of-std" = [ "core" "compiler_builtins" ];
         };
       };
+      "ctor" = rec {
+        crateName = "ctor";
+        version = "0.1.20";
+        edition = "2018";
+        sha256 = "0v80naiw5fp81xkyfkds6jpyamf3wx43kz4nif936bkq3any562y";
+        procMacro = true;
+        authors = [
+          "Matt Mastracci <matthew@mastracci.com>"
+        ];
+        dependencies = [
+          {
+            name = "quote";
+            packageId = "quote";
+          }
+          {
+            name = "syn";
+            packageId = "syn";
+            usesDefaultFeatures = false;
+            features = [ "full" "parsing" "printing" "proc-macro" ];
+          }
+        ];
+
+      };
       "cty" = rec {
         crateName = "cty";
         version = "0.2.1";
@@ -172,8 +195,8 @@ rec {
         workspace_member = null;
         src = pkgs.fetchgit {
           url = "https://github.com/obsidiansystems/ledger-parser-combinators";
-          rev = "c7fe3c8493262727cd33ba57f1cb7cbdff31d9ec";
-          sha256 = "0nalvfs37rx4rid40pir8w8f6v93hskkw2c8vp83xkhncj04yavi";
+          rev = "281b4877f6172a53506767112c3afac6eb470cf5";
+          sha256 = "1831bidg1c8ic1mv6v0ivj4ap1ns2gbaikhcwrs8hwm2rxd72ml2";
         };
         authors = [
           "Jonathan D.K. Gibbons <jonored@gmail.com>"
@@ -209,6 +232,19 @@ rec {
             name = "cfg-if";
             packageId = "cfg-if";
           }
+          {
+            name = "value-bag";
+            packageId = "value-bag";
+            optional = true;
+            usesDefaultFeatures = false;
+          }
+        ];
+        devDependencies = [
+          {
+            name = "value-bag";
+            packageId = "value-bag";
+            features = [ "test" ];
+          }
         ];
         features = {
           "kv_unstable" = [ "value-bag" ];
@@ -216,6 +252,7 @@ rec {
           "kv_unstable_std" = [ "std" "kv_unstable" "value-bag/error" ];
           "kv_unstable_sval" = [ "kv_unstable" "value-bag/sval" "sval" ];
         };
+        resolvedDefaultFeatures = [ "kv_unstable" "value-bag" ];
       };
       "nanos_sdk" = rec {
         crateName = "nanos_sdk";
@@ -224,8 +261,8 @@ rec {
         workspace_member = null;
         src = pkgs.fetchgit {
           url = "https://github.com/ObsidianSystems/ledger-nanos-sdk.git";
-          rev = "3a31ab384a282066c5af1fd029d5290a394061fd";
-          sha256 = "0v5cfd0bl2k4jlhmbbd3jbl3gsgzb866cn2lqgc4mrm2jl43apcr";
+          rev = "1b0d1a688713ffbf3956ebe9971584a79aec5560";
+          sha256 = "09a7xyzdcr9n7m2gisirg7n8vqqg53i4rk92q293fw9ri5vrpj3d";
         };
         authors = [
           "yhql"
@@ -355,17 +392,21 @@ rec {
           {
             name = "nanos_sdk";
             packageId = "nanos_sdk";
+            target = { target, features }: ((let p = stdenv.hostPlatform; in p.rustc.config or p.config) == "thumbv6m-none-eabi");
           }
           {
             name = "nanos_ui";
             packageId = "nanos_ui";
-          }
-          {
-            name = "testmacro";
-            packageId = "testmacro";
+            target = { target, features }: ((let p = stdenv.hostPlatform; in p.rustc.config or p.config) == "thumbv6m-none-eabi");
           }
         ];
         devDependencies = [
+          {
+            name = "nanos_sdk";
+            packageId = "nanos_sdk";
+            target = {target, features}: ((let p = stdenv.hostPlatform; in p.rustc.config or p.config) == "thumbv6m-none-eabi");
+            features = [ "speculos" ];
+          }
           {
             name = "testmacro";
             packageId = "testmacro";
@@ -407,7 +448,7 @@ rec {
           "proc-macro" = [ "proc-macro2/proc-macro" "quote/proc-macro" ];
           "test" = [ "syn-test-suite/all-features" ];
         };
-        resolvedDefaultFeatures = [ "clone-impls" "default" "derive" "full" "parsing" "printing" "proc-macro" "quote" "visit-mut" ];
+        resolvedDefaultFeatures = [ "clone-impls" "default" "derive" "full" "parsing" "printing" "proc-macro" "quote" "visit" "visit-mut" ];
       };
       "testmacro" = rec {
         crateName = "testmacro";
@@ -462,6 +503,36 @@ rec {
         features = {
         };
         resolvedDefaultFeatures = [ "default" ];
+      };
+      "value-bag" = rec {
+        crateName = "value-bag";
+        version = "1.0.0-alpha.7";
+        edition = "2018";
+        sha256 = "1bj0v1sq0xvwmxcixvia08a9r1mdfr257xwn7qan2hpr40ahwcnx";
+        authors = [
+          "Ashley Mannix <ashleymannix@live.com.au>"
+        ];
+        dependencies = [
+          {
+            name = "ctor";
+            packageId = "ctor";
+          }
+        ];
+        buildDependencies = [
+          {
+            name = "version_check";
+            packageId = "version_check";
+            rename = "rustc";
+          }
+        ];
+        features = {
+          "error" = [ "std" "sval1_lib/std" ];
+          "serde" = [ "serde1" ];
+          "serde1" = [ "serde1_lib" "sval1_lib/serde1" "sval1_lib/alloc" "erased-serde1/alloc" "serde1_fmt" ];
+          "sval" = [ "sval1" ];
+          "sval1" = [ "sval1_lib" ];
+          "test" = [ "std" ];
+        };
       };
       "version_check" = rec {
         crateName = "version_check";

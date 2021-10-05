@@ -1,6 +1,6 @@
 {
-  "ledger-parser-combinators 0.1.0 (git+https://github.com/obsidiansystems/ledger-parser-combinators?branch=jg-wip-darray_and_nof#c7fe3c8493262727cd33ba57f1cb7cbdff31d9ec)": "0nalvfs37rx4rid40pir8w8f6v93hskkw2c8vp83xkhncj04yavi",
-  "nanos_sdk 0.1.0 (git+https://github.com/ObsidianSystems/ledger-nanos-sdk.git?branch=use-ambient-compiler-and-target#3a31ab384a282066c5af1fd029d5290a394061fd)": "0v5cfd0bl2k4jlhmbbd3jbl3gsgzb866cn2lqgc4mrm2jl43apcr",
+  "ledger-parser-combinators 0.1.0 (git+https://github.com/obsidiansystems/ledger-parser-combinators?branch=working-in-speculos#281b4877f6172a53506767112c3afac6eb470cf5)": "1831bidg1c8ic1mv6v0ivj4ap1ns2gbaikhcwrs8hwm2rxd72ml2",
+  "nanos_sdk 0.1.0 (git+https://github.com/ObsidianSystems/ledger-nanos-sdk.git?branch=use-ambient-compiler-and-target#1b0d1a688713ffbf3956ebe9971584a79aec5560)": "09a7xyzdcr9n7m2gisirg7n8vqqg53i4rk92q293fw9ri5vrpj3d",
   "nanos_ui 0.1.0 (git+https://github.com/LedgerHQ/ledger-nanos-ui.git#45777714fe567bc7dfe858d65fcf8495a3edc2e1)": "01697ci4j5arb0pz35pqpgk776rw1s5m3m06hkf0x4hcq7f9zn6y",
   "testmacro 0.1.0 (git+https://github.com/yhql/testmacro#29a16cb8718d61b67c6c391e60c8347c064e921e)": "0agl46ilx2psfvwvg8iwfmq203xapw435h03qskxqf5dnwhy1kir"
 }
