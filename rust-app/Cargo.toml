@@ -36,6 +36,7 @@ futures = "0.3.16"
 [[bin]]
 name = "rust-app"
 test = false
+path = "bin-src/main.rs"
 
 [[test]]
 name = "integration"
