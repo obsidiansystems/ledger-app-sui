@@ -5,11 +5,11 @@
 fn main() {}
 
 #[cfg(target_os = "nanos")]
-use crate::crypto_helpers::*;
+use rust_app::crypto_helpers::*;
 #[cfg(target_os = "nanos")]
-use crate::implementation::*;
+use rust_app::implementation::*;
 #[cfg(target_os = "nanos")]
-use crate::interface::*;
+use rust_app::interface::*;
 #[cfg(target_os = "nanos")]
 mod utils;
 
