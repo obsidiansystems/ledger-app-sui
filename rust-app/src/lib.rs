@@ -1,11 +1,10 @@
 #![no_std]
 #![allow(incomplete_features)]
 #![feature(const_generics)]
-
-#![cfg_attr(all(target_os="nanos", test), no_main)]
-#![cfg_attr(target_os="nanos", feature(custom_test_frameworks))]
+#![cfg_attr(all(target_os = "nanos", test), no_main)]
+#![cfg_attr(target_os = "nanos", feature(custom_test_frameworks))]
 #![reexport_test_harness_main = "test_main"]
-#![cfg_attr(target_os="nanos", test_runner(nanos_sdk::sdk_test_runner))]
+#![cfg_attr(target_os = "nanos", test_runner(nanos_sdk::sdk_test_runner))]
 
 #[cfg(all(target_os = "nanos", test))]
 #[no_mangle]
@@ -18,17 +17,16 @@ extern "C" fn sample_main() {
 pub mod interface;
 
 #[cfg(all(target_os = "nanos"))]
-pub mod implementation;
-#[cfg(all(target_os = "nanos"))]
 pub mod crypto_helpers;
+#[cfg(all(target_os = "nanos"))]
+pub mod implementation;
 
-
-#[cfg(all(target_os="nanos", test))]
+#[cfg(all(target_os = "nanos", test))]
 use core::panic::PanicInfo;
 /// In case of runtime problems, return an internal error and exit the app
-#[cfg(all(target_os="nanos", test))]
+#[cfg(all(target_os = "nanos", test))]
 #[inline]
-#[cfg_attr(all(target_os="nanos", test), panic_handler)]
+#[cfg_attr(all(target_os = "nanos", test), panic_handler)]
 pub fn exiting_panic(info: &PanicInfo) -> ! {
     //let mut comm = io::Comm::new();
     //comm.reply(io::StatusWords::Panic);
@@ -44,8 +42,8 @@ pub fn exiting_panic(info: &PanicInfo) -> ! {
 use nanos_sdk::debug_print;
 
 pub struct DBG;
-use core;
 use arrayvec::ArrayString;
+use core;
 #[cfg(all(target_os = "nanos", speculos))]
 impl core::fmt::Write for DBG {
     fn write_str(&mut self, s: &str) -> core::fmt::Result {
@@ -63,4 +61,3 @@ impl core::fmt::Write for DBG {
         Ok(())
     }
 }
-
