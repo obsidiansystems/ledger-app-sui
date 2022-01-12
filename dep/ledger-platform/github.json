@@ -1,8 +1,8 @@
 {
   "owner": "obsidiansystems",
   "repo": "ledger-platform",
-  "branch": "feature/build-core",
+  "branch": "develop",
   "private": false,
-  "rev": "3a1dbaa6659772a6a1ed7c4d01b4e65802b43532",
-  "sha256": "1p2b13vilyrzszzwipl9q7brh92dddqk5dy44ydn8n1s49sh3m0d"
+  "rev": "174caee4f5c7231c3ac39a135b7fb3cfccae1e35",
+  "sha256": "1spsaw489c98sm9x0cb93ay97q7l7iy7z1lkqspq5qc5j4lyga4b"
 }
