@@ -1,8 +1,8 @@
 {
   "owner": "obsidiansystems",
   "repo": "ledger-platform",
-  "branch": "rust-with-ledger-ropi",
+  "branch": "develop",
   "private": false,
-  "rev": "db8f90b72e874bedd96e00262af2ebf5d0ff1dcb",
-  "sha256": "0h4ssyjsnz666vs8wrzaa1n0w676dvik82bphv7w481kkv2skr9w"
+  "rev": "174caee4f5c7231c3ac39a135b7fb3cfccae1e35",
+  "sha256": "1spsaw489c98sm9x0cb93ay97q7l7iy7z1lkqspq5qc5j4lyga4b"
 }
