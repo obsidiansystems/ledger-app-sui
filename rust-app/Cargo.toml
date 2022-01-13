@@ -62,6 +62,8 @@ lto = true
 
 
 [package.metadata.nanos]
+name = "Rust App"
+path = "44'/535348'"
 curve = "secp256k1"
 flags = "0"
 icon = "crab.gif"
