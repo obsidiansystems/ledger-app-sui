@@ -109,6 +109,7 @@ impl From<u8> for Ins {
 }
 
 use arrayvec::ArrayVec;
+#[cfg(feature = "speculos")]
 use nanos_sdk::debug_print;
 use nanos_sdk::io::Reply;
 
