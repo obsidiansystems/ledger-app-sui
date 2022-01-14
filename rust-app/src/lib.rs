@@ -1,10 +1,18 @@
 #![no_std]
 #![allow(incomplete_features)]
 #![feature(const_generics)]
+#![feature(str_internals)]
+#![feature(try_trait)]
+#![feature(min_type_alias_impl_trait)]
+#![feature(impl_trait_in_bindings)]
+#![feature(const_fn_fn_ptr_basics)]
+#![feature(const_mut_refs)]
 #![cfg_attr(all(target_os = "nanos", test), no_main)]
 #![cfg_attr(target_os = "nanos", feature(custom_test_frameworks))]
 #![reexport_test_harness_main = "test_main"]
 #![cfg_attr(target_os = "nanos", test_runner(nanos_sdk::sdk_test_runner))]
+
+pub use ledger_log::*;
 
 #[cfg(all(target_os = "nanos", test))]
 #[no_mangle]
@@ -34,7 +42,7 @@ pub fn exiting_panic(info: &PanicInfo) -> ! {
     nanos_sdk::exit_app(1)
 }
 
-/// Custom type used to implement tests
+///// Custom type used to implement tests
 //#[cfg(all(target_os = "nanos", test))]
 //use nanos_sdk::TestType;
 

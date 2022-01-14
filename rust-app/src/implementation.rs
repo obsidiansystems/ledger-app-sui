@@ -1,20 +1,26 @@
 use crate::crypto_helpers::{detecdsa_sign, get_pkh, get_private_key, get_pubkey, Hasher};
 use crate::interface::*;
-use arrayvec::{ArrayString, ArrayVec};
+use crate::*;
+use arrayvec::ArrayVec;
 use core::fmt::Write;
+use ledger_log::{info};
 use ledger_parser_combinators::interp_parser::{
     Action, DefaultInterp, DropInterp, InterpParser, ObserveBytes, SubInterp,
 };
 use nanos_ui::ui;
 
-pub type GetAddressImplT =
-    Action<SubInterp<DefaultInterp>, fn(&ArrayVec<u32, 10>) -> Option<ArrayVec<u8, 260>>>;
+use core::convert::TryFrom;
 
-pub const GET_ADDRESS_IMPL: GetAddressImplT =
-    Action(SubInterp(DefaultInterp), |path: &ArrayVec<u32, 10>| {
+// A couple type ascription functions to help the compiler along.
+const fn mkfn<A,B,C>(q: fn(&A,&mut B)->C) -> fn(&A,&mut B)->C {
+  q
+}
+
+pub type GetAddressImplT = impl InterpParser<Bip32Key, Returning = ArrayVec<u8, 260_usize>>;
+
+pub static GET_ADDRESS_IMPL: GetAddressImplT =
+    Action(SubInterp(DefaultInterp), mkfn(|path: &ArrayVec<u32, 10>, destination: &mut Option<ArrayVec<u8, 260>>| {
         let key = get_pubkey(path).ok()?;
-        let mut rv = ArrayVec::<u8, 260>::new();
-        rv.try_extend_from_slice(&key.W[..]).ok()?;
 
         // At this point we have the value to send to the host; but there's a bit more to do to
         // ask permission from the user.
@@ -27,31 +33,22 @@ pub const GET_ADDRESS_IMPL: GetAddressImplT =
         if !ui::MessageValidator::new(&["Provide Public Key", &pmpt], &[], &[]).ask() {
             None
         } else {
-            Some(rv)
+            *destination=Some(ArrayVec::new());
+            destination.as_mut()?.try_push(u8::try_from(key.W_len).ok()?).ok()?;
+            destination.as_mut()?.try_extend_from_slice(&key.W[1..key.W_len as usize]).ok()?;
+            Some(())
         }
-    });
+    }));
 
-pub type SignImplT = Action<
-    (
-        Action<
-            ObserveBytes<Hasher, fn(&mut Hasher, &[u8]), SubInterp<DropInterp>>,
-            fn(&(Hasher, ArrayVec<(), { usize::MAX }>)) -> Option<[u8; 32]>,
-        >,
-        Action<
-            SubInterp<DefaultInterp>,
-            fn(&ArrayVec<u32, 10>) -> Option<nanos_sdk::bindings::cx_ecfp_private_key_t>,
-        >,
-    ),
-    fn(&([u8; 32], nanos_sdk::bindings::cx_ecfp_private_key_t)) -> Option<ArrayVec<u8, 260>>,
->;
+pub type SignImplT = impl InterpParser<SignParameters, Returning = ArrayVec<u8, 260_usize>>;
 
-pub const SIGN_IMPL: SignImplT = Action(
+pub static SIGN_IMPL: SignImplT = Action(
     (
         Action(
             // Calculate the hash of the transaction
             ObserveBytes(Hasher::new, Hasher::update, SubInterp(DropInterp)),
             // Ask the user if they accept the transaction body's hash
-            |(hash, _): &(Hasher, ArrayVec<(), { usize::MAX }>)| {
+            mkfn(|(hash, _): &(Hasher, Option<ArrayVec<(), { usize::MAX }>>), destination: &mut _| {
                 let the_hash = hash.clone().finalize();
 
                 let mut pmpt = ArrayString::<128>::new();
@@ -60,14 +57,15 @@ pub const SIGN_IMPL: SignImplT = Action(
                 if !ui::MessageValidator::new(&["Sign Hash?", &pmpt], &[], &[]).ask() {
                     None
                 } else {
-                    Some(the_hash.0.into())
+                    *destination = Some(the_hash.0.into());
+                    Some(())
                 }
-            },
+            }),
         ),
         Action(
             SubInterp(DefaultInterp),
             // And ask the user if this is the key the meant to sign with:
-            |path: &ArrayVec<u32, 10>| {
+            mkfn(|path: &ArrayVec<u32, 10>, destination: &mut _| {
                 let privkey = get_private_key(path).ok()?;
                 let pubkey = get_pubkey(path).ok()?; // Redoing work here; fix.
                 let pkh = get_pkh(pubkey);
@@ -75,21 +73,23 @@ pub const SIGN_IMPL: SignImplT = Action(
                 let mut pmpt = ArrayString::<128>::new();
                 write!(pmpt, "{}", pkh).ok()?;
 
-                if !ui::MessageValidator::new(&["With PKH", &pmpt], &[], &[]).ask() {
+                if !ui::MessageValidator::new(&["`With PKH", &pmpt], &[], &[]).ask() {
                     None
                 } else {
-                    Some(privkey)
+                    *destination = Some(privkey);
+                    Some(())
                 }
-            },
+            }),
         ),
     ),
-    |(hash, key): &([u8; 32], _)| {
+    mkfn(|(hash, key): &(Option<[u8; 32]>, Option<_>), destination: &mut _| {
         // By the time we get here, we've approved and just need to do the signature.
-        let (sig, len) = detecdsa_sign(hash, key)?;
+        let (sig, len) = detecdsa_sign(hash.as_ref()?, key.as_ref()?)?;
         let mut rv = ArrayVec::<u8, 260>::new();
         rv.try_extend_from_slice(&sig[0..len as usize]).ok()?;
-        Some(rv)
-    },
+        *destination = Some(rv);
+        Some(())
+    }),
 );
 
 // The global parser state enum; any parser above that'll be used as the implementation for an APDU
@@ -101,12 +101,14 @@ pub enum ParsersState {
     SignState(<SignImplT as InterpParser<SignParameters>>::State),
 }
 
+#[inline(never)]
 pub fn get_get_address_state(
     s: &mut ParsersState,
 ) -> &mut <GetAddressImplT as InterpParser<Bip32Key>>::State {
     match s {
         ParsersState::GetAddressState(_) => {}
         _ => {
+            info!("Non-same state found; initializing state.");
             *s = ParsersState::GetAddressState(<GetAddressImplT as InterpParser<Bip32Key>>::init(
                 &GET_ADDRESS_IMPL,
             ));
@@ -120,12 +122,14 @@ pub fn get_get_address_state(
     }
 }
 
+#[inline(never)]
 pub fn get_sign_state(
     s: &mut ParsersState,
 ) -> &mut <SignImplT as InterpParser<SignParameters>>::State {
     match s {
         ParsersState::SignState(_) => {}
         _ => {
+            info!("Non-same state found; initializing state.");
             *s = ParsersState::SignState(<SignImplT as InterpParser<SignParameters>>::init(
                 &SIGN_IMPL,
             ));

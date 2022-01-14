@@ -85,9 +85,9 @@ rec {
     crates = {
       "arrayvec" = rec {
         crateName = "arrayvec";
-        version = "0.7.1";
+        version = "0.7.2";
         edition = "2018";
-        sha256 = "1kcgsfp0ns0345g580ny7hhl9y9a6l3m0pykfa09p9pz65qw0kdy";
+        sha256 = "1mjl8jjqxpl0x7sm9cij61cppi7yi38cdrd1l8zjw7h7qxk2v9cd";
         authors = [
           "bluss"
         ];
@@ -105,12 +105,25 @@ rec {
         ];
 
       };
+      "bstringify" = rec {
+        crateName = "bstringify";
+        version = "0.1.2";
+        edition = "2018";
+        sha256 = "0r0z0yka5473yc5h605yw1kmzxd5f1s6p7jwhbi56aganiiraxmx";
+        procMacro = true;
+        authors = [
+          "Daniel Henry-Mantilla <daniel.henry.mantilla@gmail.com>"
+        ];
+        features = {
+        };
+        resolvedDefaultFeatures = [ "default" ];
+      };
       "cc" = rec {
         crateName = "cc";
-        version = "1.0.68";
+        version = "1.0.72";
         edition = "2018";
         crateBin = [];
-        sha256 = "11ypa8b7iwhjf5fg5j3hvbn2116h9g8v67vyd9s7ljgzq52c4wja";
+        sha256 = "1vl50h2qh0nh0iddzj6gd1pnxnxpvwmbfxc30578c1pajmxi7a92";
         authors = [
           "Alex Crichton <alex@alexcrichton.com>"
         ];
@@ -132,9 +145,9 @@ rec {
       };
       "ctor" = rec {
         crateName = "ctor";
-        version = "0.1.20";
+        version = "0.1.21";
         edition = "2018";
-        sha256 = "0v80naiw5fp81xkyfkds6jpyamf3wx43kz4nif936bkq3any562y";
+        sha256 = "1am0a8m1gkaa0fii3w3s5wsymjljvg4sv5c50bscssl2kf5a9h6c";
         procMacro = true;
         authors = [
           "Matt Mastracci <matthew@mastracci.com>"
@@ -155,9 +168,9 @@ rec {
       };
       "cty" = rec {
         crateName = "cty";
-        version = "0.2.1";
+        version = "0.2.2";
         edition = "2015";
-        sha256 = "1qvkdnkxmd7g6fwhmv26zxqi0l7b9cd4d7h1knylvjyh43bc04vk";
+        sha256 = "0d8z0pbr87wgzqqb2jk5pvj0afzc6d3rb772ach6fijhg6yglrdk";
         authors = [
           "Jorge Aparicio <jorge@japaric.io>"
         ];
@@ -165,9 +178,9 @@ rec {
       };
       "generic-array" = rec {
         crateName = "generic-array";
-        version = "0.14.4";
+        version = "0.14.5";
         edition = "2015";
-        sha256 = "05qqwm9v5asbil9z28wjkmpfvs1c5c99n8n9gwxis3d3r3n6c52h";
+        sha256 = "00qqhls43bzvyb7s26iw6knvsz3mckbxl3rhaahvypzhqwzd6j7x";
         libName = "generic_array";
         authors = [
           "Bartłomiej Kamiński <fizyk20@gmail.com>"
@@ -188,6 +201,37 @@ rec {
         features = {
         };
       };
+      "ledger-log" = rec {
+        crateName = "ledger-log";
+        version = "0.1.0";
+        edition = "2018";
+        workspace_member = null;
+        src = pkgs.fetchgit {
+          url = "https://github.com/obsidiansystems/ledger-platform";
+          rev = "b3bc1db9c8a793bd20e76a4a19666f09a80c4e95";
+          sha256 = "1g0vmjw2bnjgm439a3373hajvkjnfq536x857w5ngdnfvm0687vf";
+        };
+        dependencies = [
+          {
+            name = "arrayvec";
+            packageId = "arrayvec";
+            usesDefaultFeatures = false;
+          }
+          {
+            name = "nanos_sdk";
+            packageId = "nanos_sdk";
+            target = { target, features }: ((let p = stdenv.hostPlatform; in p.rustc.config or p.config) == "thumbv6m-none-eabi");
+          }
+        ];
+        features = {
+          "log_debug" = [ "log_info" ];
+          "log_info" = [ "log_warn" ];
+          "log_trace" = [ "log_debug" ];
+          "log_warn" = [ "log_error" ];
+          "speculos" = [ "nanos_sdk/speculos" ];
+        };
+        resolvedDefaultFeatures = [ "log_debug" "log_error" "log_info" "log_trace" "log_warn" "speculos" ];
+      };
       "ledger-parser-combinators" = rec {
         crateName = "ledger-parser-combinators";
         version = "0.1.0";
@@ -195,8 +239,8 @@ rec {
         workspace_member = null;
         src = pkgs.fetchgit {
           url = "https://github.com/obsidiansystems/ledger-parser-combinators";
-          rev = "281b4877f6172a53506767112c3afac6eb470cf5";
-          sha256 = "1831bidg1c8ic1mv6v0ivj4ap1ns2gbaikhcwrs8hwm2rxd72ml2";
+          rev = "7f45c11b1705a98189d56787b83d8253320f33ed";
+          sha256 = "02qvj1zlcvwxxsmwgr28hgdn72l17272fg80f6lyxxpn86brgfra";
         };
         authors = [
           "Jonathan D.K. Gibbons <jonored@gmail.com>"
@@ -208,16 +252,39 @@ rec {
             usesDefaultFeatures = false;
           }
           {
+            name = "bstringify";
+            packageId = "bstringify";
+          }
+          {
             name = "generic-array";
             packageId = "generic-array";
             usesDefaultFeatures = false;
           }
           {
+            name = "ledger-log";
+            packageId = "ledger-log";
+            optional = true;
+            features = [ "log_trace" ];
+          }
+          {
             name = "log";
             packageId = "log";
           }
+          {
+            name = "nanos_sdk";
+            packageId = "nanos_sdk";
+            target = { target, features }: ((let p = stdenv.hostPlatform; in p.rustc.config or p.config) == "thumbv6m-none-eabi");
+            features = [ "speculos" ];
+          }
+          {
+            name = "paste";
+            packageId = "paste";
+          }
         ];
-
+        features = {
+          "logging" = [ "ledger-log" ];
+        };
+        resolvedDefaultFeatures = [ "ledger-log" "logging" ];
       };
       "log" = rec {
         crateName = "log";
@@ -260,7 +327,7 @@ rec {
         edition = "2018";
         workspace_member = null;
         src = pkgs.fetchgit {
-          url = "https://github.com/ObsidianSystems/ledger-nanos-sdk.git";
+          url = "https://github.com/obsidiansystems/ledger-nanos-sdk.git";
           rev = "1b0d1a688713ffbf3956ebe9971584a79aec5560";
           sha256 = "09a7xyzdcr9n7m2gisirg7n8vqqg53i4rk92q293fw9ri5vrpj3d";
         };
@@ -295,8 +362,8 @@ rec {
         workspace_member = null;
         src = pkgs.fetchgit {
           url = "https://github.com/LedgerHQ/ledger-nanos-ui.git";
-          rev = "45777714fe567bc7dfe858d65fcf8495a3edc2e1";
-          sha256 = "01697ci4j5arb0pz35pqpgk776rw1s5m3m06hkf0x4hcq7f9zn6y";
+          rev = "bab7dc5a40d2988f682e0ca9c04eb631d50934ca";
+          sha256 = "0qq5s7ayc38fjfciyj5svd9zsq2qz1gf91nl4k7q1zyslvn0q8f9";
         };
         authors = [
           "yhql"
@@ -327,14 +394,25 @@ rec {
           "default" = [ "std" ];
         };
       };
+      "paste" = rec {
+        crateName = "paste";
+        version = "1.0.6";
+        edition = "2018";
+        sha256 = "1dcg6ll2in45066kvramw83cp1p0vcbafl6bjkrxfv8szrm14i07";
+        procMacro = true;
+        authors = [
+          "David Tolnay <dtolnay@gmail.com>"
+        ];
+
+      };
       "proc-macro2" = rec {
         crateName = "proc-macro2";
-        version = "1.0.27";
+        version = "1.0.36";
         edition = "2018";
-        sha256 = "0f3h0zl5w5090ajmmvpmhkpr4iwqnn5rip3afacabhc657vwmn7h";
+        sha256 = "0adh6gvs31x6pfwmygypmzrv1jc7kjq568vsqcfaxk7vhdc2sd67";
         authors = [
-          "Alex Crichton <alex@alexcrichton.com>"
           "David Tolnay <dtolnay@gmail.com>"
+          "Alex Crichton <alex@alexcrichton.com>"
         ];
         dependencies = [
           {
@@ -349,9 +427,9 @@ rec {
       };
       "quote" = rec {
         crateName = "quote";
-        version = "1.0.9";
+        version = "1.0.14";
         edition = "2018";
-        sha256 = "19rjmfqzk26rxbgxy5j2ckqc2v12sw2xw8l4gi8bzpn2bmsbkl63";
+        sha256 = "0zf823y56wqwxkcp3rf3ik9zashpmx9700q0fmqz3np4gi281aj7";
         authors = [
           "David Tolnay <dtolnay@gmail.com>"
         ];
@@ -377,6 +455,7 @@ rec {
         ];
         src = lib.cleanSourceWith { filter = sourceFilter;  src = ./rust-app; };
         authors = [
+          "jonored"
           "yhql"
         ];
         dependencies = [
@@ -384,6 +463,11 @@ rec {
             name = "arrayvec";
             packageId = "arrayvec";
             usesDefaultFeatures = false;
+          }
+          {
+            name = "ledger-log";
+            packageId = "ledger-log";
+            features = [ "log_trace" ];
           }
           {
             name = "ledger-parser-combinators";
@@ -413,15 +497,16 @@ rec {
           }
         ];
         features = {
-          "speculos" = [ "nanos_sdk/speculos" ];
+          "extra_debug" = [ "ledger-log/log_trace" ];
+          "speculos" = [ "nanos_sdk/speculos" "ledger-log/speculos" "ledger-log/log_error" "ledger-parser-combinators/logging" ];
         };
-        resolvedDefaultFeatures = [ "speculos" ];
+        resolvedDefaultFeatures = [ "extra_debug" "speculos" ];
       };
       "syn" = rec {
         crateName = "syn";
-        version = "1.0.73";
+        version = "1.0.85";
         edition = "2018";
-        sha256 = "1ixw4lscc7009ibaic8g5bvnc94hdcr62ksjk3jjl38363zqj57p";
+        sha256 = "1dszd62nvccsdiakqzhm4kgc2rpfhj1sc2fd31z844w9rlysr156";
         authors = [
           "David Tolnay <dtolnay@gmail.com>"
         ];
@@ -479,15 +564,16 @@ rec {
       };
       "typenum" = rec {
         crateName = "typenum";
-        version = "1.13.0";
+        version = "1.15.0";
         edition = "2018";
-        sha256 = "01lbbspn4080yg8wp6y7q3xcqih1c1dmkkx4pwax4z1a9436k7w7";
+        sha256 = "11yrvz1vd43gqv738yw1v75rzngjbs7iwcgzjy3cq5ywkv2imy6w";
         build = "build/main.rs";
         authors = [
           "Paho Lurie-Gregg <paho@paholg.com>"
           "Andre Bogus <bogusandre@gmail.com>"
         ];
         features = {
+          "scale_info" = [ "scale-info/derive" ];
         };
       };
       "unicode-xid" = rec {
@@ -506,9 +592,9 @@ rec {
       };
       "value-bag" = rec {
         crateName = "value-bag";
-        version = "1.0.0-alpha.7";
+        version = "1.0.0-alpha.8";
         edition = "2018";
-        sha256 = "1bj0v1sq0xvwmxcixvia08a9r1mdfr257xwn7qan2hpr40ahwcnx";
+        sha256 = "0gr6w3mmx6ld13kmg36dbk9vncy57azrhc33lgxynqfw65vkz4kr";
         authors = [
           "Ashley Mannix <ashleymannix@live.com.au>"
         ];
@@ -536,9 +622,9 @@ rec {
       };
       "version_check" = rec {
         crateName = "version_check";
-        version = "0.9.3";
+        version = "0.9.4";
         edition = "2015";
-        sha256 = "1zmkcgj2m0pq0l4wnhrp1wl1lygf7x2h5p7pvjwc4719lnlxrv2z";
+        sha256 = "0gs8grwdlgh0xq660d7wr80x14vxbizmd8dbp29p2pdncx8lp1s9";
         authors = [
           "Sergio Benitez <sb@sergio.bz>"
         ];

@@ -109,8 +109,6 @@ impl From<u8> for Ins {
 }
 
 use arrayvec::ArrayVec;
-#[cfg(feature = "speculos")]
-use nanos_sdk::debug_print;
 use nanos_sdk::io::Reply;
 
 use ledger_parser_combinators::interp_parser::InterpParser;
@@ -123,9 +121,10 @@ fn run_parser_apdu<P: InterpParser<A, Returning = ArrayVec<u8, 260>>, A>(
     let cursor = comm.get_data()?;
 
     loop {
-        write!(DBG, "Parsing APDU input: {:?}\n", cursor);
-        let parse_rv = <P as InterpParser<A>>::parse(parser, get_state(states), cursor);
-        write!(DBG, "Parser result: {:?}\n", parse_rv);
+        trace!("Parsing APDU input: {:?}\n", cursor);
+        let mut parse_destination = None;
+        let parse_rv = <P as InterpParser<A>>::parse(parser, get_state(states), cursor, &mut parse_destination);
+        trace!("Parser result: {:?}\n", parse_rv);
         match parse_rv {
             // Explicit rejection; reset the parser. Possibly send error message to host?
             Err((Some(OOB::Reject), _)) => {
@@ -143,14 +142,18 @@ fn run_parser_apdu<P: InterpParser<A, Returning = ArrayVec<u8, 260>>, A>(
                 break Err(io::StatusWords::Unknown.into());
             }
             // Consumed the whole chunk and parser finished; send response.
-            Ok((rv, [])) => {
-                comm.append(&rv[..]);
+            Ok([]) => {
+                trace!("Parser finished, resetting state\n");
+                match parse_destination.as_ref() {
+                    Some(rv) => comm.append(&rv[..]),
+                    None => break Err(io::StatusWords::Unknown.into()),
+                }
                 // Parse finished; reset.
                 *states = ParsersState::NoState;
                 break Ok(());
             }
             // Parse ended before the chunk did; reset.
-            Ok((_, _)) => {
+            Ok(_) => {
                 *states = ParsersState::NoState;
                 break Err(io::StatusWords::Unknown.into());
             }
@@ -159,7 +162,9 @@ fn run_parser_apdu<P: InterpParser<A, Returning = ArrayVec<u8, 260>>, A>(
 }
 
 // fn handle_apdu<P: for<'a> FnMut(ParserTag, &'a [u8]) -> RX<'a, ArrayVec<u8, 260> > >(comm: &mut io::Comm, ins: Ins, parser: &mut P) -> Result<(), Reply> {
+#[inline(never)]
 fn handle_apdu(comm: &mut io::Comm, ins: Ins, parser: &mut ParsersState) -> Result<(), Reply> {
+    info!("entering handle_apdu with command {:?}", ins);
     if comm.rx == 0 {
         return Err(io::StatusWords::NothingReceived.into());
     }
