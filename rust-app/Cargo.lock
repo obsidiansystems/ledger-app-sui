@@ -609,12 +609,12 @@ checksum = "e2abad23fbc42b3700f2f279844dc832adb2b2eb069b2df918f455c4e18cc646"
 [[package]]
 name = "ledger-apdu"
 version = "0.7.0"
-source = "git+https://github.com/zondax/ledger-rs.git#4732dfd5c3224f9863a7328fe85d07fff799a6b3"
+source = "git+https://github.com/zondax/ledger-rs.git#2b644e3b9b7225c309f9c6f62cdb2da185075d25"
 
 [[package]]
 name = "ledger-log"
 version = "0.1.0"
-source = "git+https://github.com/obsidiansystems/ledger-platform?branch=develop#b3bc1db9c8a793bd20e76a4a19666f09a80c4e95"
+source = "git+https://github.com/obsidiansystems/ledger-platform#b3bc1db9c8a793bd20e76a4a19666f09a80c4e95"
 dependencies = [
  "arrayvec",
  "nanos_sdk",
@@ -623,7 +623,7 @@ dependencies = [
 [[package]]
 name = "ledger-parser-combinators"
 version = "0.1.0"
-source = "git+https://github.com/obsidiansystems/ledger-parser-combinators#7f45c11b1705a98189d56787b83d8253320f33ed"
+source = "git+https://github.com/obsidiansystems/ledger-parser-combinators#b1d270cfd010ddd087d423c12ebc54258c8c7ff6"
 dependencies = [
  "arrayvec",
  "bstringify",
@@ -855,6 +855,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "prompts-ui"
+version = "0.1.0"
+source = "git+https://github.com/obsidiansystems/ledger-platform#b3bc1db9c8a793bd20e76a4a19666f09a80c4e95"
+dependencies = [
+ "arrayvec",
+ "ledger-log",
+ "nanos_sdk",
+ "nanos_ui",
+]
+
+[[package]]
 name = "quote"
 version = "1.0.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -927,6 +938,7 @@ dependencies = [
  "log",
  "nanos_sdk",
  "nanos_ui",
+ "prompts-ui",
  "speculos-api",
  "testmacro",
  "tokio",

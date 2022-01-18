@@ -5,26 +5,22 @@ authors = ["jonored", "yhql"]
 edition = "2018"
 autobins = false
 
-[dependencies.ledger-parser-combinators]
-git = "https://github.com/obsidiansystems/ledger-parser-combinators"
+[dependencies]
+arrayvec = { version = "0.7.2", default-features = false }
+ledger-parser-combinators = { git = "https://github.com/obsidiansystems/ledger-parser-combinators" }
+ledger-log = { git = "https://github.com/obsidiansystems/ledger-platform" }
 
 # Pass --features speculos,ledger-log/log_info (or log_trace, etc) to enable
 # speculos logging and change log level.
-[dependencies.ledger-log]
-git = "https://github.com/obsidiansystems/ledger-platform"
-branch = "develop"
-features = ["log_trace"]
-
-[dependencies]
-arrayvec = { version = "0.7.2", default-features = false }
-
 [features]
+default = [ ]
 speculos = [ "nanos_sdk/speculos", "ledger-log/speculos", "ledger-log/log_error", "ledger-parser-combinators/logging" ]
 extra_debug = ["ledger-log/log_trace"]
 
 [target.thumbv6m-none-eabi.dependencies]
 nanos_sdk = { git = "https://github.com/LedgerHQ/ledger-nanos-sdk.git" } 
 nanos_ui = { git = "https://github.com/LedgerHQ/ledger-nanos-ui.git" } 
+prompts-ui = { git = "https://github.com/obsidiansystems/ledger-platform" }
 
 [target.thumbv6m-none-eabi.dev-dependencies.nanos_sdk]
 git = "https://github.com/LedgerHQ/ledger-nanos-sdk.git"

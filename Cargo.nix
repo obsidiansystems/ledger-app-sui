@@ -239,8 +239,8 @@ rec {
         workspace_member = null;
         src = pkgs.fetchgit {
           url = "https://github.com/obsidiansystems/ledger-parser-combinators";
-          rev = "7f45c11b1705a98189d56787b83d8253320f33ed";
-          sha256 = "02qvj1zlcvwxxsmwgr28hgdn72l17272fg80f6lyxxpn86brgfra";
+          rev = "b1d270cfd010ddd087d423c12ebc54258c8c7ff6";
+          sha256 = "0dj24ssi167ab7023pdk2gzklidgwp0pkwncsgvcmhrc9bsvwvyj";
         };
         authors = [
           "Jonathan D.K. Gibbons <jonored@gmail.com>"
@@ -425,6 +425,39 @@ rec {
         };
         resolvedDefaultFeatures = [ "default" "proc-macro" ];
       };
+      "prompts-ui" = rec {
+        crateName = "prompts-ui";
+        version = "0.1.0";
+        edition = "2018";
+        workspace_member = null;
+        src = pkgs.fetchgit {
+          url = "https://github.com/obsidiansystems/ledger-platform";
+          rev = "b3bc1db9c8a793bd20e76a4a19666f09a80c4e95";
+          sha256 = "1g0vmjw2bnjgm439a3373hajvkjnfq536x857w5ngdnfvm0687vf";
+        };
+        dependencies = [
+          {
+            name = "arrayvec";
+            packageId = "arrayvec";
+            usesDefaultFeatures = false;
+          }
+          {
+            name = "ledger-log";
+            packageId = "ledger-log";
+          }
+          {
+            name = "nanos_sdk";
+            packageId = "nanos_sdk";
+          }
+          {
+            name = "nanos_ui";
+            packageId = "nanos_ui";
+          }
+        ];
+        features = {
+          "speculos" = [ "nanos_sdk/speculos" ];
+        };
+      };
       "quote" = rec {
         crateName = "quote";
         version = "1.0.14";
@@ -467,7 +500,6 @@ rec {
           {
             name = "ledger-log";
             packageId = "ledger-log";
-            features = [ "log_trace" ];
           }
           {
             name = "ledger-parser-combinators";
@@ -481,6 +513,11 @@ rec {
           {
             name = "nanos_ui";
             packageId = "nanos_ui";
+            target = { target, features }: ((let p = stdenv.hostPlatform; in p.rustc.config or p.config) == "thumbv6m-none-eabi");
+          }
+          {
+            name = "prompts-ui";
+            packageId = "prompts-ui";
             target = { target, features }: ((let p = stdenv.hostPlatform; in p.rustc.config or p.config) == "thumbv6m-none-eabi");
           }
         ];
@@ -500,7 +537,7 @@ rec {
           "extra_debug" = [ "ledger-log/log_trace" ];
           "speculos" = [ "nanos_sdk/speculos" "ledger-log/speculos" "ledger-log/log_error" "ledger-parser-combinators/logging" ];
         };
-        resolvedDefaultFeatures = [ "extra_debug" "speculos" ];
+        resolvedDefaultFeatures = [ "default" "extra_debug" "speculos" ];
       };
       "syn" = rec {
         crateName = "syn";
