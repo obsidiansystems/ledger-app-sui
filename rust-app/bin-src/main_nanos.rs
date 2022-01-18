@@ -3,12 +3,10 @@ use rust_app::implementation::*;
 use rust_app::interface::*;
 mod utils;
 
-use core::fmt::Write;
 use core::str::from_utf8;
 use nanos_sdk::buttons::ButtonEvent;
 use nanos_sdk::io;
 use nanos_ui::ui;
-use rust_app::DBG;
 
 nanos_sdk::set_panic!(nanos_sdk::exiting_panic);
 
@@ -66,7 +64,7 @@ extern "C" fn sample_main() {
     let mut states = ParsersState::NoState;
 
     use core::mem::size_of_val;
-    write!(DBG, "State struct uses {} bytes\n", size_of_val(&states)).unwrap_or(());
+    info!("State struct uses {} bytes\n", size_of_val(&states));
     // with_parser_state!(parsers);
 
     loop {
@@ -87,6 +85,7 @@ extern "C" fn sample_main() {
 }
 
 #[repr(u8)]
+#[derive(Debug)]
 enum Ins {
     GetPubkey,
     Sign,

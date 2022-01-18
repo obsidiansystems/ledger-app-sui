@@ -7,7 +7,7 @@ use ledger_log::{info};
 use ledger_parser_combinators::interp_parser::{
     Action, DefaultInterp, DropInterp, InterpParser, ObserveBytes, SubInterp,
 };
-use nanos_ui::ui;
+use crate::ui::write_scroller;
 
 use core::convert::TryFrom;
 
@@ -22,22 +22,17 @@ pub static GET_ADDRESS_IMPL: GetAddressImplT =
     Action(SubInterp(DefaultInterp), mkfn(|path: &ArrayVec<u32, 10>, destination: &mut Option<ArrayVec<u8, 260>>| {
         let key = get_pubkey(path).ok()?;
 
-        // At this point we have the value to send to the host; but there's a bit more to do to
-        // ask permission from the user.
-
         let pkh = get_pkh(key);
 
-        let mut pmpt = ArrayString::<128>::new();
-        write!(pmpt, "{}", pkh).ok()?;
+        // At this point we have the value to send to the host; but there's a bit more to do to
+        // ask permission from the user.
+        write_scroller("Provide Public Key", |w| Ok(write!(w, "{}", pkh)?))?;
 
-        if !ui::MessageValidator::new(&["Provide Public Key", &pmpt], &[], &[]).ask() {
-            None
-        } else {
-            *destination=Some(ArrayVec::new());
-            destination.as_mut()?.try_push(u8::try_from(key.W_len).ok()?).ok()?;
-            destination.as_mut()?.try_extend_from_slice(&key.W[1..key.W_len as usize]).ok()?;
-            Some(())
-        }
+        *destination=Some(ArrayVec::new());
+        let p = destination.as_mut()?;
+        p.try_push(u8::try_from(key.W_len).ok()?).ok()?;
+        p.try_extend_from_slice(&key.W[1..key.W_len as usize]).ok()?;
+        Some(())
     }));
 
 pub type SignImplT = impl InterpParser<SignParameters, Returning = ArrayVec<u8, 260_usize>>;
@@ -51,15 +46,10 @@ pub static SIGN_IMPL: SignImplT = Action(
             mkfn(|(hash, _): &(Hasher, Option<ArrayVec<(), { usize::MAX }>>), destination: &mut _| {
                 let the_hash = hash.clone().finalize();
 
-                let mut pmpt = ArrayString::<128>::new();
-                write!(pmpt, "{}", the_hash).ok()?;
+                write_scroller("Sign Hash?", |w| Ok(write!(w, "{}", the_hash)?))?;
 
-                if !ui::MessageValidator::new(&["Sign Hash?", &pmpt], &[], &[]).ask() {
-                    None
-                } else {
-                    *destination = Some(the_hash.0.into());
-                    Some(())
-                }
+                *destination = Some(the_hash.0.into());
+                Some(())
             }),
         ),
         Action(
@@ -70,15 +60,10 @@ pub static SIGN_IMPL: SignImplT = Action(
                 let pubkey = get_pubkey(path).ok()?; // Redoing work here; fix.
                 let pkh = get_pkh(pubkey);
 
-                let mut pmpt = ArrayString::<128>::new();
-                write!(pmpt, "{}", pkh).ok()?;
+                write_scroller("With PKH", |w| Ok(write!(w, "{}", pkh)?))?;
 
-                if !ui::MessageValidator::new(&["`With PKH", &pmpt], &[], &[]).ask() {
-                    None
-                } else {
-                    *destination = Some(privkey);
-                    Some(())
-                }
+                *destination = Some(privkey);
+                Some(())
             }),
         ),
     ),

@@ -25,6 +25,8 @@ extern "C" fn sample_main() {
 pub mod interface;
 
 #[cfg(all(target_os = "nanos"))]
+pub mod ui;
+#[cfg(all(target_os = "nanos"))]
 pub mod crypto_helpers;
 #[cfg(all(target_os = "nanos"))]
 pub mod implementation;
@@ -35,37 +37,13 @@ use core::panic::PanicInfo;
 #[cfg(all(target_os = "nanos", test))]
 #[inline]
 #[cfg_attr(all(target_os = "nanos", test), panic_handler)]
-pub fn exiting_panic(info: &PanicInfo) -> ! {
+pub fn exiting_panic(_info: &PanicInfo) -> ! {
     //let mut comm = io::Comm::new();
     //comm.reply(io::StatusWords::Panic);
-    write!(DBG, "Panicking: {:?}\n", info);
+    error!("Panicking: {:?}\n", _info);
     nanos_sdk::exit_app(1)
 }
 
 ///// Custom type used to implement tests
 //#[cfg(all(target_os = "nanos", test))]
 //use nanos_sdk::TestType;
-
-#[cfg(all(target_os = "nanos", speculos))]
-use nanos_sdk::debug_print;
-
-pub struct DBG;
-use arrayvec::ArrayString;
-use core;
-#[cfg(all(target_os = "nanos", speculos))]
-impl core::fmt::Write for DBG {
-    fn write_str(&mut self, s: &str) -> core::fmt::Result {
-        // Dunno why the copy is required, might be some pic issue as this is going straight to
-        // assembly.
-        let mut qq = ArrayString::<128>::new();
-        qq.push_str(s);
-        debug_print(qq.as_str());
-        Ok(())
-    }
-}
-#[cfg(all(target_os = "nanos", not(speculos)))]
-impl core::fmt::Write for DBG {
-    fn write_str(&mut self, _s: &str) -> core::fmt::Result {
-        Ok(())
-    }
-}
