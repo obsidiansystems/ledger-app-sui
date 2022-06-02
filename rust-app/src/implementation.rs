@@ -5,7 +5,7 @@ use arrayvec::ArrayVec;
 use core::fmt::Write;
 use ledger_log::{info};
 use ledger_parser_combinators::interp_parser::{
-    Action, DefaultInterp, DropInterp, InterpParser, ObserveBytes, SubInterp,
+    Action, DefaultInterp, DropInterp, ParserCommon, InterpParser, ObserveBytes, SubInterp,
 };
 use crate::ui::write_scroller;
 
@@ -82,19 +82,19 @@ pub static SIGN_IMPL: SignImplT = Action(
 
 pub enum ParsersState {
     NoState,
-    GetAddressState(<GetAddressImplT as InterpParser<Bip32Key>>::State),
-    SignState(<SignImplT as InterpParser<SignParameters>>::State),
+    GetAddressState(<GetAddressImplT as ParserCommon<Bip32Key>>::State),
+    SignState(<SignImplT as ParserCommon<SignParameters>>::State),
 }
 
 #[inline(never)]
 pub fn get_get_address_state(
     s: &mut ParsersState,
-) -> &mut <GetAddressImplT as InterpParser<Bip32Key>>::State {
+) -> &mut <GetAddressImplT as ParserCommon<Bip32Key>>::State {
     match s {
         ParsersState::GetAddressState(_) => {}
         _ => {
             info!("Non-same state found; initializing state.");
-            *s = ParsersState::GetAddressState(<GetAddressImplT as InterpParser<Bip32Key>>::init(
+            *s = ParsersState::GetAddressState(<GetAddressImplT as ParserCommon<Bip32Key>>::init(
                 &GET_ADDRESS_IMPL,
             ));
         }
@@ -110,12 +110,12 @@ pub fn get_get_address_state(
 #[inline(never)]
 pub fn get_sign_state(
     s: &mut ParsersState,
-) -> &mut <SignImplT as InterpParser<SignParameters>>::State {
+) -> &mut <SignImplT as ParserCommon<SignParameters>>::State {
     match s {
         ParsersState::SignState(_) => {}
         _ => {
             info!("Non-same state found; initializing state.");
-            *s = ParsersState::SignState(<SignImplT as InterpParser<SignParameters>>::init(
+            *s = ParsersState::SignState(<SignImplT as ParserCommon<SignParameters>>::init(
                 &SIGN_IMPL,
             ));
         }

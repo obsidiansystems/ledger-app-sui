@@ -110,10 +110,10 @@ impl From<u8> for Ins {
 use arrayvec::ArrayVec;
 use nanos_sdk::io::Reply;
 
-use ledger_parser_combinators::interp_parser::InterpParser;
+use ledger_parser_combinators::interp_parser::{ParserCommon, InterpParser};
 fn run_parser_apdu<P: InterpParser<A, Returning = ArrayVec<u8, 260>>, A>(
     states: &mut ParsersState,
-    get_state: fn(&mut ParsersState) -> &mut <P as InterpParser<A>>::State,
+    get_state: fn(&mut ParsersState) -> &mut <P as ParserCommon<A>>::State,
     parser: &P,
     comm: &mut io::Comm,
 ) -> Result<(), Reply> {
