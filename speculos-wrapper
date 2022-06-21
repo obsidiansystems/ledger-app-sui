@@ -1,0 +1,22 @@
+#!/bin/sh
+
+echo "Speculos Wrapper called with $*"
+case $3 in
+  *ts_tests*)
+    #echo "Running test suite with ${CARGO_BIN_EXE_rust-app}"; set | grep CARGO
+    #armv6m-unknown-none-eabi-objdump --all-headers $3
+    export RUST_APP="$(speculos -k 2.0 "$@" --display headless |& grep EXE: | cut -d' ' -f2)"
+    echo RUST APP IS: $RUST_APP
+    speculos -k 2.0 $RUST_APP --display headless &
+    SPECULOS=$!
+    until wget -O/dev/null -o/dev/null http://localhost:5000/; do sleep 0.1; done;
+    cd ../ts-tests;
+    if ! [ -d "node_modules" ] ; then npm install; fi
+    npm test
+    kill $SPECULOS
+    ;;
+  */deps/*) # Assume anything in the deps directory is a test, not the full app.
+    echo "Matched *tests*"
+    speculos -k 2.0 "$@" --display headless ;;
+  *) speculos "$@" ;;
+esac
