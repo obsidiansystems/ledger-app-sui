@@ -2,22 +2,17 @@
 build-std = ["core"]
 configurable-env = true
 
-#[target.thumbv6m-none-eabi.unstable]
-## Inconvenient due to the test suite; we should avoid this if possible.
-## build-std = ["core", "panic_abort", "std","alloc","proc_macro"]
-#build-std = ["core"]
-
 [target.thumbv6m-none-eabi]
 rustflags = [ 
   "-C", "relocation-model=ropi",
   "-C", "link-arg=-Tscript.ld",
-  "-Z", "emit-stack-sizes",
-  "--cfg", "target_os=\"nanos\"",
   "-C", "opt-level=3",
-  "-C", "link-arg=--target=thumbv6m-none-eabi",
   "-C", "passes=ledger-ropi",
+  "-C", "codegen-units=1",
+  "-C", "lto",
+  "-C", "embed-bitcode",
   "--cfg", "target_os=\"nanos\"",
-  "--emit=llvm-ir"
+  "--emit=obj,llvm-ir,llvm-bc"
 ]
 linker = "armv6m-unknown-none-eabi-clang"
 runner = "./speculos-wrapper -k 2.0"
@@ -26,9 +21,6 @@ runner = "./speculos-wrapper -k 2.0"
 target = "thumbv6m-none-eabi"
 
 [alias]
+tt = "test --features extra_debug"
 br = "build --release"
 stackcheck = "stack-sizes --release --bin rust-app --target=thumbv6m-none-eabi"
-unit = "test --features=speculos -Z build-std=core --lib"
-integ = "test --target=x86_64-unknown-linux-gnu --test=integration -- --test-threads 1"
-integ-build = "test --target=x86_64-unknown-linux-gnu --test=integration --no-run"
-
