@@ -83,6 +83,42 @@ rec {
     #   inject test dependencies into the build
 
     crates = {
+      "Inflector" = rec {
+        crateName = "Inflector";
+        version = "0.2.1";
+        edition = "2015";
+        sha256 = "0bviy0y94xnf9lqm8gq5vjrzjw11kvc7wscghxf5qqr2kn349vkl";type = [ "dylib" "rlib" ];
+        authors = [
+          "Josh Teeter<joshteeter@gmail.com>"
+        ];
+        dependencies = [
+          {
+            name = "regex";
+            packageId = "regex";
+          }
+        ];
+        features = {
+        };
+        resolvedDefaultFeatures = [ "default" ];
+      };
+      "aho-corasick" = rec {
+        crateName = "aho-corasick";
+        version = "0.5.3";
+        edition = "2015";
+        crateBin = [];
+        sha256 = "0rnvdmlajikq0i4zdy1p3pv699q6apvsxfc7av7byhppllp2r5ya";
+        libName = "aho_corasick";
+        authors = [
+          "Andrew Gallant <jamslam@gmail.com>"
+        ];
+        dependencies = [
+          {
+            name = "memchr";
+            packageId = "memchr";
+          }
+        ];
+
+      };
       "arrayvec" = rec {
         crateName = "arrayvec";
         version = "0.7.2";
@@ -97,13 +133,26 @@ rec {
       };
       "autocfg" = rec {
         crateName = "autocfg";
-        version = "1.0.1";
+        version = "1.1.0";
         edition = "2015";
-        sha256 = "0jj6i9zn4gjl03kjvziqdji6rwx8ykz8zk2ngpc331z2g3fk3c6d";
+        sha256 = "1ylp3cb47ylzabimazvbz9ms6ap784zhb6syaz6c1jqpmcmq0s6l";
         authors = [
           "Josh Stone <cuviper@gmail.com>"
         ];
 
+      };
+      "base64" = rec {
+        crateName = "base64";
+        version = "0.13.0";
+        edition = "2018";
+        sha256 = "1z82g23mbzjgijkpcrilc7nljpxpvpf7zxf6iyiapkgka2ngwkch";
+        authors = [
+          "Alice Maz <alice@alicemaz.com>"
+          "Marshall Pierce <marshall@mpierce.org>"
+        ];
+        features = {
+          "default" = [ "std" ];
+        };
       };
       "bstringify" = rec {
         crateName = "bstringify";
@@ -120,10 +169,10 @@ rec {
       };
       "cc" = rec {
         crateName = "cc";
-        version = "1.0.72";
+        version = "1.0.73";
         edition = "2018";
         crateBin = [];
-        sha256 = "1vl50h2qh0nh0iddzj6gd1pnxnxpvwmbfxc30578c1pajmxi7a92";
+        sha256 = "04ccylrjq94jssh8f7d7hxv64gs9f1m1jrsxb7wqgfxk4xljmzrg";
         authors = [
           "Alex Crichton <alex@alexcrichton.com>"
         ];
@@ -143,29 +192,6 @@ rec {
           "rustc-dep-of-std" = [ "core" "compiler_builtins" ];
         };
       };
-      "ctor" = rec {
-        crateName = "ctor";
-        version = "0.1.21";
-        edition = "2018";
-        sha256 = "1am0a8m1gkaa0fii3w3s5wsymjljvg4sv5c50bscssl2kf5a9h6c";
-        procMacro = true;
-        authors = [
-          "Matt Mastracci <matthew@mastracci.com>"
-        ];
-        dependencies = [
-          {
-            name = "quote";
-            packageId = "quote";
-          }
-          {
-            name = "syn";
-            packageId = "syn";
-            usesDefaultFeatures = false;
-            features = [ "full" "parsing" "printing" "proc-macro" ];
-          }
-        ];
-
-      };
       "cty" = rec {
         crateName = "cty";
         version = "0.2.2";
@@ -173,6 +199,39 @@ rec {
         sha256 = "0d8z0pbr87wgzqqb2jk5pvj0afzc6d3rb772ach6fijhg6yglrdk";
         authors = [
           "Jorge Aparicio <jorge@japaric.io>"
+        ];
+
+      };
+      "enum-init" = rec {
+        crateName = "enum-init";
+        version = "0.1.0";
+        edition = "2018";
+        workspace_member = null;
+        src = pkgs.fetchgit {
+          url = "https://github.com/obsidiansystems/enum-init";
+          rev = "a831c2fbbe00af926ae87c064bfe4da58d26777c";
+          sha256 = "1daqa7i1778rpvk8d442flk6bak6jxi6hrcc5j4maaa7ipjc6xlr";
+        };
+        procMacro = true;
+        dependencies = [
+          {
+            name = "Inflector";
+            packageId = "Inflector";
+            rename = "inflector";
+          }
+          {
+            name = "proc-macro2";
+            packageId = "proc-macro2";
+          }
+          {
+            name = "quote";
+            packageId = "quote";
+          }
+          {
+            name = "syn";
+            packageId = "syn";
+            features = [ "full" ];
+          }
         ];
 
       };
@@ -201,15 +260,112 @@ rec {
         features = {
         };
       };
-      "ledger-log" = rec {
+      "kernel32-sys" = rec {
+        crateName = "kernel32-sys";
+        version = "0.2.2";
+        edition = "2015";
+        sha256 = "1389av0601a9yz8dvx5zha9vmkd6ik7ax0idpb032d28555n41vm";
+        libName = "kernel32";
+        authors = [
+          "Peter Atashian <retep998@gmail.com>"
+        ];
+        dependencies = [
+          {
+            name = "winapi";
+            packageId = "winapi";
+          }
+        ];
+        buildDependencies = [
+          {
+            name = "winapi-build";
+            packageId = "winapi-build";
+          }
+        ];
+
+      };
+      "ledger-crypto-helpers" = rec {
+        crateName = "ledger-crypto-helpers";
+        version = "0.1.0";
+        edition = "2018";
+        workspace_member = null;
+        src = pkgs.fetchgit {
+          url = "https://github.com/ea-nasir/ledger-crypto-helpers";
+          rev = "7c362ab4381df5b44cdf0b83ae2b366eba27f29e";
+          sha256 = "1nayfpdr899n7iqa252ds7fhbga1j8vsxpylzki43az19lv56snm";
+        };
+        dependencies = [
+          {
+            name = "arrayvec";
+            packageId = "arrayvec";
+            usesDefaultFeatures = false;
+          }
+          {
+            name = "base64";
+            packageId = "base64";
+            usesDefaultFeatures = false;
+          }
+          {
+            name = "ledger-log";
+            packageId = "ledger-log 0.1.0 (git+https://github.com/ea-nasir/ledger-log.git#4f813daf1099672cafa0cf7794d0b70786407a0e)";
+          }
+          {
+            name = "nanos_sdk";
+            packageId = "nanos_sdk";
+          }
+          {
+            name = "nanos_ui";
+            packageId = "nanos_ui";
+          }
+          {
+            name = "zeroize";
+            packageId = "zeroize";
+            usesDefaultFeatures = false;
+          }
+        ];
+        features = {
+          "speculos" = [ "nanos_sdk/speculos" ];
+        };
+      };
+      "ledger-log 0.1.0 (git+https://github.com/ea-nasir/ledger-log.git#4f813daf1099672cafa0cf7794d0b70786407a0e)" = rec {
+        crateName = "ledger-log";
+        version = "0.1.0";
+        edition = "2018";
+        workspace_member = null;
+        src = pkgs.fetchgit {
+          url = "https://github.com/ea-nasir/ledger-log.git";
+          rev = "4f813daf1099672cafa0cf7794d0b70786407a0e";
+          sha256 = "1cfi6k60pnsnpvvcbn6k2ccx29q2pxahwgi3l6vhkm39fm7g6i25";
+        };
+        dependencies = [
+          {
+            name = "arrayvec";
+            packageId = "arrayvec";
+            usesDefaultFeatures = false;
+          }
+          {
+            name = "nanos_sdk";
+            packageId = "nanos_sdk";
+            target = { target, features }: ((let p = stdenv.hostPlatform; in p.rustc.config or p.config) == "thumbv6m-none-eabi");
+          }
+        ];
+        features = {
+          "log_debug" = [ "log_info" ];
+          "log_info" = [ "log_warn" ];
+          "log_trace" = [ "log_debug" ];
+          "log_warn" = [ "log_error" ];
+          "speculos" = [ "nanos_sdk/speculos" ];
+        };
+        resolvedDefaultFeatures = [ "log_debug" "log_error" "log_info" "log_trace" "log_warn" ];
+      };
+      "ledger-log 0.1.0 (git+https://github.com/obsidiansystems/ledger-platform#a9ae3aef61a17bec246571a4bdbbe81fdd991258)" = rec {
         crateName = "ledger-log";
         version = "0.1.0";
         edition = "2018";
         workspace_member = null;
         src = pkgs.fetchgit {
           url = "https://github.com/obsidiansystems/ledger-platform";
-          rev = "b3bc1db9c8a793bd20e76a4a19666f09a80c4e95";
-          sha256 = "1g0vmjw2bnjgm439a3373hajvkjnfq536x857w5ngdnfvm0687vf";
+          rev = "a9ae3aef61a17bec246571a4bdbbe81fdd991258";
+          sha256 = "1r54s40k4jk7c0g8cpl31s1q5kk1fh2xhzqdid8s5wj2zxpqvl27";
         };
         dependencies = [
           {
@@ -239,8 +395,8 @@ rec {
         workspace_member = null;
         src = pkgs.fetchgit {
           url = "https://github.com/obsidiansystems/ledger-parser-combinators";
-          rev = "b1d270cfd010ddd087d423c12ebc54258c8c7ff6";
-          sha256 = "0dj24ssi167ab7023pdk2gzklidgwp0pkwncsgvcmhrc9bsvwvyj";
+          rev = "3f1bdb4d58249a71543c3ba10ded9a8491ea9c28";
+          sha256 = "0pmrb7md8c05x27v6hlz9rf284alii48lq4xkf7v9zdipcxwlvb0";
         };
         authors = [
           "Jonathan D.K. Gibbons <jonored@gmail.com>"
@@ -256,13 +412,17 @@ rec {
             packageId = "bstringify";
           }
           {
+            name = "enum-init";
+            packageId = "enum-init";
+          }
+          {
             name = "generic-array";
             packageId = "generic-array";
             usesDefaultFeatures = false;
           }
           {
             name = "ledger-log";
-            packageId = "ledger-log";
+            packageId = "ledger-log 0.1.0 (git+https://github.com/ea-nasir/ledger-log.git#4f813daf1099672cafa0cf7794d0b70786407a0e)";
             optional = true;
             features = [ "log_trace" ];
           }
@@ -286,11 +446,59 @@ rec {
         };
         resolvedDefaultFeatures = [ "ledger-log" "logging" ];
       };
+      "ledger-prompts-ui" = rec {
+        crateName = "ledger-prompts-ui";
+        version = "0.1.0";
+        edition = "2018";
+        workspace_member = null;
+        src = pkgs.fetchgit {
+          url = "https://github.com/ea-nasir/ledger-prompts-ui";
+          rev = "4a669e4a21e38cbeb2588a405ca726af3908cd88";
+          sha256 = "1yar3ysszhbxif6iqjss2jj9ah2cz37rhhpmadcg386wsbrg4hg7";
+        };
+        dependencies = [
+          {
+            name = "arrayvec";
+            packageId = "arrayvec";
+            usesDefaultFeatures = false;
+          }
+          {
+            name = "ledger-log";
+            packageId = "ledger-log 0.1.0 (git+https://github.com/ea-nasir/ledger-log.git#4f813daf1099672cafa0cf7794d0b70786407a0e)";
+          }
+          {
+            name = "nanos_sdk";
+            packageId = "nanos_sdk";
+          }
+          {
+            name = "nanos_ui";
+            packageId = "nanos_ui";
+          }
+        ];
+        features = {
+          "speculos" = [ "nanos_sdk/speculos" ];
+        };
+      };
+      "libc" = rec {
+        crateName = "libc";
+        version = "0.2.126";
+        edition = "2015";
+        sha256 = "0diqlpap4pq81284368vffjwvp9jg9hp2x03s7hlk2yj3icmm79l";
+        authors = [
+          "The Rust Project Developers"
+        ];
+        features = {
+          "default" = [ "std" ];
+          "rustc-dep-of-std" = [ "align" "rustc-std-workspace-core" ];
+          "use_std" = [ "std" ];
+        };
+        resolvedDefaultFeatures = [ "default" "std" ];
+      };
       "log" = rec {
         crateName = "log";
-        version = "0.4.14";
+        version = "0.4.17";
         edition = "2015";
-        sha256 = "04175hv0v62shd82qydq58a48k3bjijmk54v38zgqlbxqkkbpfai";
+        sha256 = "0biqlaaw1lsr8bpnmbcc0fvgjj34yy79ghqzyi0ali7vgil2xcdb";
         authors = [
           "The Rust Project Developers"
         ];
@@ -299,19 +507,6 @@ rec {
             name = "cfg-if";
             packageId = "cfg-if";
           }
-          {
-            name = "value-bag";
-            packageId = "value-bag";
-            optional = true;
-            usesDefaultFeatures = false;
-          }
-        ];
-        devDependencies = [
-          {
-            name = "value-bag";
-            packageId = "value-bag";
-            features = [ "test" ];
-          }
         ];
         features = {
           "kv_unstable" = [ "value-bag" ];
@@ -319,7 +514,23 @@ rec {
           "kv_unstable_std" = [ "std" "kv_unstable" "value-bag/error" ];
           "kv_unstable_sval" = [ "kv_unstable" "value-bag/sval" "sval" ];
         };
-        resolvedDefaultFeatures = [ "kv_unstable" "value-bag" ];
+      };
+      "memchr" = rec {
+        crateName = "memchr";
+        version = "0.1.11";
+        edition = "2015";
+        sha256 = "084d85hjfa3xf5kwdms2mhbkh78m1gl2254cp5swcxj3a7xjkdnq";
+        authors = [
+          "Andrew Gallant <jamslam@gmail.com>"
+          "bluss"
+        ];
+        dependencies = [
+          {
+            name = "libc";
+            packageId = "libc";
+          }
+        ];
+
       };
       "nanos_sdk" = rec {
         crateName = "nanos_sdk";
@@ -328,8 +539,8 @@ rec {
         workspace_member = null;
         src = pkgs.fetchgit {
           url = "https://github.com/obsidiansystems/ledger-nanos-sdk.git";
-          rev = "1b0d1a688713ffbf3956ebe9971584a79aec5560";
-          sha256 = "09a7xyzdcr9n7m2gisirg7n8vqqg53i4rk92q293fw9ri5vrpj3d";
+          rev = "1d358edd6cddbdcd4d6deb29f856b40e7e863c07";
+          sha256 = "1v5xz06vsd2ih6vl3qxill5w3k5gplbylqk3nw0jdvcwy0jx3v09";
         };
         authors = [
           "yhql"
@@ -378,9 +589,9 @@ rec {
       };
       "num-traits" = rec {
         crateName = "num-traits";
-        version = "0.2.14";
+        version = "0.2.15";
         edition = "2015";
-        sha256 = "144j176s2p76azy2ngk2vkdzgwdc0bc8c93jhki8c9fsbknb2r4s";
+        sha256 = "1kfdqqw2ndz0wx2j75v9nbjx7d3mh3150zs4p5595y02rwsdx3jp";
         authors = [
           "The Rust Project Developers"
         ];
@@ -396,9 +607,9 @@ rec {
       };
       "paste" = rec {
         crateName = "paste";
-        version = "1.0.6";
+        version = "1.0.7";
         edition = "2018";
-        sha256 = "1dcg6ll2in45066kvramw83cp1p0vcbafl6bjkrxfv8szrm14i07";
+        sha256 = "1z15h1rnq1wcacpcvgm77djl3413gs1nlhmn90qpcvjx2c2hwlhc";
         procMacro = true;
         authors = [
           "David Tolnay <dtolnay@gmail.com>"
@@ -407,17 +618,17 @@ rec {
       };
       "proc-macro2" = rec {
         crateName = "proc-macro2";
-        version = "1.0.36";
+        version = "1.0.40";
         edition = "2018";
-        sha256 = "0adh6gvs31x6pfwmygypmzrv1jc7kjq568vsqcfaxk7vhdc2sd67";
+        sha256 = "1xyazdlnqmnkapjah7mjbanzb0zc4i4z5rgaz0vw75i5xpla35nx";
         authors = [
           "David Tolnay <dtolnay@gmail.com>"
           "Alex Crichton <alex@alexcrichton.com>"
         ];
         dependencies = [
           {
-            name = "unicode-xid";
-            packageId = "unicode-xid";
+            name = "unicode-ident";
+            packageId = "unicode-ident";
           }
         ];
         features = {
@@ -425,44 +636,11 @@ rec {
         };
         resolvedDefaultFeatures = [ "default" "proc-macro" ];
       };
-      "prompts-ui" = rec {
-        crateName = "prompts-ui";
-        version = "0.1.0";
-        edition = "2018";
-        workspace_member = null;
-        src = pkgs.fetchgit {
-          url = "https://github.com/obsidiansystems/ledger-platform";
-          rev = "b3bc1db9c8a793bd20e76a4a19666f09a80c4e95";
-          sha256 = "1g0vmjw2bnjgm439a3373hajvkjnfq536x857w5ngdnfvm0687vf";
-        };
-        dependencies = [
-          {
-            name = "arrayvec";
-            packageId = "arrayvec";
-            usesDefaultFeatures = false;
-          }
-          {
-            name = "ledger-log";
-            packageId = "ledger-log";
-          }
-          {
-            name = "nanos_sdk";
-            packageId = "nanos_sdk";
-          }
-          {
-            name = "nanos_ui";
-            packageId = "nanos_ui";
-          }
-        ];
-        features = {
-          "speculos" = [ "nanos_sdk/speculos" ];
-        };
-      };
       "quote" = rec {
         crateName = "quote";
-        version = "1.0.14";
+        version = "1.0.20";
         edition = "2018";
-        sha256 = "0zf823y56wqwxkcp3rf3ik9zashpmx9700q0fmqz3np4gi281aj7";
+        sha256 = "015qrb5jf9q0pajx38mfn431gfqn0hv2kc1ssarbqvvpx49g5k9v";
         authors = [
           "David Tolnay <dtolnay@gmail.com>"
         ];
@@ -479,9 +657,53 @@ rec {
         };
         resolvedDefaultFeatures = [ "default" "proc-macro" ];
       };
+      "regex" = rec {
+        crateName = "regex";
+        version = "0.1.80";
+        edition = "2015";
+        sha256 = "0bs036h3vzc6pj5jj4vc909s9rppq7b808ic99qn0y6gm3karm2g";
+        authors = [
+          "The Rust Project Developers"
+        ];
+        dependencies = [
+          {
+            name = "aho-corasick";
+            packageId = "aho-corasick";
+          }
+          {
+            name = "memchr";
+            packageId = "memchr";
+          }
+          {
+            name = "regex-syntax";
+            packageId = "regex-syntax";
+          }
+          {
+            name = "thread_local";
+            packageId = "thread_local";
+          }
+          {
+            name = "utf8-ranges";
+            packageId = "utf8-ranges";
+          }
+        ];
+        features = {
+          "simd-accel" = [ "simd" ];
+        };
+      };
+      "regex-syntax" = rec {
+        crateName = "regex-syntax";
+        version = "0.3.9";
+        edition = "2015";
+        sha256 = "0ms9hgdhhsxw9w920i7gipydvagf100bb56jbs192rz86ln01v7r";
+        authors = [
+          "The Rust Project Developers"
+        ];
+
+      };
       "rust-app" = rec {
         crateName = "rust-app";
-        version = "0.2.0";
+        version = "0.0.1";
         edition = "2018";
         crateBin = [
           { name = "rust-app"; path = "bin-src/main.rs"; }
@@ -498,12 +720,21 @@ rec {
             usesDefaultFeatures = false;
           }
           {
+            name = "ledger-crypto-helpers";
+            packageId = "ledger-crypto-helpers";
+          }
+          {
             name = "ledger-log";
-            packageId = "ledger-log";
+            packageId = "ledger-log 0.1.0 (git+https://github.com/obsidiansystems/ledger-platform#a9ae3aef61a17bec246571a4bdbbe81fdd991258)";
           }
           {
             name = "ledger-parser-combinators";
             packageId = "ledger-parser-combinators";
+          }
+          {
+            name = "ledger-prompts-ui";
+            packageId = "ledger-prompts-ui";
+            target = { target, features }: ((let p = stdenv.hostPlatform; in p.rustc.config or p.config) == "thumbv6m-none-eabi");
           }
           {
             name = "nanos_sdk";
@@ -516,9 +747,9 @@ rec {
             target = { target, features }: ((let p = stdenv.hostPlatform; in p.rustc.config or p.config) == "thumbv6m-none-eabi");
           }
           {
-            name = "prompts-ui";
-            packageId = "prompts-ui";
-            target = { target, features }: ((let p = stdenv.hostPlatform; in p.rustc.config or p.config) == "thumbv6m-none-eabi");
+            name = "zeroize";
+            packageId = "zeroize";
+            usesDefaultFeatures = false;
           }
         ];
         devDependencies = [
@@ -541,9 +772,9 @@ rec {
       };
       "syn" = rec {
         crateName = "syn";
-        version = "1.0.85";
+        version = "1.0.98";
         edition = "2018";
-        sha256 = "1dszd62nvccsdiakqzhm4kgc2rpfhj1sc2fd31z844w9rlysr156";
+        sha256 = "1pbklw6fnwwgrkj8qz3wcjfggmn7vmyln44gg0yc5r2dj25fy2n5";
         authors = [
           "David Tolnay <dtolnay@gmail.com>"
         ];
@@ -560,8 +791,8 @@ rec {
             usesDefaultFeatures = false;
           }
           {
-            name = "unicode-xid";
-            packageId = "unicode-xid";
+            name = "unicode-ident";
+            packageId = "unicode-ident";
           }
         ];
         features = {
@@ -570,7 +801,7 @@ rec {
           "proc-macro" = [ "proc-macro2/proc-macro" "quote/proc-macro" ];
           "test" = [ "syn-test-suite/all-features" ];
         };
-        resolvedDefaultFeatures = [ "clone-impls" "default" "derive" "full" "parsing" "printing" "proc-macro" "quote" "visit" "visit-mut" ];
+        resolvedDefaultFeatures = [ "clone-impls" "default" "derive" "full" "parsing" "printing" "proc-macro" "quote" ];
       };
       "testmacro" = rec {
         crateName = "testmacro";
@@ -599,6 +830,42 @@ rec {
         ];
 
       };
+      "thread-id" = rec {
+        crateName = "thread-id";
+        version = "2.0.0";
+        edition = "2015";
+        sha256 = "00zzs2bx1xw8aqm5plqqgr7bc2zz6zkqrdxq8vpiqb8hc2srslx9";
+        authors = [
+          "Ruud van Asseldonk <dev@veniogames.com>"
+        ];
+        dependencies = [
+          {
+            name = "kernel32-sys";
+            packageId = "kernel32-sys";
+          }
+          {
+            name = "libc";
+            packageId = "libc";
+          }
+        ];
+
+      };
+      "thread_local" = rec {
+        crateName = "thread_local";
+        version = "0.2.7";
+        edition = "2015";
+        sha256 = "1mgxikqvhpsic6xk7pan95lvgsky1sdxzw2w5m2l35pgrazxnxl5";
+        authors = [
+          "Amanieu d'Antras <amanieu@gmail.com>"
+        ];
+        dependencies = [
+          {
+            name = "thread-id";
+            packageId = "thread-id";
+          }
+        ];
+
+      };
       "typenum" = rec {
         crateName = "typenum";
         version = "1.15.0";
@@ -613,49 +880,25 @@ rec {
           "scale_info" = [ "scale-info/derive" ];
         };
       };
-      "unicode-xid" = rec {
-        crateName = "unicode-xid";
-        version = "0.2.2";
-        edition = "2015";
-        sha256 = "1wrkgcw557v311dkdb6n2hrix9dm2qdsb1zpw7pn79l03zb85jwc";
-        authors = [
-          "erick.tryzelaar <erick.tryzelaar@gmail.com>"
-          "kwantam <kwantam@gmail.com>"
-          "Manish Goregaokar <manishsmail@gmail.com>"
-        ];
-        features = {
-        };
-        resolvedDefaultFeatures = [ "default" ];
-      };
-      "value-bag" = rec {
-        crateName = "value-bag";
-        version = "1.0.0-alpha.8";
+      "unicode-ident" = rec {
+        crateName = "unicode-ident";
+        version = "1.0.1";
         edition = "2018";
-        sha256 = "0gr6w3mmx6ld13kmg36dbk9vncy57azrhc33lgxynqfw65vkz4kr";
+        sha256 = "131niycgp77aiwvgjdyh47389xfnb7fmlc8ybrxys8v0a0kgxljv";
         authors = [
-          "Ashley Mannix <ashleymannix@live.com.au>"
+          "David Tolnay <dtolnay@gmail.com>"
         ];
-        dependencies = [
-          {
-            name = "ctor";
-            packageId = "ctor";
-          }
+
+      };
+      "utf8-ranges" = rec {
+        crateName = "utf8-ranges";
+        version = "0.1.3";
+        edition = "2015";
+        sha256 = "03xf604b2v51ag3jgzw92l97xnb10kw9zv948bhc7ja1ik017jm1";
+        authors = [
+          "Andrew Gallant <jamslam@gmail.com>"
         ];
-        buildDependencies = [
-          {
-            name = "version_check";
-            packageId = "version_check";
-            rename = "rustc";
-          }
-        ];
-        features = {
-          "error" = [ "std" "sval1_lib/std" ];
-          "serde" = [ "serde1" ];
-          "serde1" = [ "serde1_lib" "sval1_lib/serde1" "sval1_lib/alloc" "erased-serde1/alloc" "serde1_fmt" ];
-          "sval" = [ "sval1" ];
-          "sval1" = [ "sval1_lib" ];
-          "test" = [ "std" ];
-        };
+
       };
       "version_check" = rec {
         crateName = "version_check";
@@ -666,6 +909,41 @@ rec {
           "Sergio Benitez <sb@sergio.bz>"
         ];
 
+      };
+      "winapi" = rec {
+        crateName = "winapi";
+        version = "0.2.8";
+        edition = "2015";
+        sha256 = "0yh816lh6lf56dpsgxy189c2ai1z3j8mw9si6izqb6wsjkbcjz8n";
+        authors = [
+          "Peter Atashian <retep998@gmail.com>"
+        ];
+
+      };
+      "winapi-build" = rec {
+        crateName = "winapi-build";
+        version = "0.1.1";
+        edition = "2015";
+        sha256 = "1g4rqsgjky0a7530qajn2bbfcrl2v0zb39idgdws9b1l7gp5wc9d";
+        libName = "build";
+        authors = [
+          "Peter Atashian <retep998@gmail.com>"
+        ];
+
+      };
+      "zeroize" = rec {
+        crateName = "zeroize";
+        version = "1.5.5";
+        edition = "2018";
+        sha256 = "01yzgi5n5skl7l8wypbpzw8r6s6azhxyn824w79g5chns03khscl";
+        authors = [
+          "The RustCrypto Project Developers"
+        ];
+        features = {
+          "default" = [ "alloc" ];
+          "derive" = [ "zeroize_derive" ];
+          "std" = [ "alloc" ];
+        };
       };
     };
 

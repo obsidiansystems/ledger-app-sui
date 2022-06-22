@@ -25,10 +25,6 @@ extern "C" fn sample_main() {
 pub mod interface;
 
 #[cfg(all(target_os = "nanos"))]
-pub mod ui;
-#[cfg(all(target_os = "nanos"))]
-pub mod crypto_helpers;
-#[cfg(all(target_os = "nanos"))]
 pub mod implementation;
 
 #[cfg(all(target_os = "nanos", test))]

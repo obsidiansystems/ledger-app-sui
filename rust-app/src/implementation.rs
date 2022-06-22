@@ -1,41 +1,51 @@
-use crate::crypto_helpers::{detecdsa_sign, get_pkh, get_private_key, get_pubkey, Hasher};
 use crate::interface::*;
-use crate::*;
 use arrayvec::ArrayVec;
 use core::fmt::Write;
+use ledger_crypto_helpers::hasher::{Hash, Hasher, Blake2b};
+use ledger_crypto_helpers::common::{with_public_keys, PKH, public_key_bytes};
+use ledger_crypto_helpers::eddsa::eddsa_sign;
 use ledger_log::{info};
 use ledger_parser_combinators::interp_parser::{
-    Action, DefaultInterp, DropInterp, ParserCommon, InterpParser, ObserveBytes, SubInterp,
+    Action, DefaultInterp, DropInterp, ParserCommon, MoveAction, InterpParser, ObserveBytes, SubInterp,
 };
-use crate::ui::write_scroller;
+use ledger_prompts_ui::{write_scroller, final_accept_prompt};
 
 use core::convert::TryFrom;
+use zeroize::{Zeroizing};
+use core::ops::Deref;
 
 // A couple type ascription functions to help the compiler along.
 const fn mkfn<A,B,C>(q: fn(&A,&mut B)->C) -> fn(&A,&mut B)->C {
   q
 }
+const fn mkmvfn<A,B,C>(q: fn(A,&mut B)->Option<C>) -> fn(A,&mut B)->Option<C> {
+    q
+}
+const fn mkvfn<A>(q: fn(&A,&mut Option<()>)->Option<()>) -> fn(&A,&mut Option<()>)->Option<()> {
+    q
+}
 
-pub type GetAddressImplT = impl InterpParser<Bip32Key, Returning = ArrayVec<u8, 260_usize>>;
+pub type GetAddressImplT = impl InterpParser<Bip32Key, Returning = ArrayVec<u8, 128>>;
 
-pub static GET_ADDRESS_IMPL: GetAddressImplT =
-    Action(SubInterp(DefaultInterp), mkfn(|path: &ArrayVec<u32, 10>, destination: &mut Option<ArrayVec<u8, 260>>| {
-        let key = get_pubkey(path).ok()?;
+pub const GET_ADDRESS_IMPL: GetAddressImplT =
+    Action(SubInterp(DefaultInterp), mkfn(|path: &ArrayVec<u32, 10>, destination: &mut Option<ArrayVec<u8, 128>>| -> Option<()> {
+        with_public_keys(path, |key: &_, pkh: &PKH| {
 
-        let pkh = get_pkh(key);
+            write_scroller("Provide Public Key", |w| Ok(write!(w, "For Address     {}", pkh)?))?;
 
-        // At this point we have the value to send to the host; but there's a bit more to do to
-        // ask permission from the user.
-        write_scroller("Provide Public Key", |w| Ok(write!(w, "{}", pkh)?))?;
+            final_accept_prompt(&[])?;
 
-        *destination=Some(ArrayVec::new());
-        let p = destination.as_mut()?;
-        p.try_push(u8::try_from(key.W_len).ok()?).ok()?;
-        p.try_extend_from_slice(&key.W[1..key.W_len as usize]).ok()?;
-        Some(())
+            let key_bytes = public_key_bytes(key);
+            let rv = destination.insert(ArrayVec::new());
+            rv.try_push(u8::try_from(key_bytes.len()).ok()?).ok()?;
+            rv.try_extend_from_slice(key_bytes).ok()?;
+            rv.try_push(u8::try_from(pkh.0.len()).ok()?).ok()?;
+            rv.try_extend_from_slice(&pkh.0).ok()?;
+            Ok(())
+        }).ok()
     }));
 
-pub type SignImplT = impl InterpParser<SignParameters, Returning = ArrayVec<u8, 260_usize>>;
+pub type SignImplT = impl InterpParser<SignParameters, Returning = ArrayVec<u8, 128>>;
 
 pub static SIGN_IMPL: SignImplT = Action(
     (
@@ -43,35 +53,33 @@ pub static SIGN_IMPL: SignImplT = Action(
             // Calculate the hash of the transaction
             ObserveBytes(Hasher::new, Hasher::update, SubInterp(DropInterp)),
             // Ask the user if they accept the transaction body's hash
-            mkfn(|(hash, _): &(Hasher, Option<ArrayVec<(), { usize::MAX }>>), destination: &mut _| {
-                let the_hash = hash.clone().finalize();
-
-                write_scroller("Sign Hash?", |w| Ok(write!(w, "{}", the_hash)?))?;
-
-                *destination = Some(the_hash.0.into());
+            mkfn(|(mut hasher, _): &(Blake2b, _), destination: &mut Option<Zeroizing<Hash<32>>>| {
+                let the_hash = hasher.finalize();
+                write_scroller("Transaction hash", |w| Ok(write!(w, "{}", the_hash.deref())?))?;
+                *destination=Some(the_hash);
                 Some(())
             }),
         ),
-        Action(
+        MoveAction(
             SubInterp(DefaultInterp),
             // And ask the user if this is the key the meant to sign with:
-            mkfn(|path: &ArrayVec<u32, 10>, destination: &mut _| {
-                let privkey = get_private_key(path).ok()?;
-                let pubkey = get_pubkey(path).ok()?; // Redoing work here; fix.
-                let pkh = get_pkh(pubkey);
-
-                write_scroller("With PKH", |w| Ok(write!(w, "{}", pkh)?))?;
-
-                *destination = Some(privkey);
+            mkmvfn(|path: ArrayVec<u32, 10>, destination: &mut Option<ArrayVec<u32, 10>>| {
+                with_public_keys(&path, |_, pkh: &PKH| {
+                    write_scroller("Sign for Address", |w| Ok(write!(w, "{}", pkh)?))?;
+                    Ok(())
+                }).ok();
+                *destination = Some(path);
                 Some(())
             }),
         ),
     ),
-    mkfn(|(hash, key): &(Option<[u8; 32]>, Option<_>), destination: &mut _| {
+    mkfn(|(hash, path): &(Option<Zeroizing<Hash<32>>>, Option<ArrayVec<u32, 10>>), destination: &mut _| {
+        final_accept_prompt(&[&"Sign Transaction?"])?;
+
         // By the time we get here, we've approved and just need to do the signature.
-        let (sig, len) = detecdsa_sign(hash.as_ref()?, key.as_ref()?)?;
-        let mut rv = ArrayVec::<u8, 260>::new();
-        rv.try_extend_from_slice(&sig[0..len as usize]).ok()?;
+        let sig = eddsa_sign(path.as_ref()?, &hash.as_ref()?.0[..])?;
+        let mut rv = ArrayVec::<u8, 128>::new();
+        rv.try_extend_from_slice(&sig.0[..]).ok()?;
         *destination = Some(rv);
         Some(())
     }),
@@ -84,6 +92,10 @@ pub enum ParsersState {
     NoState,
     GetAddressState(<GetAddressImplT as ParserCommon<Bip32Key>>::State),
     SignState(<SignImplT as ParserCommon<SignParameters>>::State),
+}
+
+pub fn reset_parsers_state(state: &mut ParsersState) {
+    *state = ParsersState::NoState;
 }
 
 #[inline(never)]
