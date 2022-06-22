@@ -4,7 +4,8 @@ import SpeculosTransport from '@ledgerhq/hw-transport-node-speculos';
 import Axios from 'axios';
 import Transport from "./common";
 import { Common } from "hw-app-obsidian-common";
-import * as ed from 'noble-ed25519';
+import * as blake2b from "blake2b";
+import { instantiate, Nacl } from "js-nacl";
 
 let ignoredScreens = [ "W e l c o m e", "Cancel", "Working...", "Exit", "Rust App 0.0.1"]
 
@@ -53,24 +54,18 @@ let sendCommandAndAccept = async function(command : any, prompts : any) {
     let transport = await Transport.open("http://localhost:5000/apdu");
     let client = new Common(transport, "rust-app");
     // client.sendChunks = client.sendWithBlocks; // Use Block protocol
-    
-    //await new Promise(resolve => setTimeout(resolve, 100));
-    
     let err = null;
 
     try { await command(client); } catch(e) {
       err = e;
     }
-    
-    //await new Promise(resolve => setTimeout(resolve, 100));
-
     if(err) throw(err);
 
     expect(processPrompts((await Axios.get("http://localhost:5000/events")).data["events"] as [any])).to.deep.equal(prompts);
-    // expect(((await Axios.get("http://localhost:5000/events")).data["events"] as [any]).filter((a : any) => a["text"] != "W e l c o m e")).to.deep.equal(prompts);
 }
 
 describe('basic tests', () => {
+
   afterEach( async function() {
     await Axios.post("http://localhost:5000/automation", {version: 1, rules: []});
     await Axios.delete("http://localhost:5000/events");
@@ -91,232 +86,59 @@ describe('basic tests', () => {
       },
     ]);
   });
-  
+});
 
-// function testTransaction(path: string, txn: string, prompts: any[]) {
-//      return async () => {
-//        let sig = await sendCommandAndAccept(
-//          async (client : Common) => {
+let nacl : Nacl =null;
 
-//            let pk = await client.getPublicKey(path);
+instantiate(n => { nacl=n; });
 
-//            // We don't want the prompts from getPublicKey in our result
-//            await Axios.delete("http://localhost:5000/events");
+function testTransaction(path: string, txn: string, prompts: any[]) {
+     return async () => {
+       let sig = await sendCommandAndAccept(
+         async (client : Common) => {
 
-//            let sig = await client.signTransaction(path, Buffer.from(txn, "utf-8").toString("hex"));
+           let pubkey = (await client.getPublicKey(path)).publicKey;
 
-//            expect(await ed.verify(sig.signature, Buffer.from(txn, "utf-8"), pk.publicKey)).to.equal(true);
-//          }, prompts);
-//      }
-// }
+           // We don't want the prompts from getPublicKey in our result
+           await Axios.delete("http://localhost:5000/events");
 
-// // These tests have been extracted interacting with the testnet via the cli.
-
-// let exampleSend = {
-//   "chain_id": "testnet",
-//   "entropy": "-7780543831205109370",
-//   "fee": [
-//     {
-//       "amount": "10000",
-//       "denom": "upokt"
-//     }
-//   ],
-//   "memo": "Fourth transaction",
-//   "msg": {
-//     "type": "pos/Send",
-//     "value": {
-//       "amount": "1000000",
-//       "from_address": "db987ccfa2a71b2ec9a56c88c77a7cf66d01d8ba",
-//       "to_address": "db987ccfa2a71b2ec9a56c88c77a7cf66d01d8ba"
-//     }
-//   }
-// };
-
-// let exampleUnjail = {
-//   "chain_id": "testnet",
-//   "entropy": "-8051161335943327787",
-//   "fee": [
-//     {
-//       "amount": "10000",
-//       "denom": "upokt"
-//     }
-//   ],
-//   "memo": "",
-//   "msg": {
-//     "type": "pos/MsgUnjail",
-//     "value": {
-//       "address": "db987ccfa2a71b2ec9a56c88c77a7cf66d01d8ba"
-//     }
-//   }
-// };
-
-// let exampleStake = {
-//   "chain_id": "testnet",
-//   "entropy": "2417661502575469960",
-//   "fee": [
-//     {
-//       "amount": "10000",
-//       "denom": "upokt"
-//     }
-//   ],
-//   "memo": "",
-//   "msg": {
-//     "type": "pos/MsgStake",
-//     "value": {
-//       "chains": [
-//         "0034"
-//       ],
-//       "public_key": {
-//         "type": "crypto/ed25519_public_key",
-//         "value": "6b62a590bab42ea01383d3209fa719254977fb83624fbd6755d102264ba1adc0"
-//       },
-//       "service_url": "https://serviceURI.com:3000",
-//       "value": "1000000"
-//     }
-//   }
-// };
-
-// let exampleUnstake = {
-//   "chain_id": "testnet",
-//   "entropy": "-1105361304155186876",
-//   "fee": [
-//     {
-//       "amount": "10000",
-//       "denom": "upokt"
-//     }
-//   ],
-//   "memo": "",
-//   "msg": {
-//     "type": "pos/MsgBeginUnstake",
-//     "value": {
-//       "validator_address": "db987ccfa2a71b2ec9a56c88c77a7cf66d01d8ba"
-//     }
-//   }
-// };
+           let sig = await client.signTransaction(path, Buffer.from(txn, "utf-8").toString("hex"));
+           expect(sig.signature.length).to.equal(128);
+           let hash = blake2b(32).update(Buffer.from(txn, "utf-8")).digest();
+           let pass = nacl.crypto_sign_verify_detached(Buffer.from(sig.signature, 'hex'), hash, Buffer.from(pubkey, 'hex'));
+           expect(pass).to.equal(true);
+         }, prompts);
+     }
+}
 
 // describe("Signing tests", function() {
-//   it("can sign a simple transfer",
+//   before( async function() {
+//     while(!nacl) await new Promise(r => setTimeout(r, 100));
+//   })
+
+//   it("can sign a transaction",
 //      testTransaction(
-//        "0/0",
-//        JSON.stringify(exampleSend),
-// [
+//        "0",
+//        JSON.stringify({"testapp":true}),
+//        [
 //          {
-//         "header": "Signing",
-//         "prompt": "Transaction",
+//            "header": "Transaction hash",
+//            "prompt": "a5dQl_ZMC3Onv0ldlZ9C-Nl75FXraTHpoipEGTdNzrQ",
 //          },
 //          {
-//         "header": "For Account",
-//         "prompt": "678c1a7a95cdca4812036cb4a2466f033973e962"
+//            "header": "Sign for Address",
+//            "prompt": "7f916b907886913c6dd7ab62681fc52140afbc84"
 //          },
 //          {
-//         "header": "Send",
-//         "prompt": "Transaction",
-//          },
-//          {
-//         "header": "Value",
-//         "prompt": "1000000",
-//          },
-//          {
-//         "header": "Transfer from",
-//         "prompt": "db987ccfa2a71b2ec9a56c88c77a7cf66d01d8ba",
-//          },
-//          {
-//         "header": "Transfer To",
-//         "prompt": "db987ccfa2a71b2ec9a56c88c77a7cf66d01d8ba",
+//            "text": "Sign Transaction?",
+//            "x": 19,
+//            "y": 11
 //          },
 //          {
 //            "text": "Confirm",
 //            "x": 43,
 //            "y": 11,
 //          }
-// ]
-//      ));
-//   it("can sign a simple unjail",
-//      testTransaction(
-//        "0/0",
-//        JSON.stringify(exampleUnjail),
-//        [
-//         { "header": "Signing",
-//           "prompt": "Transaction"
-//         },
-//         {
-//           "header": "For Account",
-//           "prompt": "678c1a7a95cdca4812036cb4a2466f033973e962"
-//         },
-//          {
-//            "text": "Confirm",
-//            "x": 43,
-//            "y": 11,
-//          }
-//        ]
-//        ));
-
-//   it("can sign a simple stake",
-//      testTransaction(
-//        "0/0",
-//        JSON.stringify(exampleStake),
-//        [
-//         { "header": "Signing",
-//           "prompt": "Transaction"
-//         },
-//         {
-//           "header": "For Account",
-//           "prompt": "678c1a7a95cdca4812036cb4a2466f033973e962"
-//         },
-//          {
-//         "header": "Stake",
-//         "prompt": "Transaction",
-//          },
-//          {
-//         "header": "Chain",
-//         "prompt": "0034",
-//          },
-//          {
-//         "header": "Public Key",
-//         "prompt": "6b62a590bab42ea01383d3209fa719254977fb83624fbd6755d102264ba1adc0 (crypto/ed25519_public_key)",
-//          },
-//          {
-//         "header": "Service URL",
-//         "prompt": "https://serviceURI.com:3000",
-//          },
-//          {
-//         "header": "Value",
-//         "prompt": "1000000",
-//          },
-//          {
-//            "text": "Confirm",
-//            "x": 43,
-//            "y": 11,
-//          },
-//        ]
-
-//      ));
-
-//   it("can sign a simple unstake",
-//      testTransaction(
-//        "0/0",
-//        JSON.stringify(exampleUnstake),
-//        [
-//         { "header": "Signing",
-//           "prompt": "Transaction"
-//         },
-//         {
-//           "header": "For Account",
-//           "prompt": "678c1a7a95cdca4812036cb4a2466f033973e962"
-//         },
-//         {
-//           "header": "Unstake",
-//           "prompt": "Transaction"
-//         },
-//         {
-//           "header": "Transfer from",
-//           "prompt": "db987ccfa2a71b2ec9a56c88c77a7cf66d01d8ba"
-//         },
-//         {
-//           "text": "Confirm",
-//           "x": 43,
-//           "y": 11
-//         }
 //        ]
 //      ));
-});
+// });
