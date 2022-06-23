@@ -64,6 +64,7 @@ rec {
     mkdir -p $out/rust-app
     cp app.json app.hex $out/rust-app
     cp ${./tarball-default.nix} $out/rust-app/default.nix
+    cp ${./tarball-shell.nix} $out/rust-app/shell.nix
     cp ${./rust-app/crab.gif} $out/rust-app/crab.gif
   '');
 
