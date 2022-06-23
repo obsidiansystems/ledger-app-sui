@@ -71,6 +71,12 @@ rec {
     tar -czvhf $out -C ${tarSrc} rust-app
   '';
 
+  loadApp = pkgs.writeScriptBin "load-app" ''
+    #!/usr/bin/env bash
+    cd ${tarSrc}/rust-app
+    ${ledger-platform.ledgerctl}/bin/ledgerctl install -f ${tarSrc}/rust-app/app.json
+  '';
+
   testPackage = (import ./ts-tests/override.nix { inherit pkgs; }).package;
 
   testScript = pkgs.writeShellScriptBin "mocha-wrapper" ''
@@ -111,4 +117,8 @@ rec {
   };
 
   inherit (pkgs.nodePackages) node2nix;
+
+  appShell = pkgs.mkShell {
+    packages = [ loadApp ledger-platform.generic-cli pkgs.jq ];
+  };
 }
