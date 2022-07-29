@@ -10,7 +10,7 @@ import { instantiate, Nacl } from "js-nacl";
 let ignoredScreens = [ "W e l c o m e", "Cancel", "Working...", "Exit", "Rust App 0.0.1"]
 
 let setAcceptAutomationRules = async function() {
-    await Axios.post("http://localhost:5000/automation", {
+    await Axios.post("http://0.0.0.0:5000/automation", {
       version: 1,
       rules: [
         ... ignoredScreens.map(txt => { return { "text": txt, "actions": [] } }),
@@ -49,9 +49,9 @@ let processPrompts = function(prompts: [any]) {
 
 let sendCommandAndAccept = async function(command : any, prompts : any) {
     await setAcceptAutomationRules();
-    await Axios.delete("http://localhost:5000/events");
+    await Axios.delete("http://0.0.0.0:5000/events");
 
-    let transport = await Transport.open("http://localhost:5000/apdu");
+    let transport = await Transport.open("http://0.0.0.0:5000/apdu");
     let client = new Common(transport, "rust-app");
     // client.sendChunks = client.sendWithBlocks; // Use Block protocol
     let err = null;
@@ -61,14 +61,14 @@ let sendCommandAndAccept = async function(command : any, prompts : any) {
     }
     if(err) throw(err);
 
-    expect(processPrompts((await Axios.get("http://localhost:5000/events")).data["events"] as [any])).to.deep.equal(prompts);
+    expect(processPrompts((await Axios.get("http://0.0.0.0:5000/events")).data["events"] as [any])).to.deep.equal(prompts);
 }
 
 describe('basic tests', () => {
 
   afterEach( async function() {
-    await Axios.post("http://localhost:5000/automation", {version: 1, rules: []});
-    await Axios.delete("http://localhost:5000/events");
+    await Axios.post("http://0.0.0.0:5000/automation", {version: 1, rules: []});
+    await Axios.delete("http://0.0.0.0:5000/events");
   });
 
   it('provides a public key', async () => {
@@ -100,7 +100,7 @@ function testTransaction(path: string, txn: string, prompts: any[]) {
            let pubkey = (await client.getPublicKey(path)).publicKey;
 
            // We don't want the prompts from getPublicKey in our result
-           await Axios.delete("http://localhost:5000/events");
+           await Axios.delete("http://0.0.0.0:5000/events");
 
            let sig = await client.signTransaction(path, Buffer.from(txn, "utf-8").toString("hex"));
            expect(sig.signature.length).to.equal(128);
