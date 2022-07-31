@@ -289,7 +289,7 @@ rec {
         edition = "2018";
         workspace_member = null;
         src = pkgs.fetchgit {
-          url = "https://github.com/ea-nasir/ledger-crypto-helpers";
+          url = "https://github.com/Alamgu/ledger-crypto-helpers";
           rev = "7c362ab4381df5b44cdf0b83ae2b366eba27f29e";
           sha256 = "1nayfpdr899n7iqa252ds7fhbga1j8vsxpylzki43az19lv56snm";
         };
@@ -306,7 +306,7 @@ rec {
           }
           {
             name = "ledger-log";
-            packageId = "ledger-log 0.1.0 (git+https://github.com/ea-nasir/ledger-log.git#4f813daf1099672cafa0cf7794d0b70786407a0e)";
+            packageId = "ledger-log 0.1.0 (git+https://github.com/Alamgu/ledger-log.git#4f813daf1099672cafa0cf7794d0b70786407a0e)";
           }
           {
             name = "nanos_sdk";
@@ -326,13 +326,13 @@ rec {
           "speculos" = [ "nanos_sdk/speculos" ];
         };
       };
-      "ledger-log 0.1.0 (git+https://github.com/ea-nasir/ledger-log.git#4f813daf1099672cafa0cf7794d0b70786407a0e)" = rec {
+      "ledger-log 0.1.0 (git+https://github.com/Alamgu/ledger-log.git#4f813daf1099672cafa0cf7794d0b70786407a0e)" = rec {
         crateName = "ledger-log";
         version = "0.1.0";
         edition = "2018";
         workspace_member = null;
         src = pkgs.fetchgit {
-          url = "https://github.com/ea-nasir/ledger-log.git";
+          url = "https://github.com/Alamgu/ledger-log.git";
           rev = "4f813daf1099672cafa0cf7794d0b70786407a0e";
           sha256 = "1cfi6k60pnsnpvvcbn6k2ccx29q2pxahwgi3l6vhkm39fm7g6i25";
         };
@@ -422,7 +422,7 @@ rec {
           }
           {
             name = "ledger-log";
-            packageId = "ledger-log 0.1.0 (git+https://github.com/ea-nasir/ledger-log.git#4f813daf1099672cafa0cf7794d0b70786407a0e)";
+            packageId = "ledger-log 0.1.0 (git+https://github.com/Alamgu/ledger-log.git#4f813daf1099672cafa0cf7794d0b70786407a0e)";
             optional = true;
             features = [ "log_trace" ];
           }
@@ -452,7 +452,7 @@ rec {
         edition = "2018";
         workspace_member = null;
         src = pkgs.fetchgit {
-          url = "https://github.com/ea-nasir/ledger-prompts-ui";
+          url = "https://github.com/Alamgu/ledger-prompts-ui";
           rev = "4a669e4a21e38cbeb2588a405ca726af3908cd88";
           sha256 = "1yar3ysszhbxif6iqjss2jj9ah2cz37rhhpmadcg386wsbrg4hg7";
         };
@@ -464,7 +464,7 @@ rec {
           }
           {
             name = "ledger-log";
-            packageId = "ledger-log 0.1.0 (git+https://github.com/ea-nasir/ledger-log.git#4f813daf1099672cafa0cf7794d0b70786407a0e)";
+            packageId = "ledger-log 0.1.0 (git+https://github.com/Alamgu/ledger-log.git#4f813daf1099672cafa0cf7794d0b70786407a0e)";
           }
           {
             name = "nanos_sdk";
