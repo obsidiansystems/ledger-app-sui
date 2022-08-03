@@ -290,8 +290,8 @@ rec {
         workspace_member = null;
         src = pkgs.fetchgit {
           url = "https://github.com/alamgu/ledger-crypto-helpers";
-          rev = "7c362ab4381df5b44cdf0b83ae2b366eba27f29e";
-          sha256 = "1nayfpdr899n7iqa252ds7fhbga1j8vsxpylzki43az19lv56snm";
+          rev = "e61a1af900e5d86150bbadfba3df13f0346f38b4";
+          sha256 = "1csdjj6vh1csvc34xpc5hx7ajk6vfdnnhk6zk3wpgm2kmdw1gjnw";
         };
         dependencies = [
           {
@@ -332,7 +332,7 @@ rec {
         edition = "2018";
         workspace_member = null;
         src = pkgs.fetchgit {
-          url = "https://github.com/alamgu/ledger-log.git";
+          url = "https://github.com/alamgu/ledger-log";
           rev = "4f813daf1099672cafa0cf7794d0b70786407a0e";
           sha256 = "1cfi6k60pnsnpvvcbn6k2ccx29q2pxahwgi3l6vhkm39fm7g6i25";
         };
@@ -355,7 +355,7 @@ rec {
           "log_warn" = [ "log_error" ];
           "speculos" = [ "nanos_sdk/speculos" ];
         };
-        resolvedDefaultFeatures = [ "log_debug" "log_error" "log_info" "log_trace" "log_warn" ];
+        resolvedDefaultFeatures = [ "log_debug" "log_error" "log_info" "log_trace" "log_warn" "speculos" ];
       };
       "ledger-parser-combinators" = rec {
         crateName = "ledger-parser-combinators";
@@ -364,8 +364,8 @@ rec {
         workspace_member = null;
         src = pkgs.fetchgit {
           url = "https://github.com/alamgu/ledger-parser-combinators";
-          rev = "3f1bdb4d58249a71543c3ba10ded9a8491ea9c28";
-          sha256 = "0pmrb7md8c05x27v6hlz9rf284alii48lq4xkf7v9zdipcxwlvb0";
+          rev = "6463d2d61e366673619d9619a84392e3f84383de";
+          sha256 = "0hnjlwh7dd707k2xfbkp5vjb6mpzwkxd5lcvbksaf6ajm6zp996p";
         };
         authors = [
           "Jonathan D.K. Gibbons <jonored@gmail.com>"
@@ -422,8 +422,8 @@ rec {
         workspace_member = null;
         src = pkgs.fetchgit {
           url = "https://github.com/alamgu/ledger-prompts-ui";
-          rev = "4a669e4a21e38cbeb2588a405ca726af3908cd88";
-          sha256 = "1yar3ysszhbxif6iqjss2jj9ah2cz37rhhpmadcg386wsbrg4hg7";
+          rev = "a867fc1fb569c14dfdec638a810b5594b7ccd47c";
+          sha256 = "01xmakg3bkwjpg3p5gp4xicn0chlyprbq6vgrbz5vka22gsi3a8b";
         };
         dependencies = [
           {
