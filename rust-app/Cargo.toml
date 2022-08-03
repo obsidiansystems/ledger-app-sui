@@ -8,9 +8,9 @@ resolver = "2"
 
 [dependencies]
 arrayvec = { version = "0.7.2", default-features = false }
-ledger-parser-combinators = { git = "https://github.com/obsidiansystems/ledger-parser-combinators" }
-ledger-log = { git = "https://github.com/obsidiansystems/ledger-platform" }
-ledger-crypto-helpers = { git = "https://github.com/Alamgu/ledger-crypto-helpers" }
+ledger-parser-combinators = { git = "https://github.com/alamgu/ledger-parser-combinators" }
+ledger-log = { git = "https://github.com/alamgu/alamgu" }
+ledger-crypto-helpers = { git = "https://github.com/alamgu/ledger-crypto-helpers" }
 zeroize = { version = "1.5.2", default-features = false }
 
 # Pass --features speculos,ledger-log/log_info (or log_trace, etc) to enable
@@ -23,7 +23,7 @@ extra_debug = ["ledger-log/log_trace"]
 [target.thumbv6m-none-eabi.dependencies]
 nanos_sdk = { git = "https://github.com/LedgerHQ/ledger-nanos-sdk.git" } 
 nanos_ui = { git = "https://github.com/LedgerHQ/ledger-nanos-ui.git" } 
-ledger-prompts-ui = { git = "https://github.com/Alamgu/ledger-prompts-ui" }
+ledger-prompts-ui = { git = "https://github.com/alamgu/ledger-prompts-ui" }
 
 [target.thumbv6m-none-eabi.dev-dependencies.nanos_sdk]
 git = "https://github.com/LedgerHQ/ledger-nanos-sdk.git"
@@ -38,7 +38,7 @@ test = false
 path = "bin-src/main.rs"
 
 [patch."https://github.com/LedgerHQ/ledger-nanos-sdk.git".nanos_sdk]
-git = "https://github.com/obsidiansystems/ledger-nanos-sdk.git"
+git = "https://github.com/alamgu/ledger-nanos-sdk.git"
 branch = "use-ambient-compiler-and-target"
 
 [package.metadata.nanos]

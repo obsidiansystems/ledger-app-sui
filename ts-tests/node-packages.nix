@@ -760,12 +760,12 @@ let
         sha512 = "F/1DnUGPopORZi0ni+CvrCgHQ5FyEAHRLSApuYWMmrbSwoN2Mn/7k+Gl38gJnR7yyDZk6WLXwiGod1JOWNDKGw==";
       };
     };
-    "hw-app-obsidian-common-git+https://github.com/obsidiansystems/hw-app-obsidian-common.git#9c4c397861e33761f2e5f5af29bb6642a05fd9e1" = {
+    "hw-app-obsidian-common-git+https://github.com/alamgu/hw-app-obsidian-common.git#9c4c397861e33761f2e5f5af29bb6642a05fd9e1" = {
       name = "hw-app-obsidian-common";
       packageName = "hw-app-obsidian-common";
       version = "0.0.1";
       src = fetchgit {
-        url = "https://github.com/obsidiansystems/hw-app-obsidian-common.git";
+        url = "https://github.com/alamgu/hw-app-obsidian-common.git";
         rev = "9c4c397861e33761f2e5f5af29bb6642a05fd9e1";
         sha256 = "199b0519c4b1f12509ed4c853252838341310ada23d085f6e8bda773e9ad2d65";
       };
@@ -1601,7 +1601,7 @@ let
       sources."has-flag-4.0.0"
       sources."hash-base-3.1.0"
       sources."he-1.2.0"
-      sources."hw-app-obsidian-common-git+https://github.com/obsidiansystems/hw-app-obsidian-common.git#9c4c397861e33761f2e5f5af29bb6642a05fd9e1"
+      sources."hw-app-obsidian-common-git+https://github.com/alamgu/hw-app-obsidian-common.git#9c4c397861e33761f2e5f5af29bb6642a05fd9e1"
       sources."inflight-1.0.6"
       sources."inherits-2.0.4"
       sources."is-binary-path-2.1.0"

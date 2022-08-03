@@ -1,7 +1,7 @@
 rec {
-  ledger-platform = import ./dep/ledger-platform {};
+  alamgu = import ./dep/alamgu {};
 
-  inherit (ledger-platform)
+  inherit (alamgu)
     lib
     pkgs ledgerPkgs
     crate2nix
@@ -20,7 +20,7 @@ rec {
             rust-app = attrs: let
               sdk = lib.findFirst (p: lib.hasPrefix "rust_nanos_sdk" p.name) (builtins.throw "no sdk!") attrs.dependencies;
             in {
-              preHook = ledger-platform.gccLibsPreHook;
+              preHook = alamgu.gccLibsPreHook;
               extraRustcOpts = attrs.extraRustcOpts or [] ++ [
                 "-C" "link-arg=-T${sdk.lib}/lib/nanos_sdk.out/script.ld"
                 "-C" "linker=${pkgs.stdenv.cc.targetPrefix}clang"
@@ -31,8 +31,8 @@ rec {
     in
       args: fun (args // lib.optionalAttrs pkgs.stdenv.hostPlatform.isAarch32 {
         dependencies = map (d: d // { stdlib = true; }) [
-          ledger-platform.ledgerCore
-          ledger-platform.ledgerCompilerBuiltins
+          alamgu.ledgerCore
+          alamgu.ledgerCompilerBuiltins
         ] ++ args.dependencies;
       });
   };
@@ -49,10 +49,10 @@ rec {
 
   tarSrc = ledgerPkgs.runCommandCC "tarSrc" {
     nativeBuildInputs = [
-      ledger-platform.cargo-ledger
-      ledger-platform.ledgerRustPlatform.rust.cargo
+      alamgu.cargo-ledger
+      alamgu.ledgerRustPlatform.rust.cargo
     ];
-  } (ledger-platform.cargoLedgerPreHook + ''
+  } (alamgu.cargoLedgerPreHook + ''
 
     cp ${./rust-app/Cargo.toml} ./Cargo.toml
     # So cargo knows it's a binary
@@ -75,7 +75,7 @@ rec {
   loadApp = pkgs.writeScriptBin "load-app" ''
     #!/usr/bin/env bash
     cd ${tarSrc}/rust-app
-    ${ledger-platform.ledgerctl}/bin/ledgerctl install -f ${tarSrc}/rust-app/app.json
+    ${alamgu.ledgerctl}/bin/ledgerctl install -f ${tarSrc}/rust-app/app.json
   '';
 
   testPackage = (import ./ts-tests/override.nix { inherit pkgs; }).package;
@@ -88,7 +88,7 @@ rec {
 
   runTests = { appExe ? rootCrate + "/bin/rust-app" }: pkgs.runCommandNoCC "run-tests" {
     nativeBuildInputs = [
-      pkgs.wget ledger-platform.speculos.speculos testScript
+      pkgs.wget alamgu.speculos.speculos testScript
     ];
   } ''
     RUST_APP=${rootCrate}/bin/*
@@ -120,6 +120,6 @@ rec {
   inherit (pkgs.nodePackages) node2nix;
 
   appShell = pkgs.mkShell {
-    packages = [ loadApp ledger-platform.generic-cli pkgs.jq ];
+    packages = [ loadApp alamgu.generic-cli pkgs.jq ];
   };
 }

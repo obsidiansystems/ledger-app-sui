@@ -48,7 +48,7 @@ This application has been packaged up with [Nix](https://nixos.org/).
 Using Nix, from the root level of this repo, run:
 
 ```bash
-nix-shell -A ledger-platform.rustShell
+nix-shell -A alamgu.rustShell
 cd rust-app/
 cargo-ledger load
 ````
@@ -64,7 +64,7 @@ This application is compatible with Ledger Nano S devices running FW 2.1.0 and a
 Using Nix, from the root level of this repo, run:
 
 ```bash
-nix-shell -A ledger-platform.rustShell
+nix-shell -A alamgu.rustShell
 cd rust-app/
 cargo test
 ````
