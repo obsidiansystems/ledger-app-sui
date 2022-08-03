@@ -118,7 +118,7 @@ dependencies = [
 [[package]]
 name = "ledger-log"
 version = "0.1.0"
-source = "git+https://github.com/alamgu/alamgu#4f813daf1099672cafa0cf7794d0b70786407a0e"
+source = "git+https://github.com/alamgu/ledger-log#4f813daf1099672cafa0cf7794d0b70786407a0e"
 dependencies = [
  "arrayvec",
  "nanos_sdk",
