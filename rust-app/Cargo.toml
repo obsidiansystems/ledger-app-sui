@@ -17,6 +17,7 @@ zeroize = { version = "1.5.2", default-features = false }
 # speculos logging and change log level.
 [features]
 default = [ ]
+# Pass --features speculos,ledger-log/log_info (or log_trace, etc) to enable speculos logging and change log level.
 speculos = [ "nanos_sdk/speculos", "ledger-log/speculos", "ledger-log/log_error", "ledger-parser-combinators/logging" ]
 extra_debug = ["ledger-log/log_trace"]
 
