@@ -1,6 +1,6 @@
 let
-  ledgerPlatform = import (fetchTarball "https://github.com/alamgu/alamgu/archive/develop.tar.gz") {};
-  pkgs = ledgerPlatform.pkgs;
+  alamgu = import (fetchTarball "https://github.com/alamgu/alamgu/archive/develop.tar.gz") {};
+  pkgs = alamgu.pkgs;
   load-app = import ./.;
 in
   pkgs.mkShell {
