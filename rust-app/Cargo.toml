@@ -8,9 +8,9 @@ resolver = "2"
 
 [dependencies]
 arrayvec = { version = "0.7.2", default-features = false }
-ledger-parser-combinators = { git = "https://github.com/alamgu/ledger-parser-combinators" }
-ledger-log = { git = "https://github.com/alamgu/alamgu" }
 ledger-crypto-helpers = { git = "https://github.com/alamgu/ledger-crypto-helpers" }
+ledger-log = { git = "https://github.com/alamgu/alamgu" }
+ledger-parser-combinators = { git = "https://github.com/alamgu/ledger-parser-combinators" }
 zeroize = { version = "1.5.2", default-features = false }
 
 # Pass --features speculos,ledger-log/log_info (or log_trace, etc) to enable
