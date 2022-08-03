@@ -208,7 +208,7 @@ rec {
         edition = "2018";
         workspace_member = null;
         src = pkgs.fetchgit {
-          url = "https://github.com/obsidiansystems/enum-init";
+          url = "https://github.com/alamgu/enum-init";
           rev = "a831c2fbbe00af926ae87c064bfe4da58d26777c";
           sha256 = "1daqa7i1778rpvk8d442flk6bak6jxi6hrcc5j4maaa7ipjc6xlr";
         };
