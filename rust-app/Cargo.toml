@@ -31,7 +31,7 @@ git = "https://github.com/LedgerHQ/ledger-nanos-sdk.git"
 features = [ "speculos" ]
 
 [dev-dependencies]
-testmacro = { git = "https://github.com/yhql/testmacro"}
+testmacro = { git = "https://github.com/yhql/testmacro" }
 
 [[bin]]
 name = "rust-app"
