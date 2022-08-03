@@ -100,7 +100,7 @@ source = "git+https://github.com/alamgu/ledger-crypto-helpers#7c362ab4381df5b44c
 dependencies = [
  "arrayvec",
  "base64",
- "ledger-log 0.1.0 (git+https://github.com/alamgu/ledger-log.git)",
+ "ledger-log",
  "nanos_sdk",
  "nanos_ui",
  "zeroize",
@@ -116,15 +116,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "ledger-log"
-version = "0.1.0"
-source = "git+https://github.com/alamgu/ledger-log#4f813daf1099672cafa0cf7794d0b70786407a0e"
-dependencies = [
- "arrayvec",
- "nanos_sdk",
-]
-
-[[package]]
 name = "ledger-parser-combinators"
 version = "0.1.0"
 source = "git+https://github.com/alamgu/ledger-parser-combinators#3f1bdb4d58249a71543c3ba10ded9a8491ea9c28"
@@ -133,7 +124,7 @@ dependencies = [
  "bstringify",
  "enum-init",
  "generic-array",
- "ledger-log 0.1.0 (git+https://github.com/alamgu/ledger-log.git)",
+ "ledger-log",
  "log",
  "nanos_sdk",
  "paste",
@@ -145,7 +136,7 @@ version = "0.1.0"
 source = "git+https://github.com/alamgu/ledger-prompts-ui#4a669e4a21e38cbeb2588a405ca726af3908cd88"
 dependencies = [
  "arrayvec",
- "ledger-log 0.1.0 (git+https://github.com/alamgu/ledger-log.git)",
+ "ledger-log",
  "nanos_sdk",
  "nanos_ui",
 ]
@@ -250,7 +241,7 @@ version = "0.0.1"
 dependencies = [
  "arrayvec",
  "ledger-crypto-helpers",
- "ledger-log 0.1.0 (git+https://github.com/alamgu/ledger-log)",
+ "ledger-log",
  "ledger-parser-combinators",
  "ledger-prompts-ui",
  "nanos_sdk",

@@ -306,7 +306,7 @@ rec {
           }
           {
             name = "ledger-log";
-            packageId = "ledger-log 0.1.0 (git+https://github.com/alamgu/ledger-log.git#4f813daf1099672cafa0cf7794d0b70786407a0e)";
+            packageId = "ledger-log";
           }
           {
             name = "nanos_sdk";
@@ -326,7 +326,7 @@ rec {
           "speculos" = [ "nanos_sdk/speculos" ];
         };
       };
-      "ledger-log 0.1.0 (git+https://github.com/alamgu/ledger-log.git#4f813daf1099672cafa0cf7794d0b70786407a0e)" = rec {
+      "ledger-log" = rec {
         crateName = "ledger-log";
         version = "0.1.0";
         edition = "2018";
@@ -356,37 +356,6 @@ rec {
           "speculos" = [ "nanos_sdk/speculos" ];
         };
         resolvedDefaultFeatures = [ "log_debug" "log_error" "log_info" "log_trace" "log_warn" ];
-      };
-      "ledger-log 0.1.0 (git+https://github.com/alamgu/ledger-log#4f813daf1099672cafa0cf7794d0b70786407a0e)" = rec {
-        crateName = "ledger-log";
-        version = "0.1.0";
-        edition = "2018";
-        workspace_member = null;
-        src = pkgs.fetchgit {
-          url = "https://github.com/alamgu/ledger-log";
-          rev = "4f813daf1099672cafa0cf7794d0b70786407a0e";
-          sha256 = "1cfi6k60pnsnpvvcbn6k2ccx29q2pxahwgi3l6vhkm39fm7g6i25";
-        };
-        dependencies = [
-          {
-            name = "arrayvec";
-            packageId = "arrayvec";
-            usesDefaultFeatures = false;
-          }
-          {
-            name = "nanos_sdk";
-            packageId = "nanos_sdk";
-            target = { target, features }: ((let p = stdenv.hostPlatform; in p.rustc.config or p.config) == "thumbv6m-none-eabi");
-          }
-        ];
-        features = {
-          "log_debug" = [ "log_info" ];
-          "log_info" = [ "log_warn" ];
-          "log_trace" = [ "log_debug" ];
-          "log_warn" = [ "log_error" ];
-          "speculos" = [ "nanos_sdk/speculos" ];
-        };
-        resolvedDefaultFeatures = [ "log_debug" "log_error" "log_info" "log_trace" "log_warn" "speculos" ];
       };
       "ledger-parser-combinators" = rec {
         crateName = "ledger-parser-combinators";
@@ -422,7 +391,7 @@ rec {
           }
           {
             name = "ledger-log";
-            packageId = "ledger-log 0.1.0 (git+https://github.com/alamgu/ledger-log.git#4f813daf1099672cafa0cf7794d0b70786407a0e)";
+            packageId = "ledger-log";
             optional = true;
             features = [ "log_trace" ];
           }
@@ -464,7 +433,7 @@ rec {
           }
           {
             name = "ledger-log";
-            packageId = "ledger-log 0.1.0 (git+https://github.com/alamgu/ledger-log.git#4f813daf1099672cafa0cf7794d0b70786407a0e)";
+            packageId = "ledger-log";
           }
           {
             name = "nanos_sdk";
@@ -725,7 +694,7 @@ rec {
           }
           {
             name = "ledger-log";
-            packageId = "ledger-log 0.1.0 (git+https://github.com/alamgu/ledger-log#4f813daf1099672cafa0cf7794d0b70786407a0e)";
+            packageId = "ledger-log";
           }
           {
             name = "ledger-parser-combinators";
