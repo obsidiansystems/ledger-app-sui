@@ -181,18 +181,6 @@ rec {
           "parallel" = [ "jobserver" ];
         };
       };
-      "cfg-if" = rec {
-        crateName = "cfg-if";
-        version = "1.0.0";
-        edition = "2018";
-        sha256 = "1za0vb97n4brpzpv8lsbnzmq5r8f2b0cpqqr0sy8h5bn751xxwds";
-        authors = [
-          "Alex Crichton <alex@alexcrichton.com>"
-        ];
-        features = {
-          "rustc-dep-of-std" = [ "core" "compiler_builtins" ];
-        };
-      };
       "cty" = rec {
         crateName = "cty";
         version = "0.2.2";
@@ -329,13 +317,13 @@ rec {
       };
       "ledger-log" = rec {
         crateName = "ledger-log";
-        version = "0.1.0";
+        version = "0.2.0";
         edition = "2018";
         workspace_member = null;
         src = pkgs.fetchgit {
           url = "https://github.com/alamgu/ledger-log";
-          rev = "4f813daf1099672cafa0cf7794d0b70786407a0e";
-          sha256 = "1cfi6k60pnsnpvvcbn6k2ccx29q2pxahwgi3l6vhkm39fm7g6i25";
+          rev = "c54a599faf79b65585260e72be3376bcb14ad184";
+          sha256 = "1fw8dp4hmagl0ih859d4iswqxqqjdi70p0pqhbhvnr1qvkh4v15m";
         };
         dependencies = [
           {
@@ -365,8 +353,8 @@ rec {
         workspace_member = null;
         src = pkgs.fetchgit {
           url = "https://github.com/alamgu/ledger-parser-combinators";
-          rev = "6463d2d61e366673619d9619a84392e3f84383de";
-          sha256 = "0hnjlwh7dd707k2xfbkp5vjb6mpzwkxd5lcvbksaf6ajm6zp996p";
+          rev = "d73f445cdd5e884af4c30d4729b34dc045427998";
+          sha256 = "1ggmj6qmws711vxlbj3b14428kx696ynz8igf7rl294w9lmlqfyv";
         };
         authors = [
           "Jonathan D.K. Gibbons <jonored@gmail.com>"
@@ -395,10 +383,6 @@ rec {
             packageId = "ledger-log";
             optional = true;
             features = [ "log_trace" ];
-          }
-          {
-            name = "log";
-            packageId = "log";
           }
           {
             name = "nanos_sdk";
@@ -463,27 +447,6 @@ rec {
           "use_std" = [ "std" ];
         };
         resolvedDefaultFeatures = [ "default" "std" ];
-      };
-      "log" = rec {
-        crateName = "log";
-        version = "0.4.17";
-        edition = "2015";
-        sha256 = "0biqlaaw1lsr8bpnmbcc0fvgjj34yy79ghqzyi0ali7vgil2xcdb";
-        authors = [
-          "The Rust Project Developers"
-        ];
-        dependencies = [
-          {
-            name = "cfg-if";
-            packageId = "cfg-if";
-          }
-        ];
-        features = {
-          "kv_unstable" = [ "value-bag" ];
-          "kv_unstable_serde" = [ "kv_unstable_std" "value-bag/serde" "serde" ];
-          "kv_unstable_std" = [ "std" "kv_unstable" "value-bag/error" ];
-          "kv_unstable_sval" = [ "kv_unstable" "value-bag/sval" "sval" ];
-        };
       };
       "memchr" = rec {
         crateName = "memchr";

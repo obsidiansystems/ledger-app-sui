@@ -51,12 +51,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2fff2a6927b3bb87f9595d67196a70493f627687a71d87a0d692242c33f58c11"
 
 [[package]]
-name = "cfg-if"
-version = "1.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
-
-[[package]]
 name = "cty"
 version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -108,8 +102,8 @@ dependencies = [
 
 [[package]]
 name = "ledger-log"
-version = "0.1.0"
-source = "git+https://github.com/alamgu/ledger-log#4f813daf1099672cafa0cf7794d0b70786407a0e"
+version = "0.2.0"
+source = "git+https://github.com/alamgu/ledger-log#c54a599faf79b65585260e72be3376bcb14ad184"
 dependencies = [
  "arrayvec",
  "nanos_sdk",
@@ -118,14 +112,13 @@ dependencies = [
 [[package]]
 name = "ledger-parser-combinators"
 version = "0.1.0"
-source = "git+https://github.com/alamgu/ledger-parser-combinators#6463d2d61e366673619d9619a84392e3f84383de"
+source = "git+https://github.com/alamgu/ledger-parser-combinators#d73f445cdd5e884af4c30d4729b34dc045427998"
 dependencies = [
  "arrayvec",
  "bstringify",
  "enum-init",
  "generic-array",
  "ledger-log",
- "log",
  "nanos_sdk",
  "paste",
 ]
@@ -146,15 +139,6 @@ name = "libc"
 version = "0.2.126"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "349d5a591cd28b49e1d1037471617a32ddcda5731b99419008085f72d5a53836"
-
-[[package]]
-name = "log"
-version = "0.4.17"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "abb12e687cfb44aa40f41fc3978ef76448f9b6038cad6aef4259d3c095a2382e"
-dependencies = [
- "cfg-if",
-]
 
 [[package]]
 name = "memchr"

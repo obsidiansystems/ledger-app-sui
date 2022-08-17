@@ -12,6 +12,7 @@ rustflags = [
   "-C", "lto",
   "-C", "embed-bitcode",
   "--cfg", "target_os=\"nanos\"",
+  "--cfg", "target_family=\"bolos\"",
   "--emit=obj,llvm-ir,llvm-bc"
 ]
 linker = "armv6m-unknown-none-eabi-clang"
