@@ -32,7 +32,7 @@ pub fn app_main() {
     loop {
         // Wait for either a specific button push to exit the app
         // or an APDU command
-        match comm.next_event() {
+        match comm.next_event::<Ins>() {
             io::Event::Command(ins) => {
                 trace!("Command received");
                 match handle_apdu(&mut comm, ins, &mut states) {
