@@ -103,7 +103,7 @@ dependencies = [
 [[package]]
 name = "ledger-log"
 version = "0.2.0"
-source = "git+https://github.com/alamgu/ledger-log#8da671f8c2ded1b03d344bf5a0953d1ec4b74a1e"
+source = "git+https://github.com/alamgu/ledger-log#02f702bbec9ca9802151fd261508580eb3826287"
 dependencies = [
  "arrayvec",
  "nanos_sdk",
@@ -112,7 +112,7 @@ dependencies = [
 [[package]]
 name = "ledger-parser-combinators"
 version = "0.1.0"
-source = "git+https://github.com/alamgu/ledger-parser-combinators#d73f445cdd5e884af4c30d4729b34dc045427998"
+source = "git+https://github.com/alamgu/ledger-parser-combinators#f563ccf5e3968eef51fd1b3c150ae06bb780ce00"
 dependencies = [
  "arrayvec",
  "bstringify",

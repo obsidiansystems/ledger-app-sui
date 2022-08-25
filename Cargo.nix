@@ -327,8 +327,8 @@ rec {
         workspace_member = null;
         src = pkgs.fetchgit {
           url = "https://github.com/alamgu/ledger-log";
-          rev = "8da671f8c2ded1b03d344bf5a0953d1ec4b74a1e";
-          sha256 = "1k9y595nziim4f9xvrk8305pz8n73gr42kyr7l1f4dmyr70ww80h";
+          rev = "02f702bbec9ca9802151fd261508580eb3826287";
+          sha256 = "03qic29qkvis54bgh40wwja89kcp6kz6acd0ifzyvcqxicpmikmy";
         };
         dependencies = [
           {
@@ -340,11 +340,6 @@ rec {
             name = "nanos_sdk";
             packageId = "nanos_sdk";
             target = { target, features }: (target."family" == "bolos");
-          }
-          {
-            name = "nanos_sdk";
-            packageId = "nanos_sdk";
-            target = { target, features }: (pkgs.rust.lib.toRustTarget stdenv.hostPlatform == "thumbv6m-none-eabi");
           }
         ];
         features = {
@@ -363,8 +358,8 @@ rec {
         workspace_member = null;
         src = pkgs.fetchgit {
           url = "https://github.com/alamgu/ledger-parser-combinators";
-          rev = "d73f445cdd5e884af4c30d4729b34dc045427998";
-          sha256 = "1ggmj6qmws711vxlbj3b14428kx696ynz8igf7rl294w9lmlqfyv";
+          rev = "f563ccf5e3968eef51fd1b3c150ae06bb780ce00";
+          sha256 = "0m4lc6sxckcmv25gyxih5nqmx2418a16197134p7a8gfwzhgrdmf";
         };
         authors = [
           "Jonathan D.K. Gibbons <jonored@gmail.com>"
@@ -397,7 +392,7 @@ rec {
           {
             name = "nanos_sdk";
             packageId = "nanos_sdk";
-            target = { target, features }: (pkgs.rust.lib.toRustTarget stdenv.hostPlatform == "thumbv6m-none-eabi");
+            target = { target, features }: (target."family" == "bolos");
             features = [ "speculos" ];
           }
           {
