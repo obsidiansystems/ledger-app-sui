@@ -99,6 +99,7 @@ rec {
           }
         ];
         features = {
+          "clippy" = [ "dep:clippy" ];
         };
         resolvedDefaultFeatures = [ "default" ];
       };
@@ -130,6 +131,7 @@ rec {
         ];
         features = {
           "default" = [ "std" ];
+          "serde" = [ "dep:serde" ];
         };
       };
       "autocfg" = rec {
@@ -178,6 +180,7 @@ rec {
           "Alex Crichton <alex@alexcrichton.com>"
         ];
         features = {
+          "jobserver" = [ "dep:jobserver" ];
           "parallel" = [ "jobserver" ];
         };
       };
@@ -247,6 +250,7 @@ rec {
           }
         ];
         features = {
+          "serde" = [ "dep:serde" ];
         };
       };
       "kernel32-sys" = rec {
@@ -396,6 +400,7 @@ rec {
           }
         ];
         features = {
+          "ledger-log" = [ "dep:ledger-log" ];
           "logging" = [ "ledger-log" ];
         };
         resolvedDefaultFeatures = [ "ledger-log" "logging" ];
@@ -444,6 +449,7 @@ rec {
         features = {
           "default" = [ "std" ];
           "rustc-dep-of-std" = [ "align" "rustc-std-workspace-core" ];
+          "rustc-std-workspace-core" = [ "dep:rustc-std-workspace-core" ];
           "use_std" = [ "std" ];
         };
         resolvedDefaultFeatures = [ "default" "std" ];
@@ -536,6 +542,7 @@ rec {
         ];
         features = {
           "default" = [ "std" ];
+          "libm" = [ "dep:libm" ];
         };
       };
       "paste" = rec {
@@ -621,6 +628,7 @@ rec {
           }
         ];
         features = {
+          "simd" = [ "dep:simd" ];
           "simd-accel" = [ "simd" ];
         };
       };
@@ -671,17 +679,17 @@ rec {
           {
             name = "ledger-prompts-ui";
             packageId = "ledger-prompts-ui";
-            target = { target, features }: (pkgs.rust.lib.toRustTarget stdenv.hostPlatform == "thumbv6m-none-eabi");
+            target = { target, features }: (target."family" == "bolos");
           }
           {
             name = "nanos_sdk";
             packageId = "nanos_sdk";
-            target = { target, features }: (pkgs.rust.lib.toRustTarget stdenv.hostPlatform == "thumbv6m-none-eabi");
+            target = { target, features }: (target."family" == "bolos");
           }
           {
             name = "nanos_ui";
             packageId = "nanos_ui";
-            target = { target, features }: (pkgs.rust.lib.toRustTarget stdenv.hostPlatform == "thumbv6m-none-eabi");
+            target = { target, features }: (target."family" == "bolos");
           }
           {
             name = "zeroize";
@@ -693,7 +701,7 @@ rec {
           {
             name = "nanos_sdk";
             packageId = "nanos_sdk";
-            target = {target, features}: (pkgs.rust.lib.toRustTarget stdenv.hostPlatform == "thumbv6m-none-eabi");
+            target = {target, features}: (target."family" == "bolos");
             features = [ "speculos" ];
           }
           {
@@ -736,6 +744,7 @@ rec {
           "default" = [ "derive" "parsing" "printing" "clone-impls" "proc-macro" ];
           "printing" = [ "quote" ];
           "proc-macro" = [ "proc-macro2/proc-macro" "quote/proc-macro" ];
+          "quote" = [ "dep:quote" ];
           "test" = [ "syn-test-suite/all-features" ];
         };
         resolvedDefaultFeatures = [ "clone-impls" "default" "derive" "full" "parsing" "printing" "proc-macro" "quote" ];
@@ -814,6 +823,7 @@ rec {
           "Andre Bogus <bogusandre@gmail.com>"
         ];
         features = {
+          "scale-info" = [ "dep:scale-info" ];
           "scale_info" = [ "scale-info/derive" ];
         };
       };
@@ -880,6 +890,7 @@ rec {
           "default" = [ "alloc" ];
           "derive" = [ "zeroize_derive" ];
           "std" = [ "alloc" ];
+          "zeroize_derive" = [ "dep:zeroize_derive" ];
         };
       };
     };
@@ -903,7 +914,7 @@ rec {
     */
     os = pkgs.rust.lib.toTargetOs platform;
     arch = pkgs.rust.lib.toTargetArch platform;
-    family = "unix";
+    family = "bolos";
     env = "gnu";
     endian =
       if platform.parsed.cpu.significantByte.name == "littleEndian"
