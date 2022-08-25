@@ -229,9 +229,9 @@ rec {
       };
       "generic-array" = rec {
         crateName = "generic-array";
-        version = "0.14.5";
+        version = "0.14.6";
         edition = "2015";
-        sha256 = "00qqhls43bzvyb7s26iw6knvsz3mckbxl3rhaahvypzhqwzd6j7x";
+        sha256 = "1fgi07v268jd0mr6xc42rjbq0wzl8ngsgp5b8wj33wwpfaa9xx5z";
         libName = "generic_array";
         authors = [
           "Bartłomiej Kamiński <fizyk20@gmail.com>"
@@ -251,6 +251,7 @@ rec {
         ];
         features = {
           "serde" = [ "dep:serde" ];
+          "zeroize" = [ "dep:zeroize" ];
         };
       };
       "kernel32-sys" = rec {
@@ -283,8 +284,8 @@ rec {
         workspace_member = null;
         src = pkgs.fetchgit {
           url = "https://github.com/alamgu/ledger-crypto-helpers";
-          rev = "e61a1af900e5d86150bbadfba3df13f0346f38b4";
-          sha256 = "1csdjj6vh1csvc34xpc5hx7ajk6vfdnnhk6zk3wpgm2kmdw1gjnw";
+          rev = "d9fd955dc5d8a8a70354dc9036121c5444c5ec72";
+          sha256 = "08g5mfprsr3r1l6s7qak7f9y25zd18nddbxb487p48jhkwx1jrd3";
         };
         dependencies = [
           {
@@ -326,14 +327,19 @@ rec {
         workspace_member = null;
         src = pkgs.fetchgit {
           url = "https://github.com/alamgu/ledger-log";
-          rev = "c54a599faf79b65585260e72be3376bcb14ad184";
-          sha256 = "1fw8dp4hmagl0ih859d4iswqxqqjdi70p0pqhbhvnr1qvkh4v15m";
+          rev = "8da671f8c2ded1b03d344bf5a0953d1ec4b74a1e";
+          sha256 = "1k9y595nziim4f9xvrk8305pz8n73gr42kyr7l1f4dmyr70ww80h";
         };
         dependencies = [
           {
             name = "arrayvec";
             packageId = "arrayvec";
             usesDefaultFeatures = false;
+          }
+          {
+            name = "nanos_sdk";
+            packageId = "nanos_sdk";
+            target = { target, features }: (target."family" == "bolos");
           }
           {
             name = "nanos_sdk";
@@ -412,8 +418,8 @@ rec {
         workspace_member = null;
         src = pkgs.fetchgit {
           url = "https://github.com/alamgu/ledger-prompts-ui";
-          rev = "a867fc1fb569c14dfdec638a810b5594b7ccd47c";
-          sha256 = "01xmakg3bkwjpg3p5gp4xicn0chlyprbq6vgrbz5vka22gsi3a8b";
+          rev = "24d2f36da07131074211559cd28f235c3f7c9984";
+          sha256 = "0gy73gv2vrajyrzigr2iwfnw0gmj1wfpig0xlbhw1vpkpjg23w0q";
         };
         dependencies = [
           {
@@ -440,9 +446,9 @@ rec {
       };
       "libc" = rec {
         crateName = "libc";
-        version = "0.2.126";
+        version = "0.2.132";
         edition = "2015";
-        sha256 = "0diqlpap4pq81284368vffjwvp9jg9hp2x03s7hlk2yj3icmm79l";
+        sha256 = "199vm5mz5gmd73lx07g06g2d9kl1qrd4dcky2bdrcfhw6kjy8wc3";
         authors = [
           "The Rust Project Developers"
         ];
@@ -547,9 +553,9 @@ rec {
       };
       "paste" = rec {
         crateName = "paste";
-        version = "1.0.7";
+        version = "1.0.8";
         edition = "2018";
-        sha256 = "1z15h1rnq1wcacpcvgm77djl3413gs1nlhmn90qpcvjx2c2hwlhc";
+        sha256 = "08jv4b10pjdzxqgcn2id9216m30yjlhnylvs50lkc13s5yry48wl";
         procMacro = true;
         authors = [
           "David Tolnay <dtolnay@gmail.com>"
@@ -558,9 +564,9 @@ rec {
       };
       "proc-macro2" = rec {
         crateName = "proc-macro2";
-        version = "1.0.40";
+        version = "1.0.43";
         edition = "2018";
-        sha256 = "1xyazdlnqmnkapjah7mjbanzb0zc4i4z5rgaz0vw75i5xpla35nx";
+        sha256 = "1avvpf4qki8mg2na60yr3afbsfl5p6vllac6516xgwy93g3a4b0a";
         authors = [
           "David Tolnay <dtolnay@gmail.com>"
           "Alex Crichton <alex@alexcrichton.com>"
@@ -578,9 +584,9 @@ rec {
       };
       "quote" = rec {
         crateName = "quote";
-        version = "1.0.20";
+        version = "1.0.21";
         edition = "2018";
-        sha256 = "015qrb5jf9q0pajx38mfn431gfqn0hv2kc1ssarbqvvpx49g5k9v";
+        sha256 = "0yai5cyd9h95n7hkwjcx8ig3yv0hindmz5gm60g9dmm7fzrlir5v";
         authors = [
           "David Tolnay <dtolnay@gmail.com>"
         ];
@@ -717,9 +723,9 @@ rec {
       };
       "syn" = rec {
         crateName = "syn";
-        version = "1.0.98";
+        version = "1.0.99";
         edition = "2018";
-        sha256 = "1pbklw6fnwwgrkj8qz3wcjfggmn7vmyln44gg0yc5r2dj25fy2n5";
+        sha256 = "04xba78p559nl737llv7nqcwm723dp6ah5bbp0h5w1amqrpfznsq";
         authors = [
           "David Tolnay <dtolnay@gmail.com>"
         ];
@@ -829,9 +835,9 @@ rec {
       };
       "unicode-ident" = rec {
         crateName = "unicode-ident";
-        version = "1.0.1";
+        version = "1.0.3";
         edition = "2018";
-        sha256 = "131niycgp77aiwvgjdyh47389xfnb7fmlc8ybrxys8v0a0kgxljv";
+        sha256 = "1bqswc96ws8l6k7xx56dg521a3l5imi3mhlcz7rsi6a92mxb7xf4";
         authors = [
           "David Tolnay <dtolnay@gmail.com>"
         ];
@@ -880,15 +886,16 @@ rec {
       };
       "zeroize" = rec {
         crateName = "zeroize";
-        version = "1.5.5";
+        version = "1.5.7";
         edition = "2018";
-        sha256 = "01yzgi5n5skl7l8wypbpzw8r6s6azhxyn824w79g5chns03khscl";
+        sha256 = "17ql9c1qhh5kw5aas72swwicnr701alhmhnrfmr9wrkg1jyvb563";
         authors = [
           "The RustCrypto Project Developers"
         ];
         features = {
           "default" = [ "alloc" ];
           "derive" = [ "zeroize_derive" ];
+          "serde" = [ "dep:serde" ];
           "std" = [ "alloc" ];
           "zeroize_derive" = [ "dep:zeroize_derive" ];
         };
