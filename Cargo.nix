@@ -339,7 +339,7 @@ rec {
           {
             name = "nanos_sdk";
             packageId = "nanos_sdk";
-            target = { target, features }: (target."family" == "bolos");
+            target = { target, features }: (builtins.elem "bolos" target."family");
           }
         ];
         features = {
@@ -392,7 +392,7 @@ rec {
           {
             name = "nanos_sdk";
             packageId = "nanos_sdk";
-            target = { target, features }: (target."family" == "bolos");
+            target = { target, features }: (builtins.elem "bolos" target."family");
             features = [ "speculos" ];
           }
           {
@@ -648,7 +648,11 @@ rec {
         version = "0.0.1";
         edition = "2018";
         crateBin = [
-          { name = "rust-app"; path = "bin-src/main.rs"; }
+          {
+            name = "rust-app";
+            path = "bin-src/main.rs";
+            requiredFeatures = [ ];
+          }
         ];
         # We can't filter paths with references in Nix 2.4
         # See https://github.com/NixOS/nix/issues/5410
@@ -680,17 +684,17 @@ rec {
           {
             name = "ledger-prompts-ui";
             packageId = "ledger-prompts-ui";
-            target = { target, features }: (target."family" == "bolos");
+            target = { target, features }: (builtins.elem "bolos" target."family");
           }
           {
             name = "nanos_sdk";
             packageId = "nanos_sdk";
-            target = { target, features }: (target."family" == "bolos");
+            target = { target, features }: (builtins.elem "bolos" target."family");
           }
           {
             name = "nanos_ui";
             packageId = "nanos_ui";
-            target = { target, features }: (target."family" == "bolos");
+            target = { target, features }: (builtins.elem "bolos" target."family");
           }
           {
             name = "zeroize";
@@ -702,7 +706,7 @@ rec {
           {
             name = "nanos_sdk";
             packageId = "nanos_sdk";
-            target = {target, features}: (target."family" == "bolos");
+            target = {target, features}: (builtins.elem "bolos" target."family");
             features = [ "speculos" ];
           }
           {
@@ -916,7 +920,20 @@ rec {
     */
     os = pkgs.rust.lib.toTargetOs platform;
     arch = pkgs.rust.lib.toTargetArch platform;
-    family = "bolos";
+    family =
+      if platform ? rustc.platform.target-family
+      then
+        (
+          /* Since https://github.com/rust-lang/rust/pull/84072
+             `target-family` is a list instead of single value.
+           */
+          let
+            f = platform.rustc.platform.target-family;
+          in
+          if builtins.isList f then f else [ f ]
+        )
+      else lib.optional platform.isUnix "unix"
+        ++ lib.optional platform.isWindows "windows";
     env = "gnu";
     endian =
       if platform.parsed.cpu.significantByte.name == "littleEndian"
