@@ -91,7 +91,7 @@ pub static SIGN_IMPL: SignImplT = Action(
                 with_public_keys(&path, |_, pkh: &PKH| { try_option(|| -> Option<()> {
                     scroller("Sign for Address", |w| Ok(write!(w, "{}", pkh)?))?;
                     Some(())
-                }())}).ok();
+                }())}).ok()?;
                 *destination = Some(path);
                 Some(())
             }),
