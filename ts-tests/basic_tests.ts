@@ -97,7 +97,12 @@ let sendCommandAndAccept = async function(command : any, prompts : any) {
     try {
       expect(actual_prompts).to.deep.equal(prompts);
     } catch(e) {
-      expect(fixActualPromptsForSPlus(actual_prompts)).to.deep.equal(fixRefPromptsForSPlus(prompts));
+      try {
+        expect(fixActualPromptsForSPlus(actual_prompts)).to.deep.equal(fixRefPromptsForSPlus(prompts));
+      } catch (_) {
+        // Throw the original error if there is a mismatch as it is generally more useful
+        throw(e);
+      }
     }
 }
 
