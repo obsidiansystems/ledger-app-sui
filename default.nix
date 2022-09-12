@@ -1,53 +1,45 @@
 rec {
   alamgu = import ./dep/alamgu {};
 
-  inherit (alamgu)
-    lib
-    pkgs ledgerPkgs
-    crate2nix
-    buildRustCrateForPkgsLedger
-    buildRustCrateForPkgsWrapper
-    ;
+  inherit (alamgu) lib pkgs crate2nix;
 
-  makeApp = { rootFeatures ? [ "default" ], release ? true }: import ./Cargo.nix {
-    inherit rootFeatures release;
-    pkgs = ledgerPkgs;
-    buildRustCrateForPkgs = pkgs: let
-      fun = buildRustCrateForPkgsWrapper
-        pkgs
-        ((buildRustCrateForPkgsLedger pkgs).override {
-          defaultCrateOverrides = pkgs.defaultCrateOverrides // {
-            rust-app = attrs: let
-              sdk = lib.findFirst (p: lib.hasPrefix "rust_nanos_sdk" p.name) (builtins.throw "no sdk!") attrs.dependencies;
-            in {
-              preHook = alamgu.gccLibsPreHook;
-              extraRustcOpts = attrs.extraRustcOpts or [] ++ [
-                "-C" "link-arg=-T${sdk.lib}/lib/nanos_sdk.out/script.ld"
-                "-C" "linker=${pkgs.stdenv.cc.targetPrefix}clang"
-              ];
+  makeApp = { rootFeatures ? [ "default" ], release ? true, device }:
+    let collection = alamgu.perDevice.${device};
+    in import ./Cargo.nix {
+      inherit rootFeatures release;
+      pkgs = collection.ledgerPkgs;
+      buildRustCrateForPkgs = pkgs: let
+        fun = collection.buildRustCrateForPkgsWrapper
+          pkgs
+          ((collection.buildRustCrateForPkgsLedger pkgs).override {
+            defaultCrateOverrides = pkgs.defaultCrateOverrides // {
+              rust-app = attrs: let
+                sdk = lib.findFirst (p: lib.hasPrefix "rust_nanos_sdk" p.name) (builtins.throw "no sdk!") attrs.dependencies;
+              in {
+                preHook = collection.gccLibsPreHook;
+                extraRustcOpts = attrs.extraRustcOpts or [] ++ [
+                  "-C" "linker=${pkgs.stdenv.cc.targetPrefix}clang"
+                  "-C" "link-arg=-T${sdk.lib}/lib/nanos_sdk.out/link.ld"
+                ] ++ (if (device == "nanos") then
+                  [ "-C" "link-arg=-T${sdk.lib}/lib/nanos_sdk.out/nanos_layout.ld" ]
+                else if (device == "nanosplus") then
+                  [ "-C" "link-arg=-T${sdk.lib}/lib/nanos_sdk.out/nanosplus_layout.ld" ]
+                else if (device == "nanox") then
+                  [ "-C" "link-arg=-T${sdk.lib}/lib/nanos_sdk.out/nanox_layout.ld" ]
+                else throw ("Unknown target device: `${device}'"));
+              };
             };
-          };
+          });
+      in
+        args: fun (args // lib.optionalAttrs pkgs.stdenv.hostPlatform.isAarch32 {
+          dependencies = map (d: d // { stdlib = true; }) [
+            collection.ledgerCore
+            collection.ledgerCompilerBuiltins
+          ] ++ args.dependencies;
         });
-    in
-      args: fun (args // lib.optionalAttrs pkgs.stdenv.hostPlatform.isAarch32 {
-        dependencies = map (d: d // { stdlib = true; }) [
-          alamgu.ledgerCore
-          alamgu.ledgerCompilerBuiltins
-        ] ++ args.dependencies;
-      });
   };
 
-  app = makeApp {};
-  app-with-logging = makeApp {
-    release = false;
-    rootFeatures = [ "default" "speculos" "extra_debug" ];
-  };
-
-  # For CI
-  rootCrate = app.rootCrate.build;
-  rootCrate-with-logging = app-with-logging.rootCrate.build;
-
-  tarSrc = ledgerPkgs.runCommandCC "tarSrc" {
+  makeTarSrc = { appExe, device }: pkgs.runCommandCC "makeTarSrc" {
     nativeBuildInputs = [
       alamgu.cargo-ledger
       alamgu.ledgerRustPlatform.rust.cargo
@@ -59,24 +51,15 @@ rec {
     mkdir src
     touch src/main.rs
 
-    cargo-ledger --use-prebuilt ${rootCrate}/bin/rust-app --hex-next-to-json
+    cargo-ledger --use-prebuilt ${appExe} --hex-next-to-json ledger ${device}
 
     mkdir -p $out/rust-app
-    cp app.json app.hex $out/rust-app
+    cp app_${device}.json app.hex $out/rust-app
     cp ${./tarball-default.nix} $out/rust-app/default.nix
     cp ${./tarball-shell.nix} $out/rust-app/shell.nix
     cp ${./rust-app/crab.gif} $out/rust-app/crab.gif
+    cp ${./rust-app/crab-small.gif} $out/rust-app/crab-small.gif
   '');
-
-  tarball = pkgs.runCommandNoCC "app-tarball.tar.gz" { } ''
-    tar -czvhf $out -C ${tarSrc} rust-app
-  '';
-
-  loadApp = pkgs.writeScriptBin "load-app" ''
-    #!/usr/bin/env bash
-    cd ${tarSrc}/rust-app
-    ${alamgu.ledgerctl}/bin/ledgerctl install -f ${tarSrc}/rust-app/app.json
-  '';
 
   testPackage = (import ./ts-tests/override.nix { inherit pkgs; }).package;
 
@@ -86,17 +69,14 @@ rec {
     exec ${pkgs.nodejs-14_x}/bin/npm --offline test -- "$@"
   '';
 
-  runTests = { appExe ? rootCrate + "/bin/rust-app" }: pkgs.runCommandNoCC "run-tests" {
+  runTests = { appExe, speculosCmd }: pkgs.runCommandNoCC "run-tests" {
     nativeBuildInputs = [
       pkgs.wget alamgu.speculos.speculos testScript
     ];
   } ''
-    RUST_APP=${rootCrate}/bin/*
-    echo RUST APP IS $RUST_APP
-    # speculos -k 2.0 $RUST_APP --display headless &
     mkdir $out
     (
-    speculos -k 2.0 ${appExe} --display headless &
+    ${speculosCmd} ${appExe} --display headless &
     SPECULOS=$!
 
     until wget -O/dev/null -o/dev/null http://localhost:5000; do sleep 0.1; done;
@@ -110,16 +90,48 @@ rec {
     exit $rv
   '';
 
-  test-with-loging = runTests {
-    appExe = rootCrate-with-logging + "/bin/rust-app";
-  };
-  test = runTests {
+  appForDevice = device : rec {
+    rootCrate = (makeApp { inherit device; }).rootCrate.build;
     appExe = rootCrate + "/bin/rust-app";
+
+    rootCrate-with-logging = (makeApp {
+      inherit device;
+      release = false;
+      rootFeatures = [ "default" "speculos" "extra_debug" ];
+    }).rootCrate.build;
+
+    tarSrc = makeTarSrc { inherit appExe device; };
+    tarball = pkgs.runCommandNoCC "app-tarball.tar.gz" { } ''
+      tar -czvhf $out -C ${tarSrc} rust-app
+    '';
+
+    loadApp = pkgs.writeScriptBin "load-app" ''
+      #!/usr/bin/env bash
+      cd ${tarSrc}/rust-app
+      ${alamgu.ledgerctl}/bin/ledgerctl install -f ${tarSrc}/rust-app/app_${device}.json
+    '';
+
+    speculosCmd =
+      if (device == "nanos") then "speculos -m nanos"
+      else if (device == "nanosplus") then "speculos  -m nanosp -k 1.0.3"
+      else if (device == "nanox") then "speculos -m nanox"
+      else throw ("Unknown target device: `${device}'");
+
+    test-with-loging = runTests {
+      inherit speculosCmd;
+      appExe = rootCrate-with-logging + "/bin/rust-app";
+    };
+    test = runTests { inherit appExe speculosCmd; };
+
+    appShell = pkgs.mkShell {
+      packages = [ loadApp alamgu.generic-cli pkgs.jq ];
+    };
   };
+
+  nanos = appForDevice "nanos";
+  nanosplus = appForDevice "nanosplus";
+  nanox = appForDevice "nanox";
 
   inherit (pkgs.nodePackages) node2nix;
 
-  appShell = pkgs.mkShell {
-    packages = [ loadApp alamgu.generic-cli pkgs.jq ];
-  };
 }

@@ -1,17 +1,14 @@
-use rust_app::implementation::*;
-use rust_app::interface::*;
+use crate::implementation::*;
+use crate::interface::*;
 
 use ledger_parser_combinators::interp_parser::OOB;
 use ledger_prompts_ui::RootMenu;
+use ledger_log::{info, trace};
 
 use nanos_sdk::io;
-nanos_sdk::set_panic!(nanos_sdk::exiting_panic);
 
-use rust_app::*;
-
-#[cfg(not(test))]
-#[no_mangle]
-extern "C" fn sample_main() {
+#[allow(dead_code)]
+pub fn app_main() {
     let mut comm = io::Comm::new();
     let mut states = ParsersState::NoState;
 
@@ -35,7 +32,7 @@ extern "C" fn sample_main() {
     loop {
         // Wait for either a specific button push to exit the app
         // or an APDU command
-        match comm.next_event() {
+        match comm.next_event::<Ins>() {
             io::Event::Command(ins) => {
                 trace!("Command received");
                 match handle_apdu(&mut comm, ins, &mut states) {

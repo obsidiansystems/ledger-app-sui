@@ -184,16 +184,6 @@ rec {
           "parallel" = [ "jobserver" ];
         };
       };
-      "cty" = rec {
-        crateName = "cty";
-        version = "0.2.2";
-        edition = "2015";
-        sha256 = "0d8z0pbr87wgzqqb2jk5pvj0afzc6d3rb772ach6fijhg6yglrdk";
-        authors = [
-          "Jorge Aparicio <jorge@japaric.io>"
-        ];
-
-      };
       "enum-init" = rec {
         crateName = "enum-init";
         version = "0.1.0";
@@ -279,13 +269,13 @@ rec {
       };
       "ledger-crypto-helpers" = rec {
         crateName = "ledger-crypto-helpers";
-        version = "0.1.0";
+        version = "0.2.0";
         edition = "2018";
         workspace_member = null;
         src = pkgs.fetchgit {
           url = "https://github.com/alamgu/ledger-crypto-helpers";
-          rev = "d9fd955dc5d8a8a70354dc9036121c5444c5ec72";
-          sha256 = "08g5mfprsr3r1l6s7qak7f9y25zd18nddbxb487p48jhkwx1jrd3";
+          rev = "654d97bba2fac3900a3be093571c5fe7ba493515";
+          sha256 = "0x7ccwwqqfpzhkvg52k2hvj5928ykd6ccvig0m8jpani137rfdgh";
         };
         dependencies = [
           {
@@ -358,8 +348,8 @@ rec {
         workspace_member = null;
         src = pkgs.fetchgit {
           url = "https://github.com/alamgu/ledger-parser-combinators";
-          rev = "f563ccf5e3968eef51fd1b3c150ae06bb780ce00";
-          sha256 = "0m4lc6sxckcmv25gyxih5nqmx2418a16197134p7a8gfwzhgrdmf";
+          rev = "c7ee244c322d42cfaf2ef124170a6e695d208b6b";
+          sha256 = "1h7aghm8zvs3ymv19h6rczripgsa13n27cqwzzz2jnc7r2463n34";
         };
         authors = [
           "Jonathan D.K. Gibbons <jonored@gmail.com>"
@@ -474,22 +464,18 @@ rec {
       };
       "nanos_sdk" = rec {
         crateName = "nanos_sdk";
-        version = "0.1.0";
-        edition = "2018";
+        version = "0.2.0";
+        edition = "2021";
         workspace_member = null;
         src = pkgs.fetchgit {
           url = "https://github.com/alamgu/ledger-nanos-sdk.git";
-          rev = "1d358edd6cddbdcd4d6deb29f856b40e7e863c07";
-          sha256 = "1v5xz06vsd2ih6vl3qxill5w3k5gplbylqk3nw0jdvcwy0jx3v09";
+          rev = "a31eef1fbc4cad5ed4df51390cb8b648fc55d0b4";
+          sha256 = "1kvyjmwbj6dmq79nvy5k5m3v9kn4xhxvb8008whkv3jg6bmv484q";
         };
         authors = [
           "yhql"
         ];
         dependencies = [
-          {
-            name = "cty";
-            packageId = "cty";
-          }
           {
             name = "num-traits";
             packageId = "num-traits";
@@ -504,7 +490,7 @@ rec {
         ];
         features = {
         };
-        resolvedDefaultFeatures = [ "speculos" ];
+        resolvedDefaultFeatures = [ "lib_bagl" "speculos" ];
       };
       "nanos_ui" = rec {
         crateName = "nanos_ui";
@@ -512,9 +498,9 @@ rec {
         edition = "2018";
         workspace_member = null;
         src = pkgs.fetchgit {
-          url = "https://github.com/LedgerHQ/ledger-nanos-ui.git";
-          rev = "bab7dc5a40d2988f682e0ca9c04eb631d50934ca";
-          sha256 = "0qq5s7ayc38fjfciyj5svd9zsq2qz1gf91nl4k7q1zyslvn0q8f9";
+          url = "https://github.com/obsidiansystems/ledger-nanos-ui";
+          rev = "6ab6938354e73d3a8aacc941e9c7bc7f83c1081e";
+          sha256 = "0pi2albb8ly52c9y451w872lxz3b7ivi9s1hfpld46qi8q7m5v2h";
         };
         authors = [
           "yhql"
@@ -523,6 +509,7 @@ rec {
           {
             name = "nanos_sdk";
             packageId = "nanos_sdk";
+            features = [ "lib_bagl" ];
           }
         ];
 
@@ -1471,7 +1458,7 @@ rec {
       len = builtins.stringLength prefix;
       startsWithPrefix = builtins.substring 0 len feature == prefix;
     in
-    feature == name || startsWithPrefix;
+    feature == name || feature == "dep:" + name || startsWithPrefix;
 
   /* Returns the expanded features for the given inputFeatures by applying the
     rules in featureMap.

@@ -1,25 +1,39 @@
 [unstable]
 build-std = ["core"]
-configurable-env = true
+build-std-features = ["compiler-builtins-mem"]
 
-[target.thumbv6m-none-eabi]
-rustflags = [ 
-  "-C", "relocation-model=ropi",
-  "-C", "link-arg=-Tscript.ld",
-  "-C", "opt-level=3",
+[target.nanosplus]
+rustflags = [
   "-C", "passes=ledger-ropi",
   "-C", "codegen-units=1",
-  "-C", "lto",
+  "-C", "save-temps", # Fixes incremental builds by keeping .bc and .ll files
   "-C", "embed-bitcode",
-  "--cfg", "target_os=\"nanos\"",
-  "--cfg", "target_family=\"bolos\"",
+  "-Z", "new-llvm-pass-manager=no",
   "--emit=obj,llvm-ir,llvm-bc"
 ]
-linker = "armv6m-unknown-none-eabi-clang"
-runner = "./speculos-wrapper -k 2.0"
+runner = "./speculos-wrapper -m nanosp -k 1.0.3 "
 
-[build]
-target = "thumbv6m-none-eabi"
+[target.nanos]
+rustflags = [
+  "-C", "passes=ledger-ropi",
+  "-C", "codegen-units=1",
+  "-C", "save-temps", # Fixes incremental builds by keeping .bc and .ll files
+  "-C", "embed-bitcode",
+  "-Z", "new-llvm-pass-manager=no",
+  "--emit=obj,llvm-ir,llvm-bc"
+]
+runner = "./speculos-wrapper -m nanos "
+
+[target.nanox]
+rustflags = [
+  "-C", "passes=ledger-ropi",
+  "-C", "codegen-units=1",
+  "-C", "save-temps", # Fixes incremental builds by keeping .bc and .ll files
+  "-C", "embed-bitcode",
+  "-Z", "new-llvm-pass-manager=no",
+  "--emit=obj,llvm-ir,llvm-bc"
+]
+runner = "./speculos-wrapper -m nanox "
 
 [alias]
 tt = "test --features extra_debug"
