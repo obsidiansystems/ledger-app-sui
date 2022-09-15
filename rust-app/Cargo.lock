@@ -84,7 +84,7 @@ dependencies = [
 [[package]]
 name = "ledger-crypto-helpers"
 version = "0.2.0"
-source = "git+https://github.com/alamgu/ledger-crypto-helpers?branch=jg-update-for-new-sdk#654d97bba2fac3900a3be093571c5fe7ba493515"
+source = "git+https://github.com/alamgu/ledger-crypto-helpers#dd0ca96f3884ae4b237a777736811a4af1ad4ce6"
 dependencies = [
  "arrayvec",
  "base64",
