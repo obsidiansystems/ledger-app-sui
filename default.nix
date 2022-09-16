@@ -54,7 +54,10 @@ rec {
     cargo-ledger --use-prebuilt ${appExe} --hex-next-to-json ledger ${device}
 
     mkdir -p $out/rust-app
-    cp app_${device}.json app.hex $out/rust-app
+    # Create a file to indicate what device this is for
+    touch $out/rust-app/device-${device}
+    cp app_${device}.json $out/rust-app/app.json
+    cp app.hex $out/rust-app
     cp ${./tarball-default.nix} $out/rust-app/default.nix
     cp ${./tarball-shell.nix} $out/rust-app/shell.nix
     cp ${./rust-app/crab.gif} $out/rust-app/crab.gif
