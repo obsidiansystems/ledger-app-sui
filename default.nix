@@ -55,7 +55,7 @@ rec {
 
     mkdir -p $out/rust-app
     # Create a file to indicate what device this is for
-    touch $out/rust-app/device-${device}
+    echo ${device} > $out/rust-app/device
     cp app_${device}.json $out/rust-app/app.json
     cp app.hex $out/rust-app
     cp ${./tarball-default.nix} $out/rust-app/default.nix
