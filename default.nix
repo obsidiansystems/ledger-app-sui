@@ -39,7 +39,7 @@ rec {
         });
   };
 
-  makeTarSrc = { appExe, device }: pkgs.runCommandCC "makeTarSrc" {
+  makeTarSrc = { appExe, device }: pkgs.runCommandCC "make-tar-src-${device}" {
     nativeBuildInputs = [
       alamgu.cargo-ledger
       alamgu.ledgerRustPlatform.rust.cargo
@@ -53,15 +53,17 @@ rec {
 
     cargo-ledger --use-prebuilt ${appExe} --hex-next-to-json ledger ${device}
 
-    mkdir -p $out/rust-app
+    dest=$out/rust-app
+    mkdir -p $dest
+
     # Create a file to indicate what device this is for
-    echo ${device} > $out/rust-app/device
-    cp app_${device}.json $out/rust-app/app.json
-    cp app.hex $out/rust-app
-    cp ${./tarball-default.nix} $out/rust-app/default.nix
-    cp ${./tarball-shell.nix} $out/rust-app/shell.nix
-    cp ${./rust-app/crab.gif} $out/rust-app/crab.gif
-    cp ${./rust-app/crab-small.gif} $out/rust-app/crab-small.gif
+    echo ${device} > $dest/device
+    cp app_${device}.json $dest/app.json
+    cp app.hex $dest
+    cp ${./tarball-default.nix} $dest/default.nix
+    cp ${./tarball-shell.nix} $dest/shell.nix
+    cp ${./rust-app/crab.gif} $dest/crab.gif
+    cp ${./rust-app/crab-small.gif} $dest/crab-small.gif
   '');
 
   testPackage = (import ./ts-tests/override.nix { inherit pkgs; }).package;
@@ -72,7 +74,7 @@ rec {
     exec ${pkgs.nodejs-14_x}/bin/npm --offline test -- "$@"
   '';
 
-  runTests = { appExe, speculosCmd }: pkgs.runCommandNoCC "run-tests" {
+  runTests = { appExe, device, speculosCmd }: pkgs.runCommandNoCC "run-tests-${device}" {
     nativeBuildInputs = [
       pkgs.wget alamgu.speculos.speculos testScript
     ];
@@ -104,14 +106,14 @@ rec {
     }).rootCrate.build;
 
     tarSrc = makeTarSrc { inherit appExe device; };
-    tarball = pkgs.runCommandNoCC "app-tarball.tar.gz" { } ''
+    tarball = pkgs.runCommandNoCC "app-tarball-${device}.tar.gz" { } ''
       tar -czvhf $out -C ${tarSrc} rust-app
     '';
 
     loadApp = pkgs.writeScriptBin "load-app" ''
       #!/usr/bin/env bash
       cd ${tarSrc}/rust-app
-      ${alamgu.ledgerctl}/bin/ledgerctl install -f ${tarSrc}/rust-app/app_${device}.json
+      ${alamgu.ledgerctl}/bin/ledgerctl install -f ${tarSrc}/rust-app/app.json
     '';
 
     speculosCmd =
@@ -121,10 +123,10 @@ rec {
       else throw ("Unknown target device: `${device}'");
 
     test-with-loging = runTests {
-      inherit speculosCmd;
+      inherit speculosCmd device;
       appExe = rootCrate-with-logging + "/bin/rust-app";
     };
-    test = runTests { inherit appExe speculosCmd; };
+    test = runTests { inherit appExe speculosCmd device; };
 
     appShell = pkgs.mkShell {
       packages = [ loadApp alamgu.generic-cli pkgs.jq ];
