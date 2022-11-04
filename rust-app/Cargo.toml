@@ -21,8 +21,8 @@ speculos = [ "nanos_sdk/speculos", "ledger-log/speculos", "ledger-log/log_error"
 extra_debug = ["ledger-log/log_trace"]
 
 [target.'cfg(target_family = "bolos")'.dependencies]
-nanos_sdk = { git = "https://github.com/LedgerHQ/ledger-nanos-sdk.git" } 
-nanos_ui = { git = "https://github.com/LedgerHQ/ledger-nanos-ui.git" } 
+nanos_sdk = { git = "https://github.com/LedgerHQ/ledger-nanos-sdk.git" }
+nanos_ui = { git = "https://github.com/LedgerHQ/ledger-nanos-ui.git" }
 ledger-prompts-ui = { git = "https://github.com/alamgu/ledger-prompts-ui" }
 
 [target.'cfg(target_family = "bolos")'.dev-dependencies.nanos_sdk]
