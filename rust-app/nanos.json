@@ -8,7 +8,7 @@
   "executables": true,
   "features": "+strict-align",
   "frame-pointer": "always",
-  "linker": "rust-lld",
+  "linker": "armv6m-unknown-none-eabi-lld",
   "linker-flavor": "ld.lld",
   "llvm-target": "thumbv6m-none-eabi",
   "panic-strategy": "abort",
