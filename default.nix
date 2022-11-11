@@ -98,12 +98,15 @@ rec {
   '';
 
   appForDevice = device : rec {
-    rootCrate = (makeApp { inherit device; }).rootCrate.build;
-    rootCrate-with-logging = (makeApp {
+    app = makeApp { inherit device; };
+    app-with-logging = makeApp {
       inherit device;
       release = false;
       rootFeatures = [ "default" "speculos" "extra_debug" ];
-    }).rootCrate.build;
+    };
+
+    rootCrate = app.rootCrate.build;
+    rootCrate-with-logging = app-with-logging.rootCrate.build;
 
     appExe = rootCrate + "/bin/" + appName;
 
