@@ -97,13 +97,19 @@ rec {
     exit $rv
   '';
 
-  appForDevice = device : rec {
+  appForDevice = device: rec {
     app = makeApp { inherit device; };
     app-with-logging = makeApp {
       inherit device;
       release = false;
       rootFeatures = [ "default" "speculos" "extra_debug" ];
     };
+
+    stack-check = pkgs.runCommandNoCC "stack-check-${device}" {
+      nativeBuildInputs = [ alamgu.stack-sizes ];
+    } ''
+      stack-sizes ${appExe} ${rootCrate}/bin/*.o | tee $out
+    '';
 
     rootCrate = app.rootCrate.build;
     rootCrate-with-logging = app-with-logging.rootCrate.build;
