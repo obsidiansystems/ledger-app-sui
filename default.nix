@@ -22,13 +22,8 @@ rec {
               extraRustcOpts = attrs.extraRustcOpts or [] ++ [
                 "-C" "linker=${pkgs.stdenv.cc.targetPrefix}clang"
                 "-C" "link-arg=-T${sdk.lib}/lib/nanos_sdk.out/link.ld"
-              ] ++ (if (device == "nanos") then
-                [ "-C" "link-arg=-T${sdk.lib}/lib/nanos_sdk.out/nanos_layout.ld" ]
-              else if (device == "nanosplus") then
-                [ "-C" "link-arg=-T${sdk.lib}/lib/nanos_sdk.out/nanosplus_layout.ld" ]
-              else if (device == "nanox") then
-                [ "-C" "link-arg=-T${sdk.lib}/lib/nanos_sdk.out/nanox_layout.ld" ]
-              else throw ("Unknown target device: `${device}'"));
+                "-C" "link-arg=-T${sdk.lib}/lib/nanos_sdk.out/${device}_layout.ld"
+              ];
             };
           };
         })
