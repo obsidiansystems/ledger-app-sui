@@ -1,7 +1,7 @@
 rec {
   alamgu = import ./dep/alamgu {};
 
-  inherit (alamgu) lib pkgs crate2nix;
+  inherit (alamgu) lib pkgs crate2nix alamguLib;
 
   appName = "rust-app";
 
@@ -10,35 +10,40 @@ rec {
     in import ./Cargo.nix {
       inherit rootFeatures release;
       pkgs = collection.ledgerPkgs;
-      buildRustCrateForPkgs = pkgs: let
-        fun = collection.buildRustCrateForPkgsWrapper
-          pkgs
-          ((collection.buildRustCrateForPkgsLedger pkgs).override {
-            defaultCrateOverrides = pkgs.defaultCrateOverrides // {
-              ${appName} = attrs: let
-                sdk = lib.findFirst (p: lib.hasPrefix "rust_nanos_sdk" p.name) (builtins.throw "no sdk!") attrs.dependencies;
-              in {
-                preHook = collection.gccLibsPreHook;
-                extraRustcOpts = attrs.extraRustcOpts or [] ++ [
-                  "-C" "linker=${pkgs.stdenv.cc.targetPrefix}clang"
-                  "-C" "link-arg=-T${sdk.lib}/lib/nanos_sdk.out/link.ld"
-                ] ++ (if (device == "nanos") then
-                  [ "-C" "link-arg=-T${sdk.lib}/lib/nanos_sdk.out/nanos_layout.ld" ]
-                else if (device == "nanosplus") then
-                  [ "-C" "link-arg=-T${sdk.lib}/lib/nanos_sdk.out/nanosplus_layout.ld" ]
-                else if (device == "nanox") then
-                  [ "-C" "link-arg=-T${sdk.lib}/lib/nanos_sdk.out/nanox_layout.ld" ]
-                else throw ("Unknown target device: `${device}'"));
-              };
+      buildRustCrateForPkgs = alamguLib.combineWrappers [
+        # The callPackage of `buildRustPackage` overridden with various
+        # modified arguemnts.
+        (pkgs: (collection.buildRustCrateForPkgsLedger pkgs).override {
+          defaultCrateOverrides = pkgs.defaultCrateOverrides // {
+            ${appName} = attrs: let
+              sdk = lib.findFirst (p: lib.hasPrefix "rust_nanos_sdk" p.name) (builtins.throw "no sdk!") attrs.dependencies;
+            in {
+              preHook = collection.gccLibsPreHook;
+              extraRustcOpts = attrs.extraRustcOpts or [] ++ [
+                "-C" "linker=${pkgs.stdenv.cc.targetPrefix}clang"
+                "-C" "link-arg=-T${sdk.lib}/lib/nanos_sdk.out/link.ld"
+              ] ++ (if (device == "nanos") then
+                [ "-C" "link-arg=-T${sdk.lib}/lib/nanos_sdk.out/nanos_layout.ld" ]
+              else if (device == "nanosplus") then
+                [ "-C" "link-arg=-T${sdk.lib}/lib/nanos_sdk.out/nanosplus_layout.ld" ]
+              else if (device == "nanox") then
+                [ "-C" "link-arg=-T${sdk.lib}/lib/nanos_sdk.out/nanox_layout.ld" ]
+              else throw ("Unknown target device: `${device}'"));
             };
-          });
-      in
-        args: fun (args // lib.optionalAttrs pkgs.stdenv.hostPlatform.isAarch32 {
+          };
+        })
+
+        # Default Alamgu wrapper
+        alamguLib.extraArgsForAllCrates
+
+        # Another wrapper specific to this app, but applying to all packages
+        (pkgs: args: args // lib.optionalAttrs (alamguLib.platformIsBolos pkgs.stdenv.hostPlatform) {
           dependencies = map (d: d // { stdlib = true; }) [
             collection.ledgerCore
             collection.ledgerCompilerBuiltins
           ] ++ args.dependencies;
-        });
+        })
+      ];
   };
 
   makeTarSrc = { appExe, device }: pkgs.runCommandCC "make-tar-src-${device}" {
