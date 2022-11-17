@@ -55,9 +55,17 @@ Using Nix, from the root level of this repo, run:
 ```bash
 nix-shell -A alamgu.rustShell
 cd rust-app/
-# For NanoS+, replace nanos with nanosplus. It is currently not possible to load the app on Nano X
 cargo-ledger ledger -l nanos
 ````
+
+For NanoS+
+````
+nix-shell -A alamgu.perDevice.nanosplus.rustShell
+cd rust-app/
+cargo-ledger ledger -l nanosplus
+````
+
+It is currently not possible to load the app on Nano X
 
 The [cargo-ledger](https://github.com/LedgerHQ/cargo-ledger.git) builds, outputs a `hex` file and a manifest file for `ledgerctl`, and loads it on a device in a single `cargo-ledger ledger -l nanos` command in the rust-app folder within app directory.
 
@@ -73,6 +81,12 @@ Using Nix, from the root level of this repo, run:
 nix-shell -A alamgu.rustShell
 cd rust-app/
 cargo test --target=nanos.json
-cargo test --target=nanosplus.json
 cargo test --target=nanox.json
+```
+
+For NanoS+
+```
+nix-shell -A alamgu.perDevice.nanosplus.rustShell
+cd rust-app/
+cargo test --target=nanosplus.json
 ````
