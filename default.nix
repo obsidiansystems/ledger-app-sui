@@ -76,7 +76,8 @@ rec {
     exec ${pkgs.nodejs-14_x}/bin/npm --offline test -- "$@"
   '';
 
-  runTests = { appExe, device, variant ? "", speculosCmd }: pkgs.runCommandNoCC "run-tests-${device}${variant}" {
+  runTests = { appExe, device, variant ? "", speculosCmd }:
+  pkgs.runCommandNoCC "run-tests-${device}${variant}" {
     nativeBuildInputs = [
       pkgs.wget alamgu.speculos.speculos testScript
     ];
@@ -97,6 +98,13 @@ rec {
     exit $rv
   '';
 
+  makeStackCheck = { rootCrate, device, variant ? "" }:
+  pkgs.runCommandNoCC "stack-check-${device}" {
+    nativeBuildInputs = [ alamgu.stack-sizes ];
+  } ''
+    stack-sizes ${rootCrate}/bin/${appName} ${rootCrate}/bin/*.o | tee $out
+  '';
+
   appForDevice = device: rec {
     app = makeApp { inherit device; };
     app-with-logging = makeApp {
@@ -105,11 +113,12 @@ rec {
       rootFeatures = [ "default" "speculos" "extra_debug" ];
     };
 
-    stack-check = pkgs.runCommandNoCC "stack-check-${device}" {
-      nativeBuildInputs = [ alamgu.stack-sizes ];
-    } ''
-      stack-sizes ${appExe} ${rootCrate}/bin/*.o | tee $out
-    '';
+    stack-check = makeStackCheck { inherit rootCrate device; };
+    stack-check-with-logging = makeStackCheck {
+      inherit device;
+      rootCrate = rootCrate-with-logging;
+      variant = "-with-logging";
+    };
 
     rootCrate = app.rootCrate.build;
     rootCrate-with-logging = app-with-logging.rootCrate.build;
@@ -134,7 +143,7 @@ rec {
     }.${device} or (throw "Unknown target device: `${device}'");
 
     test = runTests { inherit appExe speculosCmd device; };
-    test-with-loging = runTests {
+    test-with-logging = runTests {
       inherit speculosCmd device;
       appExe = rootCrate-with-logging + "/bin/" + appName;
       variant = "-with-logging";
