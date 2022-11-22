@@ -98,11 +98,11 @@ rec {
     exit $rv
   '';
 
-  makeStackCheck = { rootCrate, device, variant ? "" }:
+  makeStackCheck = { rootCrate, device, memLimit, variant ? "" }:
   pkgs.runCommandNoCC "stack-check-${device}${variant}" {
     nativeBuildInputs = [ alamgu.stack-sizes ];
   } ''
-    stack-sizes ${rootCrate}/bin/${appName} ${rootCrate}/bin/*.o | tee $out
+    stack-sizes --mem-limit=${toString memLimit} ${rootCrate}/bin/${appName} ${rootCrate}/bin/*.o | tee $out
   '';
 
   appForDevice = device: rec {
@@ -113,9 +113,15 @@ rec {
       rootFeatures = [ "default" "speculos" "extra_debug" ];
     };
 
-    stack-check = makeStackCheck { inherit rootCrate device; };
+    memLimit = {
+      nanos = 4500;
+      nanosplus = 400000;
+      nanox = 400000;
+    }.${device} or (throw "Unknown target device: `${device}'");
+
+    stack-check = makeStackCheck { inherit memLimit rootCrate device; };
     stack-check-with-logging = makeStackCheck {
-      inherit device;
+      inherit memLimit device;
       rootCrate = rootCrate-with-logging;
       variant = "-with-logging";
     };
