@@ -14,6 +14,7 @@ use core::convert::TryFrom;
 use zeroize::{Zeroizing};
 use core::ops::Deref;
 
+#[allow(clippy::upper_case_acronyms)]
 type PKH = Ed25519RawPubKeyAddress;
 
 // A couple type ascription functions to help the compiler along.
@@ -46,7 +47,7 @@ pub type GetAddressImplT = impl InterpParser<Bip32Key, Returning = ArrayVec<u8, 
 pub const GET_ADDRESS_IMPL: GetAddressImplT =
     Action(SubInterp(DefaultInterp), mkfn(|path: &ArrayVec<u32, 10>, destination: &mut Option<ArrayVec<u8, 128>>| -> Option<()> {
         with_public_keys(path, |key: &_, pkh: &PKH| { try_option(|| -> Option<()> {
-            scroller("Provide Public Key", |w| Ok(write!(w, "For Address     {}", pkh)?))?;
+            scroller("Provide Public Key", |w| Ok(write!(w, "For Address     {pkh}")?))?;
 
             final_accept_prompt(&[])?;
 
@@ -89,7 +90,7 @@ pub static SIGN_IMPL: SignImplT = Action(
             // And ask the user if this is the key the meant to sign with:
             mkmvfn(|path: ArrayVec<u32, 10>, destination: &mut Option<ArrayVec<u32, 10>>| {
                 with_public_keys(&path, |_, pkh: &PKH| { try_option(|| -> Option<()> {
-                    scroller("Sign for Address", |w| Ok(write!(w, "{}", pkh)?))?;
+                    scroller("Sign for Address", |w| Ok(write!(w, "{pkh}")?))?;
                     Some(())
                 }())}).ok()?;
                 *destination = Some(path);
@@ -98,7 +99,7 @@ pub static SIGN_IMPL: SignImplT = Action(
         ),
     ),
     mkfn(|(hash, path): &(Option<Zeroizing<Hash<32>>>, Option<ArrayVec<u32, 10>>), destination: &mut _| {
-        final_accept_prompt(&[&"Sign Transaction?"])?;
+        final_accept_prompt(&["Sign Transaction?"])?;
 
         // By the time we get here, we've approved and just need to do the signature.
         let sig = eddsa_sign(path.as_ref()?, &hash.as_ref()?.0[..]).ok()?;
@@ -111,7 +112,7 @@ pub static SIGN_IMPL: SignImplT = Action(
 
 // The global parser state enum; any parser above that'll be used as the implementation for an APDU
 // must have a field here.
-
+#[allow(clippy::large_enum_variant)]
 pub enum ParsersState {
     NoState,
     GetAddressState(<GetAddressImplT as ParserCommon<Bip32Key>>::State),
