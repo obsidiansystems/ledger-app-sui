@@ -99,7 +99,7 @@ rec {
   '';
 
   makeStackCheck = { rootCrate, device, variant ? "" }:
-  pkgs.runCommandNoCC "stack-check-${device}" {
+  pkgs.runCommandNoCC "stack-check-${device}${variant}" {
     nativeBuildInputs = [ alamgu.stack-sizes ];
   } ''
     stack-sizes ${rootCrate}/bin/${appName} ${rootCrate}/bin/*.o | tee $out
