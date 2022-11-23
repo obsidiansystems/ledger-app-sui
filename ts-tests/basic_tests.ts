@@ -9,7 +9,7 @@ import { instantiate, Nacl } from "js-nacl";
 
 let ignoredScreens = [ "W e l c o m e", "Cancel", "Working...", "Exit", "Rust App 0.0.1"]
 
-const API_PORT: number = 5000;
+const API_PORT: number = 5005;
 
 const BASE_URL: string = `http://127.0.0.1:${API_PORT}`;
 

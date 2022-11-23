@@ -7,10 +7,10 @@ echo "Speculos Wrapper called with $*"
 # cargo test --test ts-tests --target=nanos.json -- --mocha-args="--timeout 30000"
 MOCHA_ARGS=""
 
-API_PORT=5000
+API_PORT=5005
 
 run_ts_tests() {
-    speculos "$@" --display headless &
+    speculos --api-port "$API_PORT" "$@" --display headless &
     SPECULOS=$!
     until wget -O/dev/null -o/dev/null http://localhost:$API_PORT/; do sleep 0.1; done;
     cd ../ts-tests;
@@ -35,6 +35,6 @@ case $last in
     ;;
   */deps/*) # Assume anything in the deps directory is a test, not the full app.
     echo "Matched *tests*"
-    speculos "$@" --display headless ;;
-  *) speculos "$@" ;;
+    speculos --api-port "$API_PORT" "$@" --display headless ;;
+  *) speculos --api-port "$API_PORT" "$@" ;;
 esac
