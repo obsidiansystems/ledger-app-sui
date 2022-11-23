@@ -1,8 +1,8 @@
 {
   "owner": "alamgu",
   "repo": "alamgu",
-  "branch": "develop",
+  "branch": "proper-loader",
   "private": false,
-  "rev": "8096423431ae766d9828c60e5024fd4310f274a4",
-  "sha256": "0nsyvxsqym8hp4p4fgx0lz5kszdmg6zs2ng87qfvnnhzp6c51i68"
+  "rev": "bd80a9e64bea598c9ce6c3c1ff1ea5ca7e38bc1f",
+  "sha256": "12bim2z0n5l18z1gq12mvzhqlgp71jika0r17z94531mzmlw0pik"
 }
