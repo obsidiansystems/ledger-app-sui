@@ -76,6 +76,8 @@ rec {
     exec ${pkgs.nodejs-14_x}/bin/npm --offline test -- "$@"
   '';
 
+  apiPort = 5005;
+
   runTests = { appExe, device, variant ? "", speculosCmd }: pkgs.runCommandNoCC "run-tests-${device}${variant}" {
     nativeBuildInputs = [
       pkgs.wget alamgu.speculos.speculos testScript
@@ -83,10 +85,10 @@ rec {
   } ''
     mkdir $out
     (
-    ${speculosCmd} ${appExe} --display headless &
+    ${toString speculosCmd} ${appExe} --display headless &
     SPECULOS=$!
 
-    until wget -O/dev/null -o/dev/null http://localhost:5000; do sleep 0.1; done;
+    until wget -O/dev/null -o/dev/null http://localhost:${toString apiPort}; do sleep 0.1; done;
 
     ${testScript}/bin/mocha-wrapper
     rv=$?
@@ -118,11 +120,16 @@ rec {
       ${alamgu.ledgerctl}/bin/ledgerctl install -f ${tarSrc}/${appName}/app.json
     '';
 
-    speculosCmd = {
-      nanos = "speculos -m nanos";
-      nanosplus = "speculos  -m nanosp -k 1.0.3";
-      nanox = "speculos -m nanox";
+    speculosDeviceFlags = {
+      nanos = [ "-m" "nanos" ];
+      nanosplus = [ "-m" "nanosp" "-k" "1.0.3" ];
+      nanox = [ "-m" "nanox" ];
     }.${device} or (throw "Unknown target device: `${device}'");
+
+    speculosCmd = [
+      "speculos"
+      "--api-port" (toString apiPort)
+    ] ++ speculosDeviceFlags;
 
     test = runTests { inherit appExe speculosCmd device; };
     test-with-loging = runTests {
