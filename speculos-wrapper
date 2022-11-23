@@ -7,10 +7,12 @@ echo "Speculos Wrapper called with $*"
 # cargo test --test ts-tests --target=nanos.json -- --mocha-args="--timeout 30000"
 MOCHA_ARGS=""
 
+API_PORT=5005
+
 run_ts_tests() {
-    speculos "$@" --display headless &
+    speculos --api-port "$API_PORT" "$@" --display headless &
     SPECULOS=$!
-    until wget -O/dev/null -o/dev/null http://localhost:5000/; do sleep 0.1; done;
+    until wget -O/dev/null -o/dev/null http://localhost:$API_PORT/; do sleep 0.1; done;
     cd ../ts-tests;
     if ! [ -d "node_modules" ] ; then npm install; fi
     echo $MOCHA_ARGS | xargs npm test --
@@ -33,6 +35,6 @@ case $last in
     ;;
   */deps/*) # Assume anything in the deps directory is a test, not the full app.
     echo "Matched *tests*"
-    speculos "$@" --display headless ;;
-  *) speculos "$@" ;;
+    speculos --api-port "$API_PORT" "$@" --display headless ;;
+  *) speculos --api-port "$API_PORT" "$@" ;;
 esac
