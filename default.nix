@@ -93,8 +93,13 @@ rec {
     ${testScript}/bin/mocha-wrapper
     rv=$?
     kill -9 $SPECULOS
-    exit $rv) | tee $out/short |& tee $out/full
+    exit $rv) | tee $out/short |& tee $out/full &
+    TESTS=$!
+    (sleep 3m; kill $TESTS) &
+    TESTKILLER=$!
+    wait $TESTS
     rv=$?
+    kill $TESTKILLER
     cat $out/short
     exit $rv
   '';
