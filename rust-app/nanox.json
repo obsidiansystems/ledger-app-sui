@@ -7,7 +7,7 @@
   "emit-debug-gdb-scripts": false,
   "executables": true,
   "frame-pointer": "always",
-  "linker": "armv6m-unknown-none-eabi-lld",
+  "linker": "link_wrap.sh",
   "linker-flavor": "ld.lld",
   "llvm-target": "thumbv6m-none-eabi",
   "panic-strategy": "abort",
@@ -17,7 +17,7 @@
           "-Tlink.ld"
       ]
   },
-  "relocation-model": "ropi-rwpi",
+  "relocation-model": "ropi",
   "singlethread": true,
   "target-pointer-width": "32",
   "os": "nanox",

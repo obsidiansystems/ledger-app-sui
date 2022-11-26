@@ -6,7 +6,7 @@
   "emit-debug-gdb-scripts": false,
   "executables": true,
   "frame-pointer": "always",
-  "linker": "armv8m-unknown-none-eabi-lld",
+  "linker": "link_wrap.sh",
   "linker-flavor": "ld.lld",
   "llvm-target": "thumbv8m.main-none-eabi",
   "max-atomic-width": 32,
@@ -17,7 +17,7 @@
           "-Tlink.ld"
       ]
   },
-  "relocation-model": "ropi-rwpi",
+  "relocation-model": "ropi",
   "singlethread": true,
   "target-pointer-width": "32",
   "os": "nanosplus",
