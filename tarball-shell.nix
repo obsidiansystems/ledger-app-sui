@@ -1,8 +1,6 @@
 let
-  alamgu = import (fetchTarball "https://github.com/alamgu/alamgu/archive/develop.tar.gz") {};
-  pkgs = alamgu.pkgs;
-  load-app = import ./.;
+  tarballNix = import ./.;
 in
-  pkgs.mkShell {
-    buildInputs = [load-app];
+  tarballNix.alamgu.pkgs.mkShell {
+    buildInputs = [ tarballNix.load-app ];
   }

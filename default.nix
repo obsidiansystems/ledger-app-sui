@@ -144,7 +144,7 @@ rec {
     };
 
     appShell = pkgs.mkShell {
-      packages = [ loadApp alamgu.generic-cli pkgs.jq ];
+      packages = [ alamgu.ledgerctl loadApp alamgu.generic-cli pkgs.jq ];
     };
   };
 
