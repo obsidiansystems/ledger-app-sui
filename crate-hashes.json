@@ -4,7 +4,7 @@
   "ledger-log 0.2.0 (git+https://github.com/alamgu/ledger-log#02f702bbec9ca9802151fd261508580eb3826287)": "03qic29qkvis54bgh40wwja89kcp6kz6acd0ifzyvcqxicpmikmy",
   "ledger-parser-combinators 0.1.0 (git+https://github.com/alamgu/ledger-parser-combinators#c7ee244c322d42cfaf2ef124170a6e695d208b6b)": "1h7aghm8zvs3ymv19h6rczripgsa13n27cqwzzz2jnc7r2463n34",
   "ledger-prompts-ui 0.1.0 (git+https://github.com/alamgu/ledger-prompts-ui#24d2f36da07131074211559cd28f235c3f7c9984)": "0gy73gv2vrajyrzigr2iwfnw0gmj1wfpig0xlbhw1vpkpjg23w0q",
-  "nanos_sdk 0.2.0 (git+https://github.com/alamgu/ledger-nanos-sdk.git?branch=memory-fixes#f31e07d7a1cf079c1066ebb90ce46c90464a5610)": "14hh0i73aiijp066bb81in5nfr3a5bfnwahpcf91va2b21ijsibl",
+  "nanos_sdk 0.2.0 (git+https://github.com/alamgu/ledger-nanos-sdk.git?branch=memory-fixes#63781fa238ae7a100f9888ddf8b17b4ce96d0497)": "1bmxb438asp9z9sfhks97c202sh2781kaf73awfa4alq7dxsk89r",
   "nanos_ui 0.1.0 (git+https://github.com/obsidiansystems/ledger-nanos-ui?branch=use-lib-bagl-for-x-and-splus#6ab6938354e73d3a8aacc941e9c7bc7f83c1081e)": "0pi2albb8ly52c9y451w872lxz3b7ivi9s1hfpld46qi8q7m5v2h",
   "testmacro 0.1.0 (git+https://github.com/yhql/testmacro#29a16cb8718d61b67c6c391e60c8347c064e921e)": "0agl46ilx2psfvwvg8iwfmq203xapw435h03qskxqf5dnwhy1kir"
 }
