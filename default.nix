@@ -78,7 +78,8 @@ rec {
 
   apiPort = 5005;
 
-  runTests = { appExe, device, variant ? "", speculosCmd }: pkgs.runCommandNoCC "run-tests-${device}${variant}" {
+  runTests = { appExe, device, variant ? "", speculosCmd }:
+  pkgs.runCommandNoCC "run-tests-${device}${variant}" {
     nativeBuildInputs = [
       pkgs.wget alamgu.speculos.speculos testScript
     ];
@@ -93,19 +94,47 @@ rec {
     ${testScript}/bin/mocha-wrapper
     rv=$?
     kill -9 $SPECULOS
-    exit $rv) | tee $out/short |& tee $out/full
+    exit $rv) | tee $out/short |& tee $out/full &
+    TESTS=$!
+    (sleep 3m; kill $TESTS) &
+    TESTKILLER=$!
+    wait $TESTS
     rv=$?
+    kill $TESTKILLER
     cat $out/short
     exit $rv
   '';
 
-  appForDevice = device : rec {
-    rootCrate = (makeApp { inherit device; }).rootCrate.build;
-    rootCrate-with-logging = (makeApp {
+  makeStackCheck = { rootCrate, device, memLimit, variant ? "" }:
+  pkgs.runCommandNoCC "stack-check-${device}${variant}" {
+    nativeBuildInputs = [ alamgu.stack-sizes ];
+  } ''
+    stack-sizes --mem-limit=${toString memLimit} ${rootCrate}/bin/${appName} ${rootCrate}/bin/*.o | tee $out
+  '';
+
+  appForDevice = device: rec {
+    app = makeApp { inherit device; };
+    app-with-logging = makeApp {
       inherit device;
       release = false;
       rootFeatures = [ "default" "speculos" "extra_debug" ];
-    }).rootCrate.build;
+    };
+
+    memLimit = {
+      nanos = 4500;
+      nanosplus = 400000;
+      nanox = 400000;
+    }.${device} or (throw "Unknown target device: `${device}'");
+
+    stack-check = makeStackCheck { inherit memLimit rootCrate device; };
+    stack-check-with-logging = makeStackCheck {
+      inherit memLimit device;
+      rootCrate = rootCrate-with-logging;
+      variant = "-with-logging";
+    };
+
+    rootCrate = app.rootCrate.build;
+    rootCrate-with-logging = app-with-logging.rootCrate.build;
 
     appExe = rootCrate + "/bin/" + appName;
 
@@ -132,7 +161,7 @@ rec {
     ] ++ speculosDeviceFlags;
 
     test = runTests { inherit appExe speculosCmd device; };
-    test-with-loging = runTests {
+    test-with-logging = runTests {
       inherit speculosCmd device;
       appExe = rootCrate-with-logging + "/bin/" + appName;
       variant = "-with-logging";
