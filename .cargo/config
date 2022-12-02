@@ -4,7 +4,6 @@ build-std-features = ["compiler-builtins-mem"]
 
 [target.nanosplus]
 rustflags = [
-  "-C", "link-args=--emit-relocs",
   "-C", "codegen-units=1",
   "-C", "save-temps", # Fixes incremental builds by keeping .bc and .ll files
   "-C", "embed-bitcode",
@@ -14,7 +13,6 @@ runner = "./speculos-wrapper -m nanosp -k 1.0.3 "
 
 [target.nanos]
 rustflags = [
-  "-C", "link-args=--emit-relocs",
   "-C", "codegen-units=1",
   "-C", "save-temps", # Fixes incremental builds by keeping .bc and .ll files
   "-C", "embed-bitcode",
@@ -24,7 +22,6 @@ runner = "./speculos-wrapper -m nanos "
 
 [target.nanox]
 rustflags = [
-  "-C", "link-args=--emit-relocs",
   "-C", "codegen-units=1",
   "-C", "save-temps", # Fixes incremental builds by keeping .bc and .ll files
   "-C", "embed-bitcode",
