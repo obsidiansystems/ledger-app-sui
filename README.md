@@ -1,13 +1,13 @@
 # Alamgu Example
 
-An example [Ledger](https://www.ledger.com/) application written in [Rust](https://www.rust-lang.org/) using [Alamgu](github.com/alamgu/).
+An example [Ledger](https://www.ledger.com/) application written in [Rust](https://www.rust-lang.org/) using [Alamgu](https://github.com/alamgu/).
 
 ## Alamgu
 
-[Alamgu](github.com/alamgu/) is a suite of libraries and build infrastructure for writing Ledger applications like this one.
+[Alamgu](https://github.com/alamgu/) is a suite of libraries and build infrastructure for writing Ledger applications like this one.
 The libraries are in Rust and leverage the official [Rust SDK](https://github.com/LedgerHQ/ledger-nanos-sdk/) as a foundation, though we often use a fork of it while items are being upstreamed.
-Alamgu [build infrastructure](github.com/alamgu/alamgu/) uses [Nix](https://nixos.org/) to download all tools.
-Tools are built from source but with cached builds, so ramp up is, but modifying any and all part of the toolchain is possible.
+The Alamgu [build infrastructure](https://github.com/alamgu/alamgu/) uses [Nix](https://nixos.org/) to download all tools.
+Tools are built from source but with cached builds, so ramp up is easy --- just one command! --- but modifying any and all part of the build environment is possible.
 
 ## Device Compatability
 
@@ -16,7 +16,7 @@ This application is compatible with
 - Ledger Nano S+, running firmware 1.0.3
 - Ledger Nano X
 
-Note: Compatibility with Ledger Nano X is only possible to check on [Speculos](github.com/ledgerHQ/speculos/) emulator,
+Note: Compatibility with Ledger Nano X is only possible to check on [Speculos](https://github.com/ledgerHQ/speculos/) emulator,
 because the Nano X does not support side-loading apps under development.
 
 ## Installation using the pre-packaged tarball
