@@ -21,6 +21,10 @@ because the Nano X does not support side-loading apps under development.
 
 ## Installation using the pre-packaged tarball
 
+*Don't have a pre-packaged tarball?
+Check the [releases page](https://github.com/alamgu/alamgu-example/releases) of this app to see if an official build has been uploaded for this release.
+Otherwise, see the [instruction below](#building-the-pre-packaged-tarball-with-nix) for building one yourself.**
+
 Before installing please ensure that your device is plugged, unlocked, and on the device home screen.
 Installing the app from a tarball can be done using [`ledgerctl`](https://github.com/ledgerHQ/ledgerctl).
 
