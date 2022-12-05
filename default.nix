@@ -125,6 +125,8 @@ rec {
       ${alamgu.ledgerctl}/bin/ledgerctl install -f ${tarSrc}/${appName}/app.json
     '';
 
+    tarballShell = import (tarSrc + "/${appName}/shell.nix");
+
     speculosDeviceFlags = {
       nanos = [ "-m" "nanos" ];
       nanosplus = [ "-m" "nanosp" "-k" "1.0.3" ];
@@ -144,7 +146,7 @@ rec {
     };
 
     appShell = pkgs.mkShell {
-      packages = [ loadApp alamgu.generic-cli pkgs.jq ];
+      packages = [ alamgu.ledgerctl loadApp alamgu.generic-cli pkgs.jq ];
     };
   };
 
