@@ -77,7 +77,7 @@ where `DEVICE` is one of
  - `nanox` for Nano X
  - `nanosplus` for Nano S+
 
-Them, one can use `generic-cli` like this:
+Then, one can use `generic-cli` like this:
 ```bash
 generic-cli getAddress "44'/535348'/0'/0/0"
 
