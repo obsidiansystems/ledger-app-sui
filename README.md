@@ -19,38 +19,20 @@ This application is compatible with
 Note: Compatibility with Ledger Nano X is only possible to check on [Speculos](https://github.com/ledgerHQ/speculos/) emulator,
 because the Nano X does not support side-loading apps under development.
 
-## Installation using the pre-packaged tarball
+## Installing the app
 
-*Don't have a pre-packaged tarball?
+If you don't want to develop the app but just use it, installation should be very simple.
+The first step is to obtain a release tarball.
+The second step is to load that app from the tarball.
+
+### Obtaining a release tarball
+
+#### Download an official build
+
 Check the [releases page](https://github.com/alamgu/alamgu-example/releases) of this app to see if an official build has been uploaded for this release.
-Otherwise, see the [instruction below](#building-the-pre-packaged-tarball-with-nix) for building one yourself.**
+There is a separate tarball for each device.
 
-Before installing please ensure that your device is plugged, unlocked, and on the device home screen.
-Installing the app from a tarball can be done using [`ledgerctl`](https://github.com/ledgerHQ/ledgerctl).
-
-### With Nix
-
-By using Nix, this can be done simply by using the `load-app` command, without manually installing the `ledgerctl` on your system.
-
-```bash
-tar xzf release.tar.gz
-cd rust-app
-nix-shell
-load-app
-```
-
-### Without Nix
-
-Without using Nix, the `ledgerctl` can be used directly to install the app with the following commands.
-For more information on how to install and use that tool see the [instructions from LedgerHQ](https://github.com/LedgerHQ/ledgerctl).
-
-```bash
-tar xzf release.tar.gz
-cd rust-app
-ledgerctl install -f app.json
-```
-
-## Building the pre-packaged tarball (with Nix)
+#### Build one yourself, with Nix
 
 There is a separate tarball for each device.
 To build one, do:
@@ -63,6 +45,33 @@ where `DEVICE` is one of
  - `nanosplus` for Nano S+
 
 The last line printed out will be the path of the tarball.
+
+### Installation using the pre-packaged tarball
+
+Before installing please ensure that your device is plugged, unlocked, and on the device home screen.
+Installing the app from a tarball can be done using [`ledgerctl`](https://github.com/ledgerHQ/ledgerctl).
+
+#### With Nix
+
+By using Nix, this can be done simply by using the `load-app` command, without manually installing the `ledgerctl` on your system.
+
+```bash
+tar xzf release.tar.gz
+cd rust-app
+nix-shell
+load-app
+```
+
+#### Without Nix
+
+Without using Nix, the `ledgerctl` can be used directly to install the app with the following commands.
+For more information on how to install and use that tool see the [instructions from LedgerHQ](https://github.com/LedgerHQ/ledgerctl).
+
+```bash
+tar xzf release.tar.gz
+cd rust-app
+ledgerctl install -f app.json
+```
 
 ## Using the app with generic CLI tool
 
