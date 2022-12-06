@@ -35,14 +35,14 @@ There is a separate tarball for each device.
 #### Build one yourself, with Nix
 
 There is a separate tarball for each device.
-To build one, do:
+To build one, run:
 ```bash
 nix-build -A $DEVICE.tarball
 ```
 where `DEVICE` is one of
- - `nanos` for Nano S
- - `nanox` for Nano X
- - `nanosplus` for Nano S+
+ - `nanos`, for Nano S
+ - `nanox`, for Nano X
+ - `nanosplus`, for Nano S+
 
 The last line printed out will be the path of the tarball.
 
@@ -82,9 +82,9 @@ To use this tool using Nix, from the root level of this repo, run this command t
 nix-shell -A $DEVICE.appShell
 ```
 where `DEVICE` is one of
- - `nanos` for Nano S
- - `nanox` for Nano X
- - `nanosplus` for Nano S+
+ - `nanos`, for Nano S
+ - `nanox`, for Nano X
+ - `nanosplus`, for Nano S+
 
 Then, one can use `generic-cli` like this:
 ```bash
