@@ -469,8 +469,8 @@ rec {
         workspace_member = null;
         src = pkgs.fetchgit {
           url = "https://github.com/alamgu/ledger-nanos-sdk.git";
-          rev = "a31eef1fbc4cad5ed4df51390cb8b648fc55d0b4";
-          sha256 = "1kvyjmwbj6dmq79nvy5k5m3v9kn4xhxvb8008whkv3jg6bmv484q";
+          rev = "63781fa238ae7a100f9888ddf8b17b4ce96d0497";
+          sha256 = "1bmxb438asp9z9sfhks97c202sh2781kaf73awfa4alq7dxsk89r";
         };
         authors = [
           "yhql"
@@ -479,6 +479,11 @@ rec {
           {
             name = "num-traits";
             packageId = "num-traits";
+            usesDefaultFeatures = false;
+          }
+          {
+            name = "rand_core";
+            packageId = "rand_core";
             usesDefaultFeatures = false;
           }
         ];
@@ -584,6 +589,22 @@ rec {
           "proc-macro" = [ "proc-macro2/proc-macro" ];
         };
         resolvedDefaultFeatures = [ "default" "proc-macro" ];
+      };
+      "rand_core" = rec {
+        crateName = "rand_core";
+        version = "0.6.4";
+        edition = "2018";
+        sha256 = "0b4j2v4cb5krak1pv6kakv4sz6xcwbrmy2zckc32hsigbrwy82zc";
+        authors = [
+          "The Rand Project Developers"
+          "The Rust Project Developers"
+        ];
+        features = {
+          "getrandom" = [ "dep:getrandom" ];
+          "serde" = [ "dep:serde" ];
+          "serde1" = [ "serde" ];
+          "std" = [ "alloc" "getrandom" "getrandom/std" ];
+        };
       };
       "regex" = rec {
         crateName = "regex";
@@ -907,20 +928,7 @@ rec {
     */
     os = pkgs.rust.lib.toTargetOs platform;
     arch = pkgs.rust.lib.toTargetArch platform;
-    family =
-      if platform ? rustc.platform.target-family
-      then
-        (
-          /* Since https://github.com/rust-lang/rust/pull/84072
-             `target-family` is a list instead of single value.
-           */
-          let
-            f = platform.rustc.platform.target-family;
-          in
-          if builtins.isList f then f else [ f ]
-        )
-      else lib.optional platform.isUnix "unix"
-        ++ lib.optional platform.isWindows "windows";
+    family = pkgs.rust.lib.toTargetFamily platform;
     env = "gnu";
     endian =
       if platform.parsed.cpu.significantByte.name == "littleEndian"

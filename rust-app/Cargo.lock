@@ -146,10 +146,11 @@ dependencies = [
 [[package]]
 name = "nanos_sdk"
 version = "0.2.0"
-source = "git+https://github.com/alamgu/ledger-nanos-sdk.git?branch=unified-build-with-lib-bagl#a31eef1fbc4cad5ed4df51390cb8b648fc55d0b4"
+source = "git+https://github.com/alamgu/ledger-nanos-sdk.git?branch=memory-fixes#63781fa238ae7a100f9888ddf8b17b4ce96d0497"
 dependencies = [
  "cc",
  "num-traits",
+ "rand_core",
 ]
 
 [[package]]
@@ -192,6 +193,12 @@ checksum = "bbe448f377a7d6961e30f5955f9b8d106c3f5e449d493ee1b125c1d43c2b5179"
 dependencies = [
  "proc-macro2",
 ]
+
+[[package]]
+name = "rand_core"
+version = "0.6.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ec0be4795e2f6a28069bec0b5ff3e2ac9bafc99e6a9a7dc3547996c5c816922c"
 
 [[package]]
 name = "regex"

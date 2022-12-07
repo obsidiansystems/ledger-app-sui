@@ -87,11 +87,21 @@ where `DEVICE` is one of
  - `nanosplus`, for Nano S+
 
 Then, one can use `generic-cli` like this:
-```bash
-generic-cli getAddress "44'/535348'/0'/0/0"
 
-generic-cli sign "44'/535348'/0'/0/0" --json '{"chain_id":"testnet","entropy":"-7780543831205109370","fee":[{"amount":"10000","denom":"upokt"}],"memo":"","msg":{"type":"pos/Send","value":{"amount":"1000000","from_address":"51568b979c4c017735a743e289dd862987143290","to_address":"51568b979c4c017735a743e289dd862987143290"}}}'
-```
+- Get a public key for a BIP-32 derivation:
+  ```shell-session
+  $ generic-cli getAddress "44'/535348'/0'/0/0"
+  a42e71c004770d1a48956090248a8d7d86ee02726b5aab2a5cd15ca9f57cbd71
+  ```
+
+- Sign a transaction:
+  ```shell-session
+  $ generic-cli sign "44'/535348'/0'/0/0" '1f412f225311f589eb3ea8fd05d3de9e1f412f225311f589eb3ea8fd05d3de9e1f412f225311f589eb3ea8fd05d3de9ef8f206a1250bf53321699f4213e7a4f6'
+  Signing:  <Buffer 1f 41 2f 22 53 11 f5 89 eb 3e a8 fd 05 d3 de 9e 1f 41 2f 22 53 11 f5 89 eb 3e a8 fd 05 d3 de 9e 1f 41 2f 22 53 11 f5 89 eb 3e a8 fd 05 d3 de 9e f8 f2 ... 14 more bytes>
+  906a1d402aa17b32e96903b1a42ba0df9b690157e6b9a974a36b81ee023a7e6bd39eeaa40cab270e6451dff4d820044c982bfd12a6fa88c0f5b758c0d8b67201
+  ```
+
+The exact output you see will vary, since Ledger devices should not be configured to have the same private key!
 
 ## Development
 

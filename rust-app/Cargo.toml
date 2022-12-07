@@ -39,7 +39,7 @@ path = "bin-src/main.rs"
 
 [patch."https://github.com/LedgerHQ/ledger-nanos-sdk.git".nanos_sdk]
 git = "https://github.com/alamgu/ledger-nanos-sdk.git"
-branch = "unified-build-with-lib-bagl"
+branch = "memory-fixes"
 [patch."https://github.com/LedgerHQ/ledger-nanos-ui.git".nanos_ui]
 git = "https://github.com/obsidiansystems/ledger-nanos-ui"
 branch = "use-lib-bagl-for-x-and-splus"
