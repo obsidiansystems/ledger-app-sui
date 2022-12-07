@@ -56,11 +56,14 @@ Installing the app from a tarball can be done using [`ledgerctl`](https://github
 By using Nix, this can be done simply by using the `load-app` command, without manually installing the `ledgerctl` on your system.
 
 ```bash
-tar xzf release.tar.gz
+tar xzf /path/to/release.tar.gz
 cd rust-app
 nix-shell
 load-app
 ```
+
+`/path/to/release.tar.gz` you should replace with the actual path to the tarball.
+For example, it might be `~/Downloads/release.tar.gz` if you downloaded a pre-built official release from GitHub, or `/nix/store/adsfijadslifjaslif-release.tar.gz` if you built it yourself with Nix.
 
 #### Without Nix
 
