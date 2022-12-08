@@ -16,6 +16,9 @@ env:
 jobs:
   build_clippy_fmt:
     runs-on: ubuntu-latest
+    env:
+      OBJCOPY: arm-none-eabi-objcopy
+      NM: arm-none-eabi-nm
     steps:
       - name: arm-none-eabi-gcc
         uses: fiam/arm-none-eabi-gcc@v1.0.3
