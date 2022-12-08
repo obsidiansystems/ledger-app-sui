@@ -8,5 +8,5 @@ fn main() {
         (_, _, true) => 1024*10,
         _ => 1024*7,
     };
-    println!("cargo:rustc-link-arg=--defsym=_reloc_size={}", reloc_size);
+    println!("cargo:rustc-link-arg=--defsym=_reloc_size={reloc_size}");
 }
