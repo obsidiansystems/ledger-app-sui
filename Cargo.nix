@@ -469,8 +469,8 @@ rec {
         workspace_member = null;
         src = pkgs.fetchgit {
           url = "https://github.com/alamgu/ledger-nanos-sdk.git";
-          rev = "63781fa238ae7a100f9888ddf8b17b4ce96d0497";
-          sha256 = "1bmxb438asp9z9sfhks97c202sh2781kaf73awfa4alq7dxsk89r";
+          rev = "5d48e028bad62262ddde1d0b0331335bd3109286";
+          sha256 = "0nayaj19qzng94yl0rwyiccj22mc6msb5lbxar4dljvdqhiildkr";
         };
         authors = [
           "yhql"
