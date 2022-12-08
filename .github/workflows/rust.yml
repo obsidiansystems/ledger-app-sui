@@ -45,7 +45,11 @@ jobs:
         with:
           command: build
           args: --manifest-path rust-app/Cargo.toml -Z build-std=core -Z build-std-features=compiler-builtins-mem --target ./rsdk/nanos.json
+
       - run: rustup component add clippy
+      - name: Remove --emit from config before clippy
+        # otherwise it does not work
+        run: sed -i '/--emit/d' ./.cargo/config
       - name: Cargo clippy
         uses: actions-rs/cargo@v1
         with:
