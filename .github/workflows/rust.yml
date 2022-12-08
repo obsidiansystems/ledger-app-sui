@@ -41,20 +41,13 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: build
-          args:
-            - --manifest-path rust-app/Cargo.toml
-            - -Z build-std=core -Z build-std-features=compiler-builtins-mem
-            - --target ./rsdk/nanos.json
+          args: --manifest-path rust-app/Cargo.toml -Z build-std=core -Z build-std-features=compiler-builtins-mem --target ./rsdk/nanos.json
       - run: rustup component add clippy
       - name: Cargo clippy
         uses: actions-rs/cargo@v1
         with:
           command: clippy
-          args:
-            - --manifest-path rust-app/Cargo.toml
-            - -Z build-std=core
-            - -Z build-std-features=compiler-builtins-mem
-            - --target ./rsdk/nanos.json
+          args: --manifest-path rust-app/Cargo.toml -Z build-std=core -Z build-std-features=compiler-builtins-mem --target ./rsdk/nanos.json
       - run: rustup component add rustfmt
       # - name: Cargo fmt
       #   uses: actions-rs/cargo@v1
