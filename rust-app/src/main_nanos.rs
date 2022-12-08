@@ -1,9 +1,9 @@
 use crate::implementation::*;
 use crate::interface::*;
 
+use ledger_log::{info, trace};
 use ledger_parser_combinators::interp_parser::OOB;
 use ledger_prompts_ui::RootMenu;
-use ledger_log::{info, trace};
 
 use nanos_sdk::io;
 
@@ -12,13 +12,15 @@ pub fn app_main() {
     let mut comm = io::Comm::new();
     let mut states = ParsersState::NoState;
 
-    let mut idle_menu = RootMenu::new([ concat!("Rust App ", env!("CARGO_PKG_VERSION")), "Exit" ]);
-    let mut busy_menu = RootMenu::new([ "Working...", "Cancel" ]);
+    let mut idle_menu = RootMenu::new([concat!("Rust App ", env!("CARGO_PKG_VERSION")), "Exit"]);
+    let mut busy_menu = RootMenu::new(["Working...", "Cancel"]);
 
     info!("Rust App {}", env!("CARGO_PKG_VERSION"));
-    info!("State sizes\ncomm: {}\nstates: {}"
-          , core::mem::size_of::<io::Comm>()
-          , core::mem::size_of::<ParsersState>());
+    info!(
+        "State sizes\ncomm: {}\nstates: {}",
+        core::mem::size_of::<io::Comm>(),
+        core::mem::size_of::<ParsersState>()
+    );
 
     let // Draw some 'welcome' screen
         menu = |states : &ParsersState, idle : & mut RootMenu<2>, busy : & mut RootMenu<2>| {
@@ -28,7 +30,7 @@ pub fn app_main() {
             }
         };
 
-    menu(&states, & mut idle_menu, & mut busy_menu);
+    menu(&states, &mut idle_menu, &mut busy_menu);
     loop {
         // Wait for either a specific button push to exit the app
         // or an APDU command
@@ -43,7 +45,7 @@ pub fn app_main() {
                     }
                     Err(sw) => comm.reply(sw),
                 };
-                menu(&states, & mut idle_menu, & mut busy_menu);
+                menu(&states, &mut idle_menu, &mut busy_menu);
                 trace!("Command done");
             }
             io::Event::Button(btn) => {
@@ -51,21 +53,23 @@ pub fn app_main() {
                 match states {
                     ParsersState::NoState => {
                         if let Some(1) = idle_menu.update(btn) {
-                            info!("Exiting app at user direction via root menu"); nanos_sdk::exit_app(0)
+                            info!("Exiting app at user direction via root menu");
+                            nanos_sdk::exit_app(0)
                         }
                     }
                     _ => {
                         if let Some(1) = idle_menu.update(btn) {
-                            info!("Resetting at user direction via busy menu"); reset_parsers_state(&mut states)
+                            info!("Resetting at user direction via busy menu");
+                            reset_parsers_state(&mut states)
                         }
                     }
                 };
-                menu(&states, & mut idle_menu, & mut busy_menu);
+                menu(&states, &mut idle_menu, &mut busy_menu);
                 trace!("Button done");
             }
             io::Event::Ticker => {
                 //trace!("Ignoring ticker event");
-            },
+            }
         }
     }
 }
@@ -77,7 +81,7 @@ enum Ins {
     GetPubkey,
     Sign,
     GetVersionStr,
-    Exit
+    Exit,
 }
 
 impl From<u8> for Ins {
@@ -96,7 +100,7 @@ impl From<u8> for Ins {
 use arrayvec::ArrayVec;
 use nanos_sdk::io::Reply;
 
-use ledger_parser_combinators::interp_parser::{ParserCommon, InterpParser};
+use ledger_parser_combinators::interp_parser::{InterpParser, ParserCommon};
 fn run_parser_apdu<P: InterpParser<A, Returning = ArrayVec<u8, 128>>, A>(
     states: &mut ParsersState,
     get_state: fn(&mut ParsersState) -> &mut <P as ParserCommon<A>>::State,
@@ -107,7 +111,8 @@ fn run_parser_apdu<P: InterpParser<A, Returning = ArrayVec<u8, 128>>, A>(
 
     trace!("Parsing APDU input: {:?}\n", cursor);
     let mut parse_destination = None;
-    let parse_rv = <P as InterpParser<A>>::parse(parser, get_state(states), cursor, &mut parse_destination);
+    let parse_rv =
+        <P as InterpParser<A>>::parse(parser, get_state(states), cursor, &mut parse_destination);
     trace!("Parser result: {:?}\n", parse_rv);
     match parse_rv {
         // Explicit rejection; reset the parser. Possibly send error message to host?
@@ -119,7 +124,10 @@ fn run_parser_apdu<P: InterpParser<A, Returning = ArrayVec<u8, 128>>, A>(
         // add to OOB's out-of-band actions and forget to implement them.
         //
         // Finished the chunk with no further actions pending, but not done.
-        Err((None, [])) => { trace!("Parser needs more; continuing"); Ok(()) }
+        Err((None, [])) => {
+            trace!("Parser needs more; continuing");
+            Ok(())
+        }
         // Didn't consume the whole chunk; reset and error message.
         Err((None, _)) => {
             reset_parsers_state(states);
@@ -153,7 +161,11 @@ fn handle_apdu(comm: &mut io::Comm, ins: Ins, parser: &mut ParsersState) -> Resu
 
     match ins {
         Ins::GetVersion => {
-            comm.append(&[env!("CARGO_PKG_VERSION_MAJOR").parse().unwrap(), env!("CARGO_PKG_VERSION_MINOR").parse().unwrap(), env!("CARGO_PKG_VERSION_PATCH").parse().unwrap()]);
+            comm.append(&[
+                env!("CARGO_PKG_VERSION_MAJOR").parse().unwrap(),
+                env!("CARGO_PKG_VERSION_MINOR").parse().unwrap(),
+                env!("CARGO_PKG_VERSION_PATCH").parse().unwrap(),
+            ]);
             comm.append(b"rust app");
         }
         Ins::GetPubkey => {

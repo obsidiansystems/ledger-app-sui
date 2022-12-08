@@ -3,7 +3,7 @@
 #![test_runner(crate::my_runner)]
 #![no_main]
 
-use nanos_sdk::{exit_app};
+use nanos_sdk::exit_app;
 
 use rust_app::main_nanos::*;
 
@@ -12,8 +12,7 @@ extern "C" fn sample_main() {
     app_main()
 }
 
-fn my_runner(_: &[&i32]) {
-}
+fn my_runner(_: &[&i32]) {}
 
 use core::panic::PanicInfo;
 #[panic_handler]
