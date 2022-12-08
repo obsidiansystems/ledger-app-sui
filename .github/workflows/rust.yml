@@ -26,7 +26,8 @@ jobs:
       - name: Checkout SDK (targets)
         uses: actions/checkout@v3
         with:
-          repository: 'LedgerHQ/ledger-nanos-sdk'
+          repository: 'obsidiansystems/ledger-nanos-sdk'
+          branch: memory-fixes
           path: rsdk
       - name: Install clang
         run: sudo apt-get update && sudo apt install -y clang
@@ -35,6 +36,8 @@ jobs:
           toolchain: nightly
           override: true
           components: rust-src, rustfmt, clippy
+      - run: echo "$PWD/rsdk/scripts" >> $GITHUB_PATH
+      - run: cd rust-app
       - name: Cargo build
         uses: actions-rs/cargo@v1
         with:
