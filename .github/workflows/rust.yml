@@ -19,13 +19,40 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          override: true
+          components: rust-src, rustfmt
       - run: rustup component add rustfmt
       - name: Cargo fmt
         uses: actions-rs/cargo@v1
         with:
           command: fmt
           args: --manifest-path rust-app/Cargo.toml --all -- --check
-  build_clippy:
+  clippy:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        device: [nanos, nanox, nanosplus]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          override: true
+          components: rust-src, clippy
+      - run: rustup component add clippy
+      - name: Remove --emit from config before clippy
+        # otherwise it does not work
+        run: sed -i '/--emit/d' ./.cargo/config
+      - name: Cargo clippy
+        uses: actions-rs/cargo@v1
+        with:
+          command: clippy
+          args: --manifest-path rust-app/Cargo.toml -Z build-std=core -Z build-std-features=compiler-builtins-mem --target ./rsdk/${{ matrix.device }}.json
+  build:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -52,20 +79,10 @@ jobs:
         with:
           toolchain: nightly
           override: true
-          components: rust-src, rustfmt, clippy
+          components: rust-src
       - run: echo "$PWD/rsdk/scripts" >> $GITHUB_PATH
       - name: Cargo build
         uses: actions-rs/cargo@v1
         with:
           command: build
-          args: --manifest-path rust-app/Cargo.toml -Z build-std=core -Z build-std-features=compiler-builtins-mem --target ./rsdk/${{ matrix.device }}.json
-
-      - run: rustup component add clippy
-      - name: Remove --emit from config before clippy
-        # otherwise it does not work
-        run: sed -i '/--emit/d' ./.cargo/config
-      - name: Cargo clippy
-        uses: actions-rs/cargo@v1
-        with:
-          command: clippy
           args: --manifest-path rust-app/Cargo.toml -Z build-std=core -Z build-std-features=compiler-builtins-mem --target ./rsdk/${{ matrix.device }}.json
