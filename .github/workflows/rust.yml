@@ -47,8 +47,8 @@ jobs:
           command: clippy
           args: -Z build-std=core -Z build-std-features=compiler-builtins-mem --target ./rsdk/nanos.json
       - run: rustup component add rustfmt
-      - name: Cargo fmt
-        uses: actions-rs/cargo@v1
-        with:
-          command: fmt
-          args: --all -- --check
+      # - name: Cargo fmt
+      #   uses: actions-rs/cargo@v1
+      #   with:
+      #     command: fmt
+      #     args: --all -- --check
