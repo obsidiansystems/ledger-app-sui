@@ -29,8 +29,8 @@ case $last in
     # Pass all args, except the last, to the speculos
     run_ts_tests "${@:1:$#-1}"
     ;;
-  *ts_tests*)
-    echo "Matched *ts_tests*"
+  *ts_tests*|*docker-outputs*)
+    echo "Matched *ts_tests* / *docker-outputs*"
     run_ts_tests "$@"
     ;;
   */deps/*) # Assume anything in the deps directory is a test, not the full app.
