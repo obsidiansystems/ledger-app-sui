@@ -70,7 +70,7 @@ jobs:
       - name: Checkout SDK (targets)
         uses: actions/checkout@v3
         with:
-          repository: 'obsidiansystems/ledger-nanos-sdk'
+          repository: 'alamgu/ledger-nanos-sdk'
           ref: memory-fixes
           path: rsdk
       - name: Install clang
