@@ -35,7 +35,14 @@ jobs:
     strategy:
       matrix:
         device: [nanos, nanox, nanosplus]
+    env:
+      OBJCOPY: arm-none-eabi-objcopy
+      NM: arm-none-eabi-nm
     steps:
+      - name: arm-none-eabi-gcc
+        uses: fiam/arm-none-eabi-gcc@v1.0.3
+        with:
+          release: '9-2019-q4'
       - name: Checkout
         uses: actions/checkout@v3
       - name: Checkout SDK (targets)
