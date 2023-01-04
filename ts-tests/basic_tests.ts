@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import { describe, it } from 'mocha';
 import SpeculosTransport from '@ledgerhq/hw-transport-node-speculos';
 import Axios from 'axios';
-import Transport from "./common";
+import Transport from "./http-transport";
 import { Common } from "hw-app-obsidian-common";
 import * as blake2b from "blake2b";
 import { instantiate, Nacl } from "js-nacl";
