@@ -74,29 +74,6 @@ pub fn app_main() {
     }
 }
 
-#[repr(u8)]
-#[derive(Debug)]
-enum Ins {
-    GetVersion,
-    GetPubkey,
-    Sign,
-    GetVersionStr,
-    Exit,
-}
-
-impl From<u8> for Ins {
-    fn from(ins: u8) -> Ins {
-        match ins {
-            0 => Ins::GetVersion,
-            2 => Ins::GetPubkey,
-            3 => Ins::Sign,
-            0xfe => Ins::GetVersionStr,
-            0xff => Ins::Exit,
-            _ => panic!(),
-        }
-    }
-}
-
 use arrayvec::ArrayVec;
 use nanos_sdk::io::Reply;
 
