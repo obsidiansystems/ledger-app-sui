@@ -1,4 +1,5 @@
 use crate::interface::*;
+use crate::utils::*;
 use arrayvec::ArrayVec;
 use core::fmt::Write;
 use ledger_crypto_helpers::common::{try_option, Address};
@@ -11,7 +12,7 @@ use ledger_parser_combinators::interp_parser::{
     Action, DefaultInterp, DropInterp, InterpParser, MoveAction, ObserveBytes, ParserCommon,
     SubInterp,
 };
-use ledger_prompts_ui::{final_accept_prompt, PromptWrite, ScrollerError};
+use ledger_prompts_ui::{final_accept_prompt};
 
 use core::convert::TryFrom;
 use core::ops::Deref;
@@ -19,37 +20,6 @@ use zeroize::Zeroizing;
 
 #[allow(clippy::upper_case_acronyms)]
 type PKH = Ed25519RawPubKeyAddress;
-
-// A couple type ascription functions to help the compiler along.
-const fn mkfn<A, B, C>(q: fn(&A, &mut B) -> C) -> fn(&A, &mut B) -> C {
-    q
-}
-const fn mkmvfn<A, B, C>(q: fn(A, &mut B) -> Option<C>) -> fn(A, &mut B) -> Option<C> {
-    q
-}
-/*
-const fn mkvfn<A>(q: fn(&A,&mut Option<()>)->Option<()>) -> fn(&A,&mut Option<()>)->Option<()> {
-    q
-}
-*/
-
-#[cfg(not(target_os = "nanos"))]
-#[inline(never)]
-fn scroller<F: for<'b> Fn(&mut PromptWrite<'b, 16>) -> Result<(), ScrollerError>>(
-    title: &str,
-    prompt_function: F,
-) -> Option<()> {
-    ledger_prompts_ui::write_scroller_three_rows(title, prompt_function)
-}
-
-#[cfg(target_os = "nanos")]
-#[inline(never)]
-fn scroller<F: for<'b> Fn(&mut PromptWrite<'b, 16>) -> Result<(), ScrollerError>>(
-    title: &str,
-    prompt_function: F,
-) -> Option<()> {
-    ledger_prompts_ui::write_scroller(title, prompt_function)
-}
 
 pub type GetAddressImplT = impl InterpParser<Bip32Key, Returning = ArrayVec<u8, 128>>;
 
