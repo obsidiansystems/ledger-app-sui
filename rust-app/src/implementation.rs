@@ -5,7 +5,7 @@ use ledger_crypto_helpers::common::{try_option, Address};
 use ledger_crypto_helpers::eddsa::{
     ed25519_public_key_bytes, eddsa_sign, with_public_keys, Ed25519RawPubKeyAddress,
 };
-use ledger_crypto_helpers::hasher::{Blake2b, Base64Hash, Hasher};
+use ledger_crypto_helpers::hasher::{Base64Hash, Blake2b, Hasher};
 use ledger_log::info;
 use ledger_parser_combinators::interp_parser::{
     Action, DefaultInterp, DropInterp, InterpParser, MoveAction, ObserveBytes, ParserCommon,
@@ -97,7 +97,8 @@ pub static SIGN_IMPL: SignImplT = Action(
             ObserveBytes(Hasher::new, Hasher::update, SubInterp(DropInterp)),
             // Ask the user if they accept the transaction body's hash
             mkfn(
-                |(mut hasher, _): &(Blake2b, _), destination: &mut Option<Zeroizing<Base64Hash<32>>>| {
+                |(mut hasher, _): &(Blake2b, _),
+                 destination: &mut Option<Zeroizing<Base64Hash<32>>>| {
                     let the_hash: Zeroizing<Base64Hash<32>> = hasher.finalize();
                     scroller("Transaction hash", |w| {
                         Ok(write!(w, "{}", &the_hash.deref())?)
