@@ -1,4 +1,3 @@
-
 use ledger_prompts_ui::{PromptWrite, ScrollerError};
 
 // A couple type ascription functions to help the compiler along.

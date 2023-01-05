@@ -1,6 +1,6 @@
 use crate::interface::*;
-use crate::utils::*;
 use crate::test_parsers::*;
+use crate::utils::*;
 use arrayvec::ArrayVec;
 use core::fmt::Write;
 use ledger_crypto_helpers::common::{try_option, Address};
@@ -13,7 +13,7 @@ use ledger_parser_combinators::interp_parser::{
     Action, DefaultInterp, DropInterp, InterpParser, MoveAction, ObserveBytes, ParserCommon,
     SubInterp,
 };
-use ledger_prompts_ui::{final_accept_prompt};
+use ledger_prompts_ui::final_accept_prompt;
 
 use core::convert::TryFrom;
 use core::ops::Deref;
@@ -175,9 +175,9 @@ pub fn get_test_parsers_state(
         ParsersState::TestParsersState(_) => {}
         _ => {
             info!("Non-same state found; initializing state.");
-            *s = ParsersState::TestParsersState(<TestParsersImplT as ParserCommon<TestParsersSchema>>::init(
-                &test_parsers_parser(),
-            ));
+            *s = ParsersState::TestParsersState(<TestParsersImplT as ParserCommon<
+                TestParsersSchema,
+            >>::init(&test_parsers_parser()));
         }
     }
     match s {
