@@ -25,6 +25,9 @@ pub mod interface;
 pub mod utils;
 
 #[cfg(all(target_family = "bolos"))]
+pub mod test_parsers;
+
+#[cfg(all(target_family = "bolos"))]
 pub mod implementation;
 
 #[cfg(all(target_family = "bolos"))]

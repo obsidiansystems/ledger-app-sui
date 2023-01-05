@@ -1,5 +1,6 @@
 use crate::interface::*;
 use crate::utils::*;
+use crate::test_parsers::*;
 use arrayvec::ArrayVec;
 use core::fmt::Write;
 use ledger_crypto_helpers::common::{try_option, Address};
@@ -117,6 +118,7 @@ pub enum ParsersState {
     NoState,
     GetAddressState(<GetAddressImplT as ParserCommon<Bip32Key>>::State),
     SignState(<SignImplT as ParserCommon<SignParameters>>::State),
+    TestParsersState(<TestParsersImplT as ParserCommon<TestParsersSchema>>::State),
 }
 
 pub fn reset_parsers_state(state: &mut ParsersState) {
@@ -159,6 +161,27 @@ pub fn get_sign_state(
     }
     match s {
         ParsersState::SignState(ref mut a) => a,
+        _ => {
+            panic!("")
+        }
+    }
+}
+
+#[inline(never)]
+pub fn get_test_parsers_state(
+    s: &mut ParsersState,
+) -> &mut <TestParsersImplT as ParserCommon<TestParsersSchema>>::State {
+    match s {
+        ParsersState::TestParsersState(_) => {}
+        _ => {
+            info!("Non-same state found; initializing state.");
+            *s = ParsersState::TestParsersState(<TestParsersImplT as ParserCommon<TestParsersSchema>>::init(
+                &test_parsers_parser(),
+            ));
+        }
+    }
+    match s {
+        ParsersState::TestParsersState(ref mut a) => a,
         _ => {
             panic!("")
         }

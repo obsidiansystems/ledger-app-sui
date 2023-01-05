@@ -16,6 +16,7 @@ pub enum Ins {
     GetVersion,
     GetPubkey,
     Sign,
+    TestParsers,
     GetVersionStr,
     Exit,
 }
@@ -26,6 +27,7 @@ impl From<u8> for Ins {
             0 => Ins::GetVersion,
             2 => Ins::GetPubkey,
             3 => Ins::Sign,
+            0x20 => Ins::TestParsers,
             0xfe => Ins::GetVersionStr,
             0xff => Ins::Exit,
             _ => panic!(),
