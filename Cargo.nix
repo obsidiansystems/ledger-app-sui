@@ -274,8 +274,8 @@ rec {
         workspace_member = null;
         src = pkgs.fetchgit {
           url = "https://github.com/alamgu/ledger-crypto-helpers";
-          rev = "4c4881b7db90349ed9829f2c93b1faaa0a68adc5";
-          sha256 = "0v3wxakmrjgi0y4nrr1iqb1x1kac7nrkf31975jaxamgdy7ng5i0";
+          rev = "4236733f0dcb2965af225ac406f42b9b4841ee64";
+          sha256 = "0iiqkrh3wr33srqxpzhzf2shrl38mi1pfl8dbnwy9zkslpvgamhg";
         };
         dependencies = [
           {
