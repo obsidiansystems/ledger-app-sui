@@ -1,5 +1,6 @@
 use crate::implementation::*;
 use crate::interface::*;
+use crate::test_parsers::*;
 
 use ledger_log::{info, trace};
 use ledger_parser_combinators::interp_parser::OOB;
@@ -70,29 +71,6 @@ pub fn app_main() {
             io::Event::Ticker => {
                 //trace!("Ignoring ticker event");
             }
-        }
-    }
-}
-
-#[repr(u8)]
-#[derive(Debug)]
-enum Ins {
-    GetVersion,
-    GetPubkey,
-    Sign,
-    GetVersionStr,
-    Exit,
-}
-
-impl From<u8> for Ins {
-    fn from(ins: u8) -> Ins {
-        match ins {
-            0 => Ins::GetVersion,
-            2 => Ins::GetPubkey,
-            3 => Ins::Sign,
-            0xfe => Ins::GetVersionStr,
-            0xff => Ins::Exit,
-            _ => panic!(),
         }
     }
 }
@@ -174,6 +152,12 @@ fn handle_apdu(comm: &mut io::Comm, ins: Ins, parser: &mut ParsersState) -> Resu
         Ins::Sign => {
             run_parser_apdu::<_, SignParameters>(parser, get_sign_state, &SIGN_IMPL, comm)?
         }
+        Ins::TestParsers => run_parser_apdu::<_, TestParsersSchema>(
+            parser,
+            get_test_parsers_state,
+            &test_parsers_parser(),
+            comm,
+        )?,
         Ins::GetVersionStr => {
             comm.append(concat!("Rust App ", env!("CARGO_PKG_VERSION")).as_ref());
         }
