@@ -9,7 +9,7 @@ This application has been packaged up with [Nix](https://nixos.org/).
 Using Nix, from the root level of this repo, run:
 
 ```bash
-nix-shell -A alamgu.perDevice.$DEVICE.rustShell
+nix-shell -A $DEVICE.rustShell
 cd rust-app/
 cargo-ledger ledger -l $DEVICE
 ````
@@ -32,7 +32,7 @@ Before installing, please ensure that your device is plugged, unlocked, and on t
 Using Nix, from the root level of this repo, run:
 
 ```bash
-nix-shell -A alamgu.perDevice.$DEVICE.rustShell
+nix-shell -A $DEVICE.rustShell
 cd rust-app/
 cargo test --target=$DEVICE.json
 ```

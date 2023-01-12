@@ -15,15 +15,30 @@ rec {
         # modified arguemnts.
         (pkgs: (collection.buildRustCrateForPkgsLedger pkgs).override {
           defaultCrateOverrides = pkgs.defaultCrateOverrides // {
+            nanos_sdk = attrs: {
+              passthru = (attrs.passthru or {}) // {
+                link_wrap = pkgs.buildPackages.stdenvNoCC.mkDerivation {
+                  name = "alamgu-linker-wrapper";
+                  dontUnpack = true;
+                  dontBuild = true;
+                  installPhase = ''
+                    mkdir -p "$out/bin"
+                    cp "${attrs.src}/scripts/link_wrap.sh" "$out/bin"
+                    chmod +x "$out/bin/link_wrap.sh"
+                  '';
+                };
+              };
+            };
             ${appName} = attrs: let
               sdk = lib.findFirst (p: lib.hasPrefix "rust_nanos_sdk" p.name) (builtins.throw "no sdk!") attrs.dependencies;
             in {
               preHook = collection.gccLibsPreHook;
               extraRustcOpts = attrs.extraRustcOpts or [] ++ [
-                "-C" "linker=${sdk.lib}/lib/nanos_sdk.out/link_wrap.sh"
+                "-C" "linker=${sdk.link_wrap}/bin/link_wrap.sh"
                 "-C" "link-arg=-T${sdk.lib}/lib/nanos_sdk.out/link.ld"
                 "-C" "link-arg=-T${sdk.lib}/lib/nanos_sdk.out/${device}_layout.ld"
               ];
+              passthru = (attrs.passthru or {}) // { inherit sdk; };
             };
           };
         })
@@ -137,6 +152,10 @@ rec {
     rootCrate-with-logging = app-with-logging.rootCrate.build;
 
     appExe = rootCrate + "/bin/" + appName;
+
+    rustShell = alamgu.perDevice.${device}.rustShell.overrideAttrs (old: {
+      nativeBuildInputs = old.nativeBuildInputs ++ [ rootCrate.sdk.link_wrap ];
+    });
 
     tarSrc = makeTarSrc { inherit appExe device; };
     tarball = pkgs.runCommandNoCC "app-tarball-${device}.tar.gz" { } ''
