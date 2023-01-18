@@ -56,8 +56,8 @@ overflow-checks = false
 
 [package.metadata.nanos]
 name = "Rust App"
-path = "44'/535348'"
-curve = "ed25519"
+path = ["44'/535348'"]
+curve = ["ed25519"]
 flags = "0"
 icon = "crab.gif"
 icon_small = "crab-small.gif"
