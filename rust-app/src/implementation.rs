@@ -9,9 +9,10 @@ use ledger_crypto_helpers::eddsa::{
 };
 use ledger_crypto_helpers::hasher::{Base64Hash, Blake2b, Hasher};
 use ledger_log::info;
+use ledger_parser_combinators::core_parsers::*;
+use ledger_parser_combinators::endianness::*;
 use ledger_parser_combinators::interp_parser::{
-    Action, DefaultInterp, DropInterp, InterpParser, MoveAction, ObserveBytes, ParserCommon,
-    SubInterp,
+    reject, Action, DefaultInterp, InterpParser, MoveAction, ParseResult, ParserCommon, SubInterp,
 };
 use ledger_prompts_ui::final_accept_prompt;
 
@@ -61,15 +62,67 @@ pub const GET_ADDRESS_IMPL: GetAddressImplT = Action(
 
 pub type SignImplT = impl InterpParser<SignParameters, Returning = ArrayVec<u8, 128>>;
 
+pub struct HashDArrayAndDrop;
+
+impl ParserCommon<SignPayload> for HashDArrayAndDrop {
+    type State = (Option<usize>, Blake2b);
+    type Returning = Blake2b;
+    fn init(&self) -> Self::State {
+        (None, Hasher::new())
+    }
+}
+
+impl InterpParser<SignPayload> for HashDArrayAndDrop {
+    #[inline(never)]
+    fn parse<'a, 'b>(
+        &self,
+        state: &'b mut Self::State,
+        chunk: &'a [u8],
+        destination: &mut Option<Self::Returning>,
+    ) -> ParseResult<'a> {
+        let remaining_chunk = match state.0 {
+            None => {
+                let mut nstate = <DefaultInterp as ParserCommon<U32<{ Endianness::Little }>>>::init(
+                    &DefaultInterp,
+                );
+                let mut sub_destination = None;
+
+                let newcur: &'a [u8] = <DefaultInterp as InterpParser<
+                    U32<{ Endianness::Little }>,
+                >>::parse(
+                    &DefaultInterp, &mut nstate, chunk, &mut sub_destination
+                )?;
+                match sub_destination {
+                    Some(l) => {
+                        state.0 = Some(usize::try_from(l).or_else(|_| reject(newcur))?);
+                        newcur
+                    }
+                    _ => return reject(newcur),
+                }
+            }
+            Some(_) => chunk,
+        };
+        let remaining_len = state.0.unwrap();
+        if remaining_len > remaining_chunk.len() {
+            state.0 = Some(remaining_len - remaining_chunk.len());
+            state.1.update(remaining_chunk);
+            Err((None, &[]))
+        } else {
+            state.1.update(&remaining_chunk[0..remaining_len]);
+            *destination = Some(state.1);
+            Ok(&remaining_chunk[remaining_len..])
+        }
+    }
+}
+
 pub static SIGN_IMPL: SignImplT = Action(
     (
-        Action(
+        MoveAction(
             // Calculate the hash of the transaction
-            ObserveBytes(Hasher::new, Hasher::update, SubInterp(DropInterp)),
+            HashDArrayAndDrop,
             // Ask the user if they accept the transaction body's hash
-            mkfn(
-                |(mut hasher, _): &(Blake2b, _),
-                 destination: &mut Option<Zeroizing<Base64Hash<32>>>| {
+            mkmvfn(
+                |mut hasher: Blake2b, destination: &mut Option<Zeroizing<Base64Hash<32>>>| {
                     let the_hash: Zeroizing<Base64Hash<32>> = hasher.finalize();
                     scroller("Transaction hash", |w| {
                         Ok(write!(w, "{}", &the_hash.deref())?)

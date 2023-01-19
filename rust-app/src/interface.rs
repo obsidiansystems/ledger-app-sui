@@ -5,10 +5,9 @@ use ledger_parser_combinators::endianness::*;
 pub type Bip32Key = DArray<Byte, U32<{ Endianness::Little }>, 10>;
 
 // Payload for a signature request, content-agnostic.
-pub type SignParameters = (
-    DArray<U32<{ Endianness::Little }>, Byte, { usize::MAX }>,
-    Bip32Key,
-);
+pub type SignPayload = DArray<U32<{ Endianness::Little }>, Byte, { usize::MAX }>;
+
+pub type SignParameters = (SignPayload, Bip32Key);
 
 #[repr(u8)]
 #[derive(Debug)]
