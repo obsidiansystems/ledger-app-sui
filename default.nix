@@ -101,6 +101,7 @@ rec {
   } ''
     mkdir $out
     (
+    set +e # Dont exit on error, do the cleanup/kill of background processes
     ${toString speculosCmd} ${appExe} --display headless &
     SPECULOS=$!
 
