@@ -1,5 +1,5 @@
 [package]
-name = "rust-app"
+name = "alamgu-example"
 version = "0.0.1"
 authors = ["jonored", "yhql"]
 edition = "2018"
@@ -33,7 +33,7 @@ features = [ "speculos" ]
 testmacro = { git = "https://github.com/yhql/testmacro" }
 
 [[bin]]
-name = "rust-app"
+name = "alamgu-example"
 test = false
 path = "bin-src/main.rs"
 
@@ -55,7 +55,7 @@ opt-level = 3
 overflow-checks = false
 
 [package.metadata.nanos]
-name = "Rust App"
+name = "Alamgu Example"
 path = ["44'/535348'"]
 curve = ["ed25519"]
 flags = "0"

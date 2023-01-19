@@ -1501,8 +1501,8 @@ let
     };
   };
   args = {
-    name = "rust-app-ledger-tests";
-    packageName = "rust-app-ledger-tests";
+    name = "alamgu-example-ledger-tests";
+    packageName = "alamgu-example-ledger-tests";
     version = "0.0.1";
     src = ./.;
     dependencies = [

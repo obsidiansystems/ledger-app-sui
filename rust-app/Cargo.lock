@@ -220,7 +220,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f9ec002c35e86791825ed294b50008eea9ddfc8def4420124fbc6b08db834957"
 
 [[package]]
-name = "rust-app"
+name = "alamgu-example"
 version = "0.0.1"
 dependencies = [
  "arrayvec",

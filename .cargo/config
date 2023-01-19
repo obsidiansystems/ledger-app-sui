@@ -32,4 +32,4 @@ runner = "./speculos-wrapper -m nanox "
 [alias]
 tt = "test --features extra_debug"
 br = "build --release"
-stackcheck = "stack-sizes --release --bin rust-app --target=thumbv6m-none-eabi"
+stackcheck = "stack-sizes --release --bin alamgu-example --target=thumbv6m-none-eabi"
