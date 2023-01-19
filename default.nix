@@ -155,7 +155,7 @@ rec {
     appExe = rootCrate + "/bin/" + appName;
 
     rustShell = alamgu.perDevice.${device}.rustShell.overrideAttrs (old: {
-      nativeBuildInputs = old.nativeBuildInputs ++ [ rootCrate.sdk.link_wrap ];
+      nativeBuildInputs = old.nativeBuildInputs ++ [ pkgs.wget rootCrate.sdk.link_wrap ];
     });
 
     tarSrc = makeTarSrc { inherit appExe device; };
