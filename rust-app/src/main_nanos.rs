@@ -13,7 +13,10 @@ pub fn app_main() {
     let mut comm = io::Comm::new();
     let mut states = ParsersState::NoState;
 
-    let mut idle_menu = RootMenu::new([concat!("Alamgu Example ", env!("CARGO_PKG_VERSION")), "Exit"]);
+    let mut idle_menu = RootMenu::new([
+        concat!("Alamgu Example ", env!("CARGO_PKG_VERSION")),
+        "Exit",
+    ]);
     let mut busy_menu = RootMenu::new(["Working...", "Cancel"]);
 
     info!("Alamgu Example {}", env!("CARGO_PKG_VERSION"));
