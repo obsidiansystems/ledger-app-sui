@@ -30,3 +30,18 @@ pub fn scroller<F: for<'b> Fn(&mut PromptWrite<'b, 16>) -> Result<(), ScrollerEr
 ) -> Option<()> {
     ledger_prompts_ui::write_scroller(title, prompt_function)
 }
+
+use core::future::Future;
+use core::pin::*;
+use core::task::*;
+use pin_project::pin_project;
+#[pin_project]
+pub struct NoinlineFut<F: Future>(#[pin] pub F);
+
+impl<F: Future> Future for NoinlineFut<F> {
+    type Output = F::Output;
+    #[inline(never)]
+    fn poll(self: Pin<&mut Self>, cx: &mut Context) -> core::task::Poll<Self::Output> {
+        self.project().0.poll(cx)
+    }
+}
