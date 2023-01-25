@@ -1,5 +1,5 @@
 {
-  "name": "rust-app-ledger-tests",
+  "name": "alamgu-example-ledger-tests",
   "version": "0.0.1",
   "src": ".",
   "scripts": {

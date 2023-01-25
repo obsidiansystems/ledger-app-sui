@@ -31,7 +31,7 @@ rec {
   #
 
   rootCrate = rec {
-    packageId = "rust-app";
+    packageId = "alamgu-example";
 
     # Use this attribute to refer to the derivation building your root crate package.
     # You can override the features with rootCrate.build.override { features = [ "default" "feature1" ... ]; }.
@@ -47,10 +47,10 @@ rec {
   # You can override the features with
   # workspaceMembers."${crateName}".build.override { features = [ "default" "feature1" ... ]; }.
   workspaceMembers = {
-    "rust-app" = rec {
-      packageId = "rust-app";
+    "alamgu-example" = rec {
+      packageId = "alamgu-example";
       build = internal.buildRustCrateWithFeatures {
-        packageId = "rust-app";
+        packageId = "alamgu-example";
       };
 
       # Debug support which might change between releases.
@@ -120,6 +120,84 @@ rec {
           }
         ];
 
+      };
+      "alamgu-example" = rec {
+        crateName = "alamgu-example";
+        version = "0.0.1";
+        edition = "2018";
+        crateBin = [
+          {
+            name = "alamgu-example";
+            path = "bin-src/main.rs";
+            requiredFeatures = [ ];
+          }
+        ];
+        # We can't filter paths with references in Nix 2.4
+        # See https://github.com/NixOS/nix/issues/5410
+        src = if (lib.versionOlder builtins.nixVersion "2.4pre20211007")
+          then lib.cleanSourceWith { filter = sourceFilter;  src = ./rust-app; }
+          else ./rust-app;
+        authors = [
+          "jonored"
+          "yhql"
+        ];
+        dependencies = [
+          {
+            name = "arrayvec";
+            packageId = "arrayvec";
+            usesDefaultFeatures = false;
+          }
+          {
+            name = "ledger-crypto-helpers";
+            packageId = "ledger-crypto-helpers";
+          }
+          {
+            name = "ledger-log";
+            packageId = "ledger-log";
+          }
+          {
+            name = "ledger-parser-combinators";
+            packageId = "ledger-parser-combinators";
+          }
+          {
+            name = "ledger-prompts-ui";
+            packageId = "ledger-prompts-ui";
+            target = { target, features }: (builtins.elem "bolos" target."family");
+          }
+          {
+            name = "nanos_sdk";
+            packageId = "nanos_sdk";
+            target = { target, features }: (builtins.elem "bolos" target."family");
+          }
+          {
+            name = "nanos_ui";
+            packageId = "nanos_ui";
+            target = { target, features }: (builtins.elem "bolos" target."family");
+          }
+          {
+            name = "zeroize";
+            packageId = "zeroize";
+            usesDefaultFeatures = false;
+          }
+        ];
+        devDependencies = [
+          {
+            name = "nanos_sdk";
+            packageId = "nanos_sdk";
+            target = {target, features}: (builtins.elem "bolos" target."family");
+            features = [ "speculos" ];
+          }
+          {
+            name = "testmacro";
+            packageId = "testmacro";
+          }
+        ];
+        features = {
+          "extra_debug" = [ "ledger-log/log_trace" ];
+          "pending_review_screen" = [ "nanos_sdk/pending_review_screen" ];
+          "speculos" = [ "nanos_sdk/speculos" "ledger-log/speculos" "ledger-log/log_error" "ledger-parser-combinators/logging" ];
+        };
+        resolvedDefaultFeatures = [ "default" "extra_debug" "pending_review_screen" "speculos" ];
       };
       "arrayvec" = rec {
         crateName = "arrayvec";
@@ -469,8 +547,8 @@ rec {
         workspace_member = null;
         src = pkgs.fetchgit {
           url = "https://github.com/alamgu/ledger-nanos-sdk.git";
-          rev = "796bbe1479c06df73b3014edd94964d1b41b51b3";
-          sha256 = "1wykmy7wsvmwlks7drc4vis3s9c42rj4gs62jpxn9h6kpq8f0517";
+          rev = "100b25ddfb6049f6520d46657cf13a36a3fdeae9";
+          sha256 = "04qvp396fs4cwbkx8j03lqzysaiw78mwvqfmzarqrwq4k4qk7izm";
         };
         authors = [
           "yhql"
@@ -495,7 +573,7 @@ rec {
         ];
         features = {
         };
-        resolvedDefaultFeatures = [ "lib_bagl" "speculos" ];
+        resolvedDefaultFeatures = [ "lib_bagl" "pending_review_screen" "speculos" ];
       };
       "nanos_ui" = rec {
         crateName = "nanos_ui";
@@ -650,83 +728,6 @@ rec {
           "The Rust Project Developers"
         ];
 
-      };
-      "rust-app" = rec {
-        crateName = "rust-app";
-        version = "0.0.1";
-        edition = "2018";
-        crateBin = [
-          {
-            name = "rust-app";
-            path = "bin-src/main.rs";
-            requiredFeatures = [ ];
-          }
-        ];
-        # We can't filter paths with references in Nix 2.4
-        # See https://github.com/NixOS/nix/issues/5410
-        src = if (lib.versionOlder builtins.nixVersion "2.4pre20211007")
-          then lib.cleanSourceWith { filter = sourceFilter;  src = ./rust-app; }
-          else ./rust-app;
-        authors = [
-          "jonored"
-          "yhql"
-        ];
-        dependencies = [
-          {
-            name = "arrayvec";
-            packageId = "arrayvec";
-            usesDefaultFeatures = false;
-          }
-          {
-            name = "ledger-crypto-helpers";
-            packageId = "ledger-crypto-helpers";
-          }
-          {
-            name = "ledger-log";
-            packageId = "ledger-log";
-          }
-          {
-            name = "ledger-parser-combinators";
-            packageId = "ledger-parser-combinators";
-          }
-          {
-            name = "ledger-prompts-ui";
-            packageId = "ledger-prompts-ui";
-            target = { target, features }: (builtins.elem "bolos" target."family");
-          }
-          {
-            name = "nanos_sdk";
-            packageId = "nanos_sdk";
-            target = { target, features }: (builtins.elem "bolos" target."family");
-          }
-          {
-            name = "nanos_ui";
-            packageId = "nanos_ui";
-            target = { target, features }: (builtins.elem "bolos" target."family");
-          }
-          {
-            name = "zeroize";
-            packageId = "zeroize";
-            usesDefaultFeatures = false;
-          }
-        ];
-        devDependencies = [
-          {
-            name = "nanos_sdk";
-            packageId = "nanos_sdk";
-            target = {target, features}: (builtins.elem "bolos" target."family");
-            features = [ "speculos" ];
-          }
-          {
-            name = "testmacro";
-            packageId = "testmacro";
-          }
-        ];
-        features = {
-          "extra_debug" = [ "ledger-log/log_trace" ];
-          "speculos" = [ "nanos_sdk/speculos" "ledger-log/speculos" "ledger-log/log_error" "ledger-parser-combinators/logging" ];
-        };
-        resolvedDefaultFeatures = [ "default" "extra_debug" "speculos" ];
       };
       "syn" = rec {
         crateName = "syn";

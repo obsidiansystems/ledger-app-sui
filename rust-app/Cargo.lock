@@ -21,6 +21,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "alamgu-example"
+version = "0.0.1"
+dependencies = [
+ "arrayvec",
+ "ledger-crypto-helpers",
+ "ledger-log",
+ "ledger-parser-combinators",
+ "ledger-prompts-ui",
+ "nanos_sdk",
+ "nanos_ui",
+ "testmacro",
+ "zeroize",
+]
+
+[[package]]
 name = "arrayvec"
 version = "0.7.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -146,7 +161,7 @@ dependencies = [
 [[package]]
 name = "nanos_sdk"
 version = "0.2.0"
-source = "git+https://github.com/alamgu/ledger-nanos-sdk.git?branch=memory-fixes#796bbe1479c06df73b3014edd94964d1b41b51b3"
+source = "git+https://github.com/alamgu/ledger-nanos-sdk.git?branch=memory-fixes-pending#100b25ddfb6049f6520d46657cf13a36a3fdeae9"
 dependencies = [
  "cc",
  "num-traits",
@@ -218,21 +233,6 @@ name = "regex-syntax"
 version = "0.3.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f9ec002c35e86791825ed294b50008eea9ddfc8def4420124fbc6b08db834957"
-
-[[package]]
-name = "rust-app"
-version = "0.0.1"
-dependencies = [
- "arrayvec",
- "ledger-crypto-helpers",
- "ledger-log",
- "ledger-parser-combinators",
- "ledger-prompts-ui",
- "nanos_sdk",
- "nanos_ui",
- "testmacro",
- "zeroize",
-]
 
 [[package]]
 name = "syn"

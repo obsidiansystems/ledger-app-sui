@@ -11,6 +11,9 @@
 
 pub use ledger_log::*;
 
+#[cfg(feature = "pending_review_screen")]
+mod pending;
+
 #[cfg(all(target_family = "bolos", test))]
 #[no_mangle]
 extern "C" fn sample_main() {

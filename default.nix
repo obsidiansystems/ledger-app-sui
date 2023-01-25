@@ -3,7 +3,7 @@ rec {
 
   inherit (alamgu) lib pkgs crate2nix alamguLib;
 
-  appName = "rust-app";
+  appName = "alamgu-example";
 
   makeApp = { rootFeatures ? [ "default" ], release ? true, device }:
     let collection = alamgu.perDevice.${device};
@@ -101,6 +101,7 @@ rec {
   } ''
     mkdir $out
     (
+    set +e # Dont exit on error, do the cleanup/kill of background processes
     ${toString speculosCmd} ${appExe} --display headless &
     SPECULOS=$!
 
@@ -154,7 +155,7 @@ rec {
     appExe = rootCrate + "/bin/" + appName;
 
     rustShell = alamgu.perDevice.${device}.rustShell.overrideAttrs (old: {
-      nativeBuildInputs = old.nativeBuildInputs ++ [ rootCrate.sdk.link_wrap ];
+      nativeBuildInputs = old.nativeBuildInputs ++ [ pkgs.wget rootCrate.sdk.link_wrap ];
     });
 
     tarSrc = makeTarSrc { inherit appExe device; };

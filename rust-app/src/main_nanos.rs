@@ -13,10 +13,13 @@ pub fn app_main() {
     let mut comm = io::Comm::new();
     let mut states = ParsersState::NoState;
 
-    let mut idle_menu = RootMenu::new([concat!("Rust App ", env!("CARGO_PKG_VERSION")), "Exit"]);
+    let mut idle_menu = RootMenu::new([
+        concat!("Alamgu Example ", env!("CARGO_PKG_VERSION")),
+        "Exit",
+    ]);
     let mut busy_menu = RootMenu::new(["Working...", "Cancel"]);
 
-    info!("Rust App {}", env!("CARGO_PKG_VERSION"));
+    info!("Alamgu Example {}", env!("CARGO_PKG_VERSION"));
     info!(
         "State sizes\ncomm: {}\nstates: {}",
         core::mem::size_of::<io::Comm>(),
@@ -144,7 +147,7 @@ fn handle_apdu(comm: &mut io::Comm, ins: Ins, parser: &mut ParsersState) -> Resu
                 env!("CARGO_PKG_VERSION_MINOR").parse().unwrap(),
                 env!("CARGO_PKG_VERSION_PATCH").parse().unwrap(),
             ]);
-            comm.append(b"rust app");
+            comm.append(b"alamgu example");
         }
         Ins::GetPubkey => {
             run_parser_apdu::<_, Bip32Key>(parser, get_get_address_state, &GET_ADDRESS_IMPL, comm)?
@@ -159,7 +162,7 @@ fn handle_apdu(comm: &mut io::Comm, ins: Ins, parser: &mut ParsersState) -> Resu
             comm,
         )?,
         Ins::GetVersionStr => {
-            comm.append(concat!("Rust App ", env!("CARGO_PKG_VERSION")).as_ref());
+            comm.append(concat!("Alamgu Example ", env!("CARGO_PKG_VERSION")).as_ref());
         }
         Ins::Exit => nanos_sdk::exit_app(0),
     }
