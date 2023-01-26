@@ -10,11 +10,28 @@ const API_PORT: number = 5005;
 
 const BASE_URL: string = `http://127.0.0.1:${API_PORT}`;
 
+// HACK to workaround the OCR bug https://github.com/LedgerHQ/speculos/issues/204
+let fixRefPromptsForSPlus = function(prompts: any[]) {
+  return prompts.map ( (value) => {
+    let fixF = (str: string) => {
+      return str.replace(/S/g,"").replace(/I/g, "l");
+    };
+    if (value["header"]) {
+      value["header"] = fixF(value["header"]);
+      value["prompt"] = fixF(value["prompt"]);
+    } else if (value["text"]) {
+      value["text"] = fixF(value["text"]);
+      value["x"] = "<patched>";
+    }
+    return value;
+  });
+}
+
 let setAcceptAutomationRules = async function() {
     await Axios.post(BASE_URL + "/automation", {
       version: 1,
       rules: [
-        ... ignoredScreens.map(txt => { return { "text": txt, "actions": [] } }),
+        ... fixRefPromptsForSPlus(ignoredScreens.map(txt => { return { "text": txt, "actions": [] } })),
         { "y": 16, "actions": [] },
         { "y": 31, "actions": [] },
         { "y": 46, "actions": [] },
@@ -57,23 +74,6 @@ let processPrompts = function(prompts: [any]) {
 let fixActualPromptsForSPlus = function(prompts: any[]) {
   return prompts.map ( (value) => {
     if (value["text"]) {
-      value["x"] = "<patched>";
-    }
-    return value;
-  });
-}
-
-// HACK to workaround the OCR bug https://github.com/LedgerHQ/speculos/issues/204
-let fixRefPromptsForSPlus = function(prompts: any[]) {
-  return prompts.map ( (value) => {
-    let fixF = (str: string) => {
-      return str.replace(/S/g,"").replace(/I/g, "l");
-    };
-    if (value["header"]) {
-      value["header"] = fixF(value["header"]);
-      value["prompt"] = fixF(value["prompt"]);
-    } else if (value["text"]) {
-      value["text"] = fixF(value["text"]);
       value["x"] = "<patched>";
     }
     return value;
