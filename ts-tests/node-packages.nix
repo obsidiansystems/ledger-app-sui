@@ -1501,8 +1501,8 @@ let
     };
   };
   args = {
-    name = "alamgu-example-ledger-tests";
-    packageName = "alamgu-example-ledger-tests";
+    name = "sui-ledger-tests";
+    packageName = "sui-ledger-tests";
     version = "0.0.1";
     src = ./.;
     dependencies = [

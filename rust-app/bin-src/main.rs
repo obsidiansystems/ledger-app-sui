@@ -4,7 +4,7 @@
 #[cfg(not(target_family = "bolos"))]
 fn main() {}
 
-use alamgu_example::main_nanos::*;
+use sui::main_nanos::*;
 
 nanos_sdk::set_panic!(nanos_sdk::exiting_panic);
 

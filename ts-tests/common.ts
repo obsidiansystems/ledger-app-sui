@@ -4,7 +4,7 @@ import Transport from "./http-transport";
 import { Common } from "hw-app-obsidian-common";
 import { expect } from 'chai';
 
-let ignoredScreens = [ "W e l c o m e", "Cancel", "Working...", "Exit", "Alamgu Example 0.0.1"]
+let ignoredScreens = [ "W e l c o m e", "Cancel", "Working...", "Exit", "Sui 0.0.1"]
 
 const API_PORT: number = 5005;
 
@@ -85,7 +85,7 @@ let sendCommandAndAccept = async function(command : any, prompts : any) {
   await Axios.delete(BASE_URL + "/events");
 
   let transport = await Transport.open(BASE_URL + "/apdu");
-  let client = new Common(transport, "alamgu-example");
+  let client = new Common(transport, "sui");
   client.sendChunks = client.sendWithBlocks; // Use Block protocol
   let err = null;
 

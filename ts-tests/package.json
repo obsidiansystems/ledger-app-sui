@@ -1,5 +1,5 @@
 {
-  "name": "alamgu-example-ledger-tests",
+  "name": "sui-ledger-tests",
   "version": "0.0.1",
   "src": ".",
   "scripts": {

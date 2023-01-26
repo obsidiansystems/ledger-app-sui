@@ -118,7 +118,7 @@ pub fn handle_apdu_async(io: HostIO, ins: Ins) -> APDUsFuture {
         trace!("Dispatching");
         match ins {
             Ins::GetVersion => {
-                const APP_NAME: &str = "alamgu example";
+                const APP_NAME: &str = "sui";
                 let mut rv = ArrayVec::<u8, 220>::new();
                 let _ = rv.try_push(env!("CARGO_PKG_VERSION_MAJOR").parse().unwrap());
                 let _ = rv.try_push(env!("CARGO_PKG_VERSION_MINOR").parse().unwrap());

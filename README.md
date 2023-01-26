@@ -1,13 +1,8 @@
-# Alamgu Example
+# Sui Blockchain app for Ledger
 
-An example [Ledger](https://www.ledger.com/) application written in [Rust](https://www.rust-lang.org/) using [Alamgu](https://github.com/alamgu/).
+[Ledger](https://www.ledger.com/) application for the [Sui Blockchain](https://sui.io/).
 
-## Alamgu
-
-[Alamgu](https://github.com/alamgu/) is a suite of libraries and build infrastructure for writing Ledger applications like this one.
-The libraries are in Rust and leverage the official [Rust SDK](https://github.com/LedgerHQ/ledger-nanos-sdk/) as a foundation, though we often use a fork of it while items are being upstreamed.
-The Alamgu [build infrastructure](https://github.com/alamgu/alamgu/) uses [Nix](https://nixos.org/) to download all tools.
-Tools are built from source but with cached builds, so ramp up is easy --- just one command! --- but modifying any and all part of the build environment is possible.
+Written using [Alamgu](https://github.com/alamgu/).
 
 ## Device Compatability
 
@@ -29,7 +24,7 @@ The second step is to load that app from the tarball.
 
 #### Download an official build
 
-Check the [releases page](https://github.com/alamgu/alamgu-example/releases) of this app to see if an official build has been uploaded for this release.
+Check the [releases page](https://github.com/obsidiansystems/ledger-app-sui/releases) of this app to see if an official build has been uploaded for this release.
 There is a separate tarball for each device.
 
 #### Build one yourself, with Nix
@@ -57,7 +52,7 @@ By using Nix, this can be done simply by using the `load-app` command, without m
 
 ```bash
 tar xzf /path/to/release.tar.gz
-cd alamgu-example
+cd sui
 nix-shell
 load-app
 ```
@@ -72,7 +67,7 @@ For more information on how to install and use that tool see the [instructions f
 
 ```bash
 tar xzf release.tar.gz
-cd alamgu-example
+cd sui
 ledgerctl install -f app.json
 ```
 

@@ -5,7 +5,7 @@
 
 use nanos_sdk::exit_app;
 
-use alamgu_example::main_nanos::*;
+use sui::main_nanos::*;
 
 #[no_mangle]
 extern "C" fn sample_main() {

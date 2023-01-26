@@ -29,12 +29,12 @@ pub fn app_main() {
         }));
 
     let mut idle_menu = RootMenu::new([
-        concat!("Alamgu Example ", env!("CARGO_PKG_VERSION")),
+        concat!("Sui ", env!("CARGO_PKG_VERSION")),
         "Exit",
     ]);
     let mut busy_menu = RootMenu::new(["Working...", "Cancel"]);
 
-    info!("Alamgu Example {}", env!("CARGO_PKG_VERSION"));
+    info!("Sui {}", env!("CARGO_PKG_VERSION"));
     info!(
         "State sizes\ncomm: {}\nstates: {}",
         core::mem::size_of::<io::Comm>(),

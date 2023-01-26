@@ -31,7 +31,7 @@ rec {
   #
 
   rootCrate = rec {
-    packageId = "alamgu-example";
+    packageId = "sui";
 
     # Use this attribute to refer to the derivation building your root crate package.
     # You can override the features with rootCrate.build.override { features = [ "default" "feature1" ... ]; }.
@@ -47,10 +47,10 @@ rec {
   # You can override the features with
   # workspaceMembers."${crateName}".build.override { features = [ "default" "feature1" ... ]; }.
   workspaceMembers = {
-    "alamgu-example" = rec {
-      packageId = "alamgu-example";
+    "sui" = rec {
+      packageId = "sui";
       build = internal.buildRustCrateWithFeatures {
-        packageId = "alamgu-example";
+        packageId = "sui";
       };
 
       # Debug support which might change between releases.
@@ -160,13 +160,13 @@ rec {
         ];
 
       };
-      "alamgu-example" = rec {
-        crateName = "alamgu-example";
+      "sui" = rec {
+        crateName = "sui";
         version = "0.0.1";
         edition = "2018";
         crateBin = [
           {
-            name = "alamgu-example";
+            name = "sui";
             path = "bin-src/main.rs";
             requiredFeatures = [ ];
           }

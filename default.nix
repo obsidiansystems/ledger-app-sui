@@ -3,7 +3,7 @@ rec {
 
   inherit (alamgu) lib pkgs crate2nix alamguLib;
 
-  appName = "alamgu-example";
+  appName = "sui";
 
   makeApp = { rootFeatures ? [ "default" ], release ? true, device }:
     let collection = alamgu.perDevice.${device};

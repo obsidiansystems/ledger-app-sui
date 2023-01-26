@@ -1,5 +1,5 @@
 [package]
-name = "alamgu-example"
+name = "sui"
 version = "0.0.1"
 authors = ["jonored", "yhql"]
 edition = "2018"
@@ -37,7 +37,7 @@ features = [ "speculos" ]
 testmacro = { git = "https://github.com/yhql/testmacro" }
 
 [[bin]]
-name = "alamgu-example"
+name = "sui"
 test = false
 path = "bin-src/main.rs"
 
@@ -59,7 +59,7 @@ opt-level = 3
 overflow-checks = false
 
 [package.metadata.nanos]
-name = "Alamgu Example"
+name = "Sui"
 path = ["44'/535348'"]
 curve = ["ed25519"]
 flags = "0"

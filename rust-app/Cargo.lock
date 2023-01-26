@@ -34,7 +34,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "alamgu-example"
+name = "sui"
 version = "0.0.1"
 dependencies = [
  "alamgu-async-block",
