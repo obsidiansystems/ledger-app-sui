@@ -2,7 +2,7 @@
 name = "sui"
 version = "0.0.1"
 authors = ["Ericson2314", "dfordivam", "dbzguy56"]
-edition = "2023"
+edition = "2018"
 autobins = false
 resolver = "2"
 

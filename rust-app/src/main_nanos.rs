@@ -28,10 +28,7 @@ pub fn app_main() {
             core::mem::transmute(&states_backing.0)
         }));
 
-    let mut idle_menu = RootMenu::new([
-        concat!("Sui ", env!("CARGO_PKG_VERSION")),
-        "Exit",
-    ]);
+    let mut idle_menu = RootMenu::new([concat!("Sui ", env!("CARGO_PKG_VERSION")), "Exit"]);
     let mut busy_menu = RootMenu::new(["Working...", "Cancel"]);
 
     info!("Sui {}", env!("CARGO_PKG_VERSION"));
