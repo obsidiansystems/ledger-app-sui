@@ -63,5 +63,5 @@ name = "Sui"
 path = ["44'/535348'"]
 curve = ["ed25519"]
 flags = "0"
-icon = "crab.gif"
-icon_small = "crab-small.gif"
+icon = "sui.gif"
+icon_small = "sui-small.gif"
