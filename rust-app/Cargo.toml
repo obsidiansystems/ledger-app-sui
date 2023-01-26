@@ -1,8 +1,8 @@
 [package]
 name = "sui"
 version = "0.0.1"
-authors = ["jonored", "yhql"]
-edition = "2018"
+authors = ["Ericson2314", "dfordivam", "dbzguy56"]
+edition = "2023"
 autobins = false
 resolver = "2"
 
@@ -60,7 +60,7 @@ overflow-checks = false
 
 [package.metadata.nanos]
 name = "Sui"
-path = ["44'/535348'"]
+path = ["44'/784'"]
 curve = ["ed25519"]
 flags = "0"
 icon = "sui.gif"
