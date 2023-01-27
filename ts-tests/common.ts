@@ -4,7 +4,7 @@ import Transport from "./http-transport";
 import { Common } from "hw-app-obsidian-common";
 import { expect } from 'chai';
 
-let ignoredScreens = [ "W e l c o m e", "Cancel", "Working...", "Exit", "Sui 0.0.1"]
+let ignoredScreens = [ "W e l c o m e", "Cancel", "Working...", "Exit", "Sui 0.0.1", "ui 0.0.1"]
 
 const API_PORT: number = 5005;
 
