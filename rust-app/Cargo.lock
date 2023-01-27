@@ -34,24 +34,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "sui"
-version = "0.0.1"
-dependencies = [
- "alamgu-async-block",
- "arrayvec",
- "ledger-crypto-helpers",
- "ledger-log",
- "ledger-parser-combinators",
- "ledger-prompts-ui",
- "nanos_sdk",
- "nanos_ui",
- "pin-cell",
- "pin-project",
- "testmacro",
- "zeroize",
-]
-
-[[package]]
 name = "arrayvec"
 version = "0.7.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -84,7 +66,7 @@ checksum = "2fff2a6927b3bb87f9595d67196a70493f627687a71d87a0d692242c33f58c11"
 [[package]]
 name = "enum-init"
 version = "0.1.0"
-source = "git+https://github.com/alamgu/enum-init#a831c2fbbe00af926ae87c064bfe4da58d26777c"
+source = "git+https://github.com/alamgu/enum-init#5706da92215f1a5816d704229f8924d95d954a77"
 dependencies = [
  "Inflector",
  "proc-macro2",
@@ -115,20 +97,19 @@ dependencies = [
 [[package]]
 name = "ledger-crypto-helpers"
 version = "0.2.0"
-source = "git+https://github.com/alamgu/ledger-crypto-helpers#4236733f0dcb2965af225ac406f42b9b4841ee64"
+source = "git+https://github.com/alamgu/ledger-crypto-helpers#d1f0fbbfbec3b6af1d454d8677a5ef70c9558f60"
 dependencies = [
  "arrayvec",
  "base64",
  "ledger-log",
  "nanos_sdk",
- "nanos_ui",
  "zeroize",
 ]
 
 [[package]]
 name = "ledger-log"
 version = "0.2.0"
-source = "git+https://github.com/alamgu/ledger-log#02f702bbec9ca9802151fd261508580eb3826287"
+source = "git+https://github.com/alamgu/ledger-log#aa326b3078f5a470047b0d13bc2c00cec39e600c"
 dependencies = [
  "arrayvec",
  "nanos_sdk",
@@ -137,7 +118,7 @@ dependencies = [
 [[package]]
 name = "ledger-parser-combinators"
 version = "0.1.0"
-source = "git+https://github.com/alamgu/ledger-parser-combinators?branch=async-split-take-2#f785f6fc2f6b53ec38ca01f4800c6ed7ebcf83e0"
+source = "git+https://github.com/alamgu/ledger-parser-combinators?branch=async-split-take-2#354e94ee170cd464b699c45b5c8759459b43d715"
 dependencies = [
  "arrayvec",
  "bstringify",
@@ -292,6 +273,24 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f9ec002c35e86791825ed294b50008eea9ddfc8def4420124fbc6b08db834957"
 
 [[package]]
+name = "sui"
+version = "0.0.1"
+dependencies = [
+ "alamgu-async-block",
+ "arrayvec",
+ "ledger-crypto-helpers",
+ "ledger-log",
+ "ledger-parser-combinators",
+ "ledger-prompts-ui",
+ "nanos_sdk",
+ "nanos_ui",
+ "pin-cell",
+ "pin-project",
+ "testmacro",
+ "zeroize",
+]
+
+[[package]]
 name = "syn"
 version = "1.0.99"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -333,7 +332,7 @@ dependencies = [
 [[package]]
 name = "trie-enum"
 version = "0.1.0"
-source = "git+https://github.com/alamgu/trie-enum#551bddc313f2af5c2dedb79f3d6de7328e34b208"
+source = "git+https://github.com/alamgu/trie-enum#0dedf0d0a941fc47b830d25d008f5ea42fdd3db4"
 dependencies = [
  "paste",
 ]
