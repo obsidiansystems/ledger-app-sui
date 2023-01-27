@@ -4,14 +4,14 @@ use crate::utils::*;
 use alamgu_async_block::*;
 use arrayvec::ArrayVec;
 use core::fmt::Write;
-use ledger_crypto_helpers::common::{try_option, Address};
+use ledger_crypto_helpers::common::{try_option, Address, HexSlice};
 use ledger_crypto_helpers::eddsa::{
     ed25519_public_key_bytes, eddsa_sign, with_public_keys, Ed25519RawPubKeyAddress,
 };
-use ledger_crypto_helpers::hasher::{Base64Hash, Blake2b, Hasher};
+use ledger_crypto_helpers::hasher::{Base64Hash, SHA3_256, Hasher};
 use ledger_log::trace;
 use ledger_parser_combinators::async_parser::*;
-use ledger_parser_combinators::core_parsers::*;
+use ledger_parser_combinators::bcs::async_parser::*;
 use ledger_parser_combinators::interp::*;
 use ledger_prompts_ui::final_accept_prompt;
 
@@ -67,20 +67,144 @@ pub async fn get_address_apdu(io: HostIO) {
     io.result_final(&rv).await;
 }
 
+impl HasOutput<SingleTransactionKind> for SingleTransactionKind {
+    type Output = ();
+}
+
+impl<BS: Readable> AsyncParser<SingleTransactionKind, BS> for SingleTransactionKind {
+    type State<'c> = impl Future<Output = Self::Output> + 'c where BS: 'c;
+    fn parse<'a: 'c, 'b: 'c, 'c>(&'b self, input: &'a mut BS) -> Self::State<'c> {
+        async move {
+            let enum_variant =
+                <DefaultInterp as AsyncParser<ULEB128, BS>>::parse(&DefaultInterp, input).await;
+            match enum_variant {
+                // PaySui
+                5 => {
+                    trace!("SingleTransactionKind: PaySui");
+                    pay_sui_parser().parse(input).await;
+                    ()
+                }
+                _ => reject_on(core::file!(), core::line!()).await,
+            }
+        }
+    }
+}
+
+impl HasOutput<TransactionKind> for TransactionKind {
+    type Output = ();
+}
+
+impl<BS: Readable> AsyncParser<TransactionKind, BS> for TransactionKind {
+    type State<'c> = impl Future<Output = Self::Output> + 'c where BS: 'c;
+    fn parse<'a: 'c, 'b: 'c, 'c>(&'b self, input: &'a mut BS) -> Self::State<'c> {
+        async move {
+            let enum_variant =
+                <DefaultInterp as AsyncParser<ULEB128, BS>>::parse(&DefaultInterp, input).await;
+            match enum_variant {
+                0 => {
+                    trace!("TransactionKind: Single");
+                    <SingleTransactionKind as AsyncParser<SingleTransactionKind, BS>>::parse(
+                        &SingleTransactionKind,
+                        input,
+                    )
+                    .await;
+                    ()
+                }
+                _ => reject_on(core::file!(), core::line!()).await,
+            }
+        }
+    }
+}
+
+const fn pay_sui_parser<BS: Readable>(
+) -> impl AsyncParser<PaySui, BS> + HasOutput<PaySui, Output = ()> {
+    Action(
+        (
+            SubInterp(coin_parser()),
+            SubInterp(recepient_parser()),
+            SubInterp(DefaultInterp),
+        ),
+        |(_, _, amounts): (_, _, Option<ArrayVec<u64, 1>>)| {
+            trace!("PaySui Ok");
+            trace!("Amounts: {:?}", amounts?);
+            Some(())
+        },
+    )
+}
+
+const fn recepient_parser<BS: Readable>(
+) -> impl AsyncParser<Recipient, BS> + HasOutput<Recipient, Output = ()> {
+    Action(DefaultInterp, |v: [u8; 20]| {
+        trace!("Recepient Ok {}", HexSlice(&v[0..]));
+        Some(())
+    })
+}
+
+const fn coin_parser<BS: Readable>(
+) -> impl AsyncParser<ObjectRef, BS> + HasOutput<ObjectRef, Output = ()> {
+    Action(
+        (DefaultInterp, DefaultInterp, DefaultInterp),
+        |(obj_id, seq, obj_dig): (Option<[u8; 20]>, Option<u64>, Option<[u8; 33]>)| {
+            trace!(
+                "Coin Ok {}, {}, {}",
+                HexSlice(obj_id?.as_ref()),
+                seq?,
+                Base64Hash(obj_dig?)
+            );
+            Some(())
+        },
+    )
+}
+
+const fn object_ref_parser<BS: Readable>(
+) -> impl AsyncParser<ObjectRef, BS> + HasOutput<ObjectRef, Output = ()> {
+    Action((DefaultInterp, DefaultInterp, DefaultInterp), |_| Some(()))
+}
+
+const fn intent_parser<BS: Readable>(
+) -> impl AsyncParser<Intent, BS> + HasOutput<Intent, Output = ()> {
+    Action((DefaultInterp, DefaultInterp, DefaultInterp), |_| {
+        trace!("Intent Ok");
+        Some(())
+    })
+}
+
+const fn transaction_data_parser<BS: Readable>(
+) -> impl AsyncParser<TransactionData, BS> + HasOutput<TransactionData, Output = ()> {
+    Action(
+        (
+            TransactionKind,
+            DefaultInterp,
+            object_ref_parser(),
+            DefaultInterp,
+            DefaultInterp,
+        ),
+        |(_, _sender, _, gas_price, gas_budget): (_, _, _, Option<u64>, Option<u64>)| {
+            trace!("Gas price: {}, Gas budget: {}", gas_price?, gas_budget?);
+            Some(())
+        },
+    )
+}
+
+const fn tx_parser<BS: Readable>(
+) -> impl AsyncParser<IntentMessage, BS> + HasOutput<IntentMessage, Output = ()> {
+    Action((intent_parser(), transaction_data_parser()), |_| Some(()))
+}
+
 const fn hasher_parser(
-) -> impl LengthDelimitedParser<Byte, ByteStream> + HasOutput<Byte, Output = (Blake2b, Option<()>)>
+) -> impl AsyncParser<IntentMessage, ByteStream> + HasOutput<IntentMessage, Output = (SHA3_256, Option<()>)>
 {
-    ObserveBytes(Hasher::new, Hasher::update, DropInterp)
+    ObserveBytes(Hasher::new, Hasher::update, tx_parser())
 }
 
 pub async fn sign_apdu(io: HostIO) {
     let mut input = io.get_params::<2>().unwrap();
 
-    let length = usize::from_le_bytes(input[0].read().await);
+    let _length = usize::from_le_bytes(input[0].read().await);
     let mut txn = input[0].clone();
 
-    let hash: Zeroizing<Base64Hash<32>> =
-        hasher_parser().parse(&mut txn, length).await.0.finalize();
+    trace!("Beginning parse");
+    let hash: Zeroizing<Base64Hash<32>> = hasher_parser().parse(&mut txn).await.0.finalize();
 
     if scroller("Transaction hash", |w| Ok(write!(w, "{}", hash.deref())?)).is_none() {
         reject::<()>().await;
