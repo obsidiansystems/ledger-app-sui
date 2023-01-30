@@ -167,7 +167,7 @@ const fn coin_parser<BS: Readable>(
                 "Coin Ok {}, {}, {}",
                 HexSlice(_obj_id?.as_ref()),
                 _seq?,
-                Base64Hash(_obj_dig?)
+                ledger_crypto_helpers::hasher::Base64Hash(_obj_dig?)
             );
             Some(())
         },
