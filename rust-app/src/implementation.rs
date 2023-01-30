@@ -150,12 +150,12 @@ const fn coin_parser<BS: Readable>(
 ) -> impl AsyncParser<ObjectRef, BS> + HasOutput<ObjectRef, Output = ()> {
     Action(
         (DefaultInterp, DefaultInterp, DefaultInterp),
-        |(obj_id, seq, obj_dig): (Option<[u8; 20]>, Option<u64>, Option<[u8; 33]>)| {
+        |(_obj_id, _seq, _obj_dig): (Option<[u8; 20]>, Option<u64>, Option<[u8; 33]>)| {
             trace!(
                 "Coin Ok {}, {}, {}",
-                HexSlice(obj_id?.as_ref()),
-                seq?,
-                Base64Hash(obj_dig?)
+                HexSlice(_obj_id?.as_ref()),
+                _seq?,
+                Base64Hash(_obj_dig?)
             );
             Some(())
         },
