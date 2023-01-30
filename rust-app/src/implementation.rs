@@ -17,8 +17,6 @@ use ledger_prompts_ui::final_accept_prompt;
 
 use core::convert::TryFrom;
 use core::future::Future;
-use core::ops::Deref;
-use zeroize::Zeroizing;
 
 #[allow(clippy::upper_case_acronyms)]
 type PKH = Ed25519RawPubKeyAddress;
@@ -191,24 +189,16 @@ const fn tx_parser<BS: Readable>(
     Action((intent_parser(), transaction_data_parser()), |_| Some(()))
 }
 
-const fn hasher_parser(
-) -> impl AsyncParser<IntentMessage, ByteStream> + HasOutput<IntentMessage, Output = (SHA3_256, Option<()>)>
-{
-    ObserveBytes(Hasher::new, Hasher::update, tx_parser())
-}
+const MAX_TX_SIZE: usize = 1024;
 
 pub async fn sign_apdu(io: HostIO) {
     let mut input = io.get_params::<2>().unwrap();
 
-    let _length = usize::from_le_bytes(input[0].read().await);
+    let length = usize::from_le_bytes(input[0].read().await);
     let mut txn = input[0].clone();
 
     trace!("Beginning parse");
-    let hash: Zeroizing<Base64Hash<32>> = hasher_parser().parse(&mut txn).await.0.finalize();
-
-    if scroller("Transaction hash", |w| Ok(write!(w, "{}", hash.deref())?)).is_none() {
-        reject::<()>().await;
-    }
+    tx_parser().parse(&mut txn).await;
 
     let path = BIP_PATH_PARSER.parse(&mut input[1].clone()).await;
 
@@ -225,8 +215,17 @@ pub async fn sign_apdu(io: HostIO) {
         reject::<()>().await;
     }
 
+    let mut tx = ArrayVec::<u8, MAX_TX_SIZE>::new();
+
+    {
+        let mut txn2 = input[0].clone();
+        for _ in 0..length {
+            let [b]: [u8; 1] = txn2.read().await;
+            let _ = tx.try_push(b);
+        }
+    }
     // By the time we get here, we've approved and just need to do the signature.
-    if let Some(sig) = { eddsa_sign(&path, &hash.deref().0).ok() } {
+    if let Some(sig) = { eddsa_sign(&path, &tx).ok() } {
         io.result_final(&sig.0[0..]).await;
     } else {
         reject::<()>().await;
