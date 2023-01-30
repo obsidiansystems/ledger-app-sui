@@ -46,8 +46,7 @@ function testTransaction(path: string, txn: string, prompts: any[]) {
 
            let sig = await client.signTransaction(path, txn);
            expect(sig.signature.length).to.equal(128);
-           let hash = blake2b(32).update(Buffer.from(txn, "hex")).digest();
-           let pass = nacl.crypto_sign_verify_detached(Buffer.from(sig.signature, 'hex'), hash, Buffer.from(pubkey, 'hex'));
+           let pass = nacl.crypto_sign_verify_detached(Buffer.from(sig.signature, 'hex'), Buffer.from(txn, "hex"), Buffer.from(pubkey, 'hex'));
            expect(pass).to.equal(true);
          }, prompts);
      }
@@ -63,10 +62,6 @@ describe("Signing tests", function() {
        "44'/535348'/0'",
        "00000000050205546e7f126d2f40331a543b9608439b582fd0d103000000000000002080fdabcc90498e7eb8413b140c4334871eeafa5a86203fd9cfdb032f604f49e1284af431cf032b5d85324135bf9a3073e920d7f5020000000000000020a06f410c175e828c24cee84cb3bd95cff25c33fbbdcb62c6596e8e423784ffe701d08074075c7097f361e8b443e2075a852a2292e80180969800000000001643fb2578ff7191c643079a62c1cca8ec2752bc05546e7f126d2f40331a543b9608439b582fd0d103000000000000002080fdabcc90498e7eb8413b140c4334871eeafa5a86203fd9cfdb032f604f49e101000000000000002c01000000000000",
        [
-         {
-           "header": "Transaction hash",
-           "prompt": "yC9c_Zn3cjRXV89tJaT4WjCjXsFF4UQWn2Aq2sHjY-4",
-         },
          {
            "header": "Sign for Address",
            "prompt": "19e2fea57e82293b4fee8120d934f0c5a4907198f8df29e9a153cfd7d9383488"
