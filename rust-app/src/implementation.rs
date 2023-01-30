@@ -5,10 +5,8 @@ use alamgu_async_block::*;
 use arrayvec::ArrayVec;
 use core::fmt::Write;
 use ledger_crypto_helpers::common::{try_option, Address, HexSlice};
-use ledger_crypto_helpers::eddsa::{
-    ed25519_public_key_bytes, eddsa_sign, with_public_keys, Ed25519RawPubKeyAddress,
-};
-use ledger_crypto_helpers::hasher::{Base64Hash, Hasher, SHA3_256};
+use ledger_crypto_helpers::eddsa::{ed25519_public_key_bytes, eddsa_sign, with_public_keys};
+use ledger_crypto_helpers::hasher::{Hasher, SHA3_256};
 use ledger_log::trace;
 use ledger_parser_combinators::async_parser::*;
 use ledger_parser_combinators::bcs::async_parser::*;
@@ -18,13 +16,12 @@ use nanos_sdk::io::SyscallError;
 
 use core::convert::TryFrom;
 use core::future::Future;
-use zeroize::Zeroizing;
 
 pub struct SuiPubKeyAddress(nanos_sdk::ecc::ECPublicKey<65, 'E'>, [u8; 20]);
 
 impl Address<SuiPubKeyAddress, nanos_sdk::ecc::ECPublicKey<65, 'E'>> for SuiPubKeyAddress {
     fn get_address(key: &nanos_sdk::ecc::ECPublicKey<65, 'E'>) -> Result<Self, SyscallError> {
-        let key_bytes = ed25519_public_key_bytes(&key);
+        let key_bytes = ed25519_public_key_bytes(key);
         let mut tmp = ArrayVec::<u8, 33>::new();
         let _ = tmp.try_push(0); // SIGNATURE_SCHEME_TO_FLAG['ED25519']
         let _ = tmp.try_extend_from_slice(key_bytes);
@@ -101,7 +98,6 @@ impl<BS: Readable> AsyncParser<SingleTransactionKind, BS> for SingleTransactionK
                 5 => {
                     trace!("SingleTransactionKind: PaySui");
                     pay_sui_parser().parse(input).await;
-                    ()
                 }
                 _ => reject_on(core::file!(), core::line!()).await,
             }
@@ -127,7 +123,6 @@ impl<BS: Readable> AsyncParser<TransactionKind, BS> for TransactionKind {
                         input,
                     )
                     .await;
-                    ()
                 }
                 _ => reject_on(core::file!(), core::line!()).await,
             }
