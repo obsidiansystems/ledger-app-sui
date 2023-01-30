@@ -16,11 +16,11 @@ describe('basic tests', () => {
   it('provides a public key', async () => {
 
     await sendCommandAndAccept(async (client : Common) => {
-      let rv = await client.getPublicKey("0");
-      expect(rv.publicKey).to.equal("8118ad392b9276e348c1473649a3bbb7ec2b39380e40898d25b55e9e6ee94ca3");
+      let rv = await client.getPublicKey("44'/784'/0'");
+      expect(rv.publicKey).to.equal("3a33e8f670428a218e00c16bc6027021a45203eb0ef1fe3bb89e8c125db60eb4");
       return;
     }, [
-      { "header": "Provide Public Key", "prompt": "For Address     8118ad392b9276e348c1473649a3bbb7ec2b39380e40898d25b55e9e6ee94ca3" },
+      { "header": "Provide Public Key", "prompt": "For Address 0x1eee7846e89d1afbf57b5ad9f7bf105bd853985e" },
       {
         "text": "Confirm",
         "x": 43,

@@ -4,11 +4,11 @@ use crate::utils::*;
 use alamgu_async_block::*;
 use arrayvec::ArrayVec;
 use core::fmt::Write;
-use ledger_crypto_helpers::common::{try_option, Address, HexSlice};
+use ledger_crypto_helpers::common::{try_option, HexSlice};
 use ledger_crypto_helpers::eddsa::{
     ed25519_public_key_bytes, eddsa_sign, with_public_keys, Ed25519RawPubKeyAddress,
 };
-use ledger_crypto_helpers::hasher::{Base64Hash, SHA3_256, Hasher};
+use ledger_crypto_helpers::hasher::{Base64Hash, Hasher, SHA3_256};
 use ledger_log::trace;
 use ledger_parser_combinators::async_parser::*;
 use ledger_parser_combinators::bcs::async_parser::*;
@@ -17,6 +17,7 @@ use ledger_prompts_ui::final_accept_prompt;
 
 use core::convert::TryFrom;
 use core::future::Future;
+use zeroize::Zeroizing;
 
 #[allow(clippy::upper_case_acronyms)]
 type PKH = Ed25519RawPubKeyAddress;
@@ -32,27 +33,30 @@ pub async fn get_address_apdu(io: HostIO) {
 
     let mut rv = ArrayVec::<u8, 220>::new();
 
-    if with_public_keys(&path, |key, pkh: &PKH| {
+    if with_public_keys(&path, |key, _: &PKH| {
         try_option(|| -> Option<()> {
+            let key_bytes = ed25519_public_key_bytes(key);
+
+            let mut tmp = ArrayVec::<u8, 33>::new();
+            tmp.try_push(0).ok()?; // SIGNATURE_SCHEME_TO_FLAG['ED25519']
+            tmp.try_extend_from_slice(key_bytes).ok()?;
+            let mut hasher: SHA3_256 = Hasher::new();
+            hasher.update(&tmp);
+            let hash: Zeroizing<Base64Hash<32>> = hasher.finalize();
+            let address = &hash.0[0..20];
+
             scroller("Provide Public Key", |w| {
-                Ok(write!(w, "For Address     {pkh}")?)
+                Ok(write!(w, "For Address 0x{}", HexSlice(&address))?)
             })?;
 
             final_accept_prompt(&[])?;
 
-            // Should return the format that the chain customarily uses for public keys; for
-            // ed25519 that's usually r | s with no prefix, which isn't quite our internal
-            // representation.
-            let key_bytes = ed25519_public_key_bytes(key);
-
             rv.try_push(u8::try_from(key_bytes.len()).ok()?).ok()?;
             rv.try_extend_from_slice(key_bytes).ok()?;
 
-            // And we'll send the address along; in our case it happens to be the same as the
-            // public key, but in general it's something computed from the public key.
-            let binary_address = pkh.get_binary_address();
-            rv.try_push(u8::try_from(binary_address.len()).ok()?).ok()?;
-            rv.try_extend_from_slice(binary_address).ok()?;
+            // And we'll send the address along;
+            rv.try_push(u8::try_from(address.len()).ok()?).ok()?;
+            rv.try_extend_from_slice(&address).ok()?;
             Some(())
         }())
     })
