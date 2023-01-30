@@ -200,7 +200,10 @@ const fn tx_parser<BS: Readable>(
     Action((intent_parser(), transaction_data_parser()), |_| Some(()))
 }
 
-const MAX_TX_SIZE: usize = 1024;
+#[cfg(not(target_os = "nanos"))]
+const MAX_TX_SIZE: usize = 2048;
+#[cfg(target_os = "nanos")]
+const MAX_TX_SIZE: usize = 600;
 
 pub async fn sign_apdu(io: HostIO) {
     let mut input = io.get_params::<2>().unwrap();
