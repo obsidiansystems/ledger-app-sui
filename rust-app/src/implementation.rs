@@ -4,7 +4,7 @@ use crate::utils::*;
 use alamgu_async_block::*;
 use arrayvec::ArrayVec;
 use core::fmt::Write;
-use ledger_crypto_helpers::common::{try_option, HexSlice};
+use ledger_crypto_helpers::common::{try_option, Address, HexSlice};
 use ledger_crypto_helpers::eddsa::{
     ed25519_public_key_bytes, eddsa_sign, with_public_keys, Ed25519RawPubKeyAddress,
 };
@@ -14,13 +14,37 @@ use ledger_parser_combinators::async_parser::*;
 use ledger_parser_combinators::bcs::async_parser::*;
 use ledger_parser_combinators::interp::*;
 use ledger_prompts_ui::final_accept_prompt;
+use nanos_sdk::io::SyscallError;
 
 use core::convert::TryFrom;
 use core::future::Future;
 use zeroize::Zeroizing;
 
-#[allow(clippy::upper_case_acronyms)]
-type PKH = Ed25519RawPubKeyAddress;
+pub struct SuiPubKeyAddress(nanos_sdk::ecc::ECPublicKey<65, 'E'>, [u8; 20]);
+
+impl Address<SuiPubKeyAddress, nanos_sdk::ecc::ECPublicKey<65, 'E'>> for SuiPubKeyAddress {
+    fn get_address(key: &nanos_sdk::ecc::ECPublicKey<65, 'E'>) -> Result<Self, SyscallError> {
+        let key_bytes = ed25519_public_key_bytes(&key);
+        let mut tmp = ArrayVec::<u8, 33>::new();
+        let _ = tmp.try_push(0); // SIGNATURE_SCHEME_TO_FLAG['ED25519']
+        let _ = tmp.try_extend_from_slice(key_bytes);
+        let mut hasher: SHA3_256 = Hasher::new();
+        hasher.update(&tmp);
+        let hash: [u8; 32] = hasher.finalize();
+        let mut address: [u8; 20] = [0; 20];
+        address.clone_from_slice(&hash[0..20]);
+        Ok(SuiPubKeyAddress(key.clone(), address))
+    }
+    fn get_binary_address(&self) -> &[u8] {
+        &self.1
+    }
+}
+
+impl core::fmt::Display for SuiPubKeyAddress {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "0x{}", HexSlice(&self.1))
+    }
+}
 
 pub type BipParserImplT =
     impl AsyncParser<Bip32Key, ByteStream> + HasOutput<Bip32Key, Output = ArrayVec<u32, 10>>;
@@ -33,20 +57,12 @@ pub async fn get_address_apdu(io: HostIO) {
 
     let mut rv = ArrayVec::<u8, 220>::new();
 
-    if with_public_keys(&path, |key, _: &PKH| {
+    if with_public_keys(&path, |key, address: &SuiPubKeyAddress| {
         try_option(|| -> Option<()> {
             let key_bytes = ed25519_public_key_bytes(key);
 
-            let mut tmp = ArrayVec::<u8, 33>::new();
-            tmp.try_push(0).ok()?; // SIGNATURE_SCHEME_TO_FLAG['ED25519']
-            tmp.try_extend_from_slice(key_bytes).ok()?;
-            let mut hasher: SHA3_256 = Hasher::new();
-            hasher.update(&tmp);
-            let hash: Zeroizing<Base64Hash<32>> = hasher.finalize();
-            let address = &hash.0[0..20];
-
             scroller("Provide Public Key", |w| {
-                Ok(write!(w, "For Address 0x{}", HexSlice(&address))?)
+                Ok(write!(w, "For Address {address}")?)
             })?;
 
             final_accept_prompt(&[])?;
@@ -55,8 +71,9 @@ pub async fn get_address_apdu(io: HostIO) {
             rv.try_extend_from_slice(key_bytes).ok()?;
 
             // And we'll send the address along;
-            rv.try_push(u8::try_from(address.len()).ok()?).ok()?;
-            rv.try_extend_from_slice(&address).ok()?;
+            let binary_address = address.get_binary_address();
+            rv.try_push(u8::try_from(binary_address.len()).ok()?).ok()?;
+            rv.try_extend_from_slice(binary_address).ok()?;
             Some(())
         }())
     })
@@ -216,9 +233,9 @@ pub async fn sign_apdu(io: HostIO) {
 
     let path = BIP_PATH_PARSER.parse(&mut input[1].clone()).await;
 
-    if with_public_keys(&path, |_, pkh: &PKH| {
+    if with_public_keys(&path, |_, address: &SuiPubKeyAddress| {
         try_option(|| -> Option<()> {
-            scroller("Sign for Address", |w| Ok(write!(w, "{pkh}")?))?;
+            scroller("Sign for Address", |w| Ok(write!(w, "{address}")?))?;
             final_accept_prompt(&["Sign Transaction?"])?;
             Some(())
         }())
