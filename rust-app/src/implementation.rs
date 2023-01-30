@@ -122,19 +122,23 @@ const fn pay_sui_parser<BS: Readable>(
             SubInterp(recipient_parser()),
             SubInterp(DefaultInterp),
         ),
-        |(_, _, amounts): (_, _, Option<ArrayVec<u64, 1>>)| {
+        |(_, recipients, amounts): (_, Option<ArrayVec<[u8; 20], 1>>, Option<ArrayVec<u64, 1>>)| {
             trace!("PaySui Ok");
-            trace!("Amounts: {:?}", amounts?);
-            Some(())
+            trace!("Amounts: {:?}", amounts.as_ref()?);
+            let recipient = recipients?.pop()?;
+            let amount = amounts?.pop()?;
+            scroller("Transfer", |w| {
+                Ok(write!(w, "{amount} to 0x{}", HexSlice(&recipient))?)
+            })
         },
     )
 }
 
 const fn recipient_parser<BS: Readable>(
-) -> impl AsyncParser<Recipient, BS> + HasOutput<Recipient, Output = ()> {
+) -> impl AsyncParser<Recipient, BS> + HasOutput<Recipient, Output = [u8; 20]> {
     Action(DefaultInterp, |v: [u8; 20]| {
         trace!("Recipient Ok {}", HexSlice(&v[0..]));
-        Some(())
+        Some(v)
     })
 }
 
@@ -177,9 +181,12 @@ const fn transaction_data_parser<BS: Readable>(
             DefaultInterp,
             DefaultInterp,
         ),
-        |(_, _sender, _, gas_price, gas_budget): (_, _, _, Option<u64>, Option<u64>)| {
-            trace!("Gas price: {}, Gas budget: {}", gas_price?, gas_budget?);
-            Some(())
+        |(_, _sender, _, o_gas_price, o_gas_budget): (_, _, _, Option<u64>, Option<u64>)| {
+            let gas_price = o_gas_price?;
+            let gas_budget = o_gas_budget?;
+            scroller("Gas", |w| {
+                Ok(write!(w, "Price: {}, Budget: {}", gas_price, gas_budget)?)
+            })
         },
     )
 }
