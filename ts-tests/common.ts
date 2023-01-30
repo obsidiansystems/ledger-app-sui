@@ -1,7 +1,7 @@
 import SpeculosTransport from '@ledgerhq/hw-transport-node-speculos';
 import Axios from 'axios';
 import Transport from "./http-transport";
-import { Common } from "hw-app-obsidian-common";
+import Sui from "hw-app-sui";
 import { expect } from 'chai';
 
 let ignoredScreens = [ "W e l c o m e", "Cancel", "Working...", "Exit", "Sui 0.0.1", "ui 0.0.1"]
@@ -85,8 +85,7 @@ let sendCommandAndAccept = async function(command : any, prompts : any) {
   await Axios.delete(BASE_URL + "/events");
 
   let transport = await Transport.open(BASE_URL + "/apdu");
-  let client = new Common(transport, "sui");
-  client.sendChunks = client.sendWithBlocks; // Use Block protocol
+  let client = new Sui(transport);
   let err = null;
 
   try { await command(client); } catch(e) {
