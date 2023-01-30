@@ -119,7 +119,7 @@ const fn pay_sui_parser<BS: Readable>(
     Action(
         (
             SubInterp(coin_parser()),
-            SubInterp(recepient_parser()),
+            SubInterp(recipient_parser()),
             SubInterp(DefaultInterp),
         ),
         |(_, _, amounts): (_, _, Option<ArrayVec<u64, 1>>)| {
@@ -130,10 +130,10 @@ const fn pay_sui_parser<BS: Readable>(
     )
 }
 
-const fn recepient_parser<BS: Readable>(
+const fn recipient_parser<BS: Readable>(
 ) -> impl AsyncParser<Recipient, BS> + HasOutput<Recipient, Output = ()> {
     Action(DefaultInterp, |v: [u8; 20]| {
-        trace!("Recepient Ok {}", HexSlice(&v[0..]));
+        trace!("Recipient Ok {}", HexSlice(&v[0..]));
         Some(())
     })
 }
