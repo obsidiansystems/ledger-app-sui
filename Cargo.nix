@@ -185,9 +185,9 @@ rec {
       };
       "base64" = rec {
         crateName = "base64";
-        version = "0.13.0";
+        version = "0.13.1";
         edition = "2018";
-        sha256 = "1z82g23mbzjgijkpcrilc7nljpxpvpf7zxf6iyiapkgka2ngwkch";
+        sha256 = "1s494mqmzjb766fy1kqlccgfg2sdcjb6hzbvzqv2jw65fdi5h6wy";
         authors = [
           "Alice Maz <alice@alicemaz.com>"
           "Marshall Pierce <marshall@mpierce.org>"
@@ -211,10 +211,10 @@ rec {
       };
       "cc" = rec {
         crateName = "cc";
-        version = "1.0.73";
+        version = "1.0.78";
         edition = "2018";
         crateBin = [];
-        sha256 = "04ccylrjq94jssh8f7d7hxv64gs9f1m1jrsxb7wqgfxk4xljmzrg";
+        sha256 = "0gcch8g41jsjs4zk8fy7k4jhc33sfqdab4nxsrcsds2w6gi080d2";
         authors = [
           "Alex Crichton <alex@alexcrichton.com>"
         ];
@@ -459,8 +459,8 @@ rec {
         workspace_member = null;
         src = pkgs.fetchgit {
           url = "https://github.com/alamgu/ledger-prompts-ui";
-          rev = "24d2f36da07131074211559cd28f235c3f7c9984";
-          sha256 = "0gy73gv2vrajyrzigr2iwfnw0gmj1wfpig0xlbhw1vpkpjg23w0q";
+          rev = "3cef68c0275b2a4d16b73d28bd042a59a0570831";
+          sha256 = "0qf33ndkl4rmbznhifg1bg32alrrbzn9gx793zwnkcx0dfrgc1nb";
         };
         dependencies = [
           {
@@ -487,9 +487,9 @@ rec {
       };
       "libc" = rec {
         crateName = "libc";
-        version = "0.2.132";
+        version = "0.2.139";
         edition = "2015";
-        sha256 = "199vm5mz5gmd73lx07g06g2d9kl1qrd4dcky2bdrcfhw6kjy8wc3";
+        sha256 = "0yaz3z56c72p2nfgv2y2zdi8bzi7x3kdq2hzgishgw0da8ky6790";
         authors = [
           "The Rust Project Developers"
         ];
@@ -624,9 +624,9 @@ rec {
       };
       "paste" = rec {
         crateName = "paste";
-        version = "1.0.8";
+        version = "1.0.11";
         edition = "2018";
-        sha256 = "08jv4b10pjdzxqgcn2id9216m30yjlhnylvs50lkc13s5yry48wl";
+        sha256 = "1fpf7n6wvlf1pg5xplgaknaim5kgrbmigpcq005hf02d8b85n6nh";
         procMacro = true;
         authors = [
           "David Tolnay <dtolnay@gmail.com>"
@@ -682,9 +682,9 @@ rec {
       };
       "proc-macro2" = rec {
         crateName = "proc-macro2";
-        version = "1.0.43";
+        version = "1.0.50";
         edition = "2018";
-        sha256 = "1avvpf4qki8mg2na60yr3afbsfl5p6vllac6516xgwy93g3a4b0a";
+        sha256 = "1qmsy8372anynndlfa0qig5y73gjnyvxldsrxs52vbygx9xxbxvf";
         authors = [
           "David Tolnay <dtolnay@gmail.com>"
           "Alex Crichton <alex@alexcrichton.com>"
@@ -702,9 +702,9 @@ rec {
       };
       "quote" = rec {
         crateName = "quote";
-        version = "1.0.21";
+        version = "1.0.23";
         edition = "2018";
-        sha256 = "0yai5cyd9h95n7hkwjcx8ig3yv0hindmz5gm60g9dmm7fzrlir5v";
+        sha256 = "0ywwzw5xfwwgq62ihp4fbjbfdjb3ilss2vh3fka18ai59lvdhml8";
         authors = [
           "David Tolnay <dtolnay@gmail.com>"
         ];
@@ -875,9 +875,9 @@ rec {
       };
       "syn" = rec {
         crateName = "syn";
-        version = "1.0.99";
+        version = "1.0.107";
         edition = "2018";
-        sha256 = "04xba78p559nl737llv7nqcwm723dp6ah5bbp0h5w1amqrpfznsq";
+        sha256 = "1xg3315vx8civ8y0l5zxq5mkx07qskaqwnjak18aw0vfn6sn8h0z";
         authors = [
           "David Tolnay <dtolnay@gmail.com>"
         ];
@@ -990,9 +990,9 @@ rec {
       };
       "typenum" = rec {
         crateName = "typenum";
-        version = "1.15.0";
+        version = "1.16.0";
         edition = "2018";
-        sha256 = "11yrvz1vd43gqv738yw1v75rzngjbs7iwcgzjy3cq5ywkv2imy6w";
+        sha256 = "1fhb9iaqyjn4dzn2vl86kxjhp4xpw5gynczlnqzf4x6rjgpn2ya9";
         build = "build/main.rs";
         authors = [
           "Paho Lurie-Gregg <paho@paholg.com>"
@@ -1005,9 +1005,9 @@ rec {
       };
       "unicode-ident" = rec {
         crateName = "unicode-ident";
-        version = "1.0.3";
+        version = "1.0.6";
         edition = "2018";
-        sha256 = "1bqswc96ws8l6k7xx56dg521a3l5imi3mhlcz7rsi6a92mxb7xf4";
+        sha256 = "1g2fdsw5sv9l1m73whm99za3lxq3nw4gzx5kvi562h4b46gjp8l4";
         authors = [
           "David Tolnay <dtolnay@gmail.com>"
         ];

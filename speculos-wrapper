@@ -2,7 +2,7 @@
 
 echo "Speculos Wrapper called with $*"
 
-# Specify args for mocha / 'npm test' like this
+# Specify args for mocha / 'yarn run test' like this
 # cargo test --test ts-tests --target=nanos.json -- --mocha-args="--grep 'provides a public key'"
 # cargo test --test ts-tests --target=nanos.json -- --mocha-args="--timeout 30000"
 MOCHA_ARGS=""
@@ -14,8 +14,8 @@ run_ts_tests() {
     SPECULOS=$!
     until wget -O/dev/null -o/dev/null http://localhost:$API_PORT/; do sleep 0.1; done;
     cd ../ts-tests;
-    if ! [ -d "node_modules" ] ; then npm install; fi
-    echo $MOCHA_ARGS | xargs npm test --
+    if ! [ -d "node_modules" ] ; then yarn install; fi
+    echo $MOCHA_ARGS | xargs yarn run test --
     kill $SPECULOS
 }
 
@@ -25,7 +25,7 @@ case $last in
   --mocha-args=*)
     echo "Matched --mocha-args=*"
     MOCHA_ARGS=${last:13} # strip --mocha-args=
-    echo "Passing following args to npm test: $MOCHA_ARGS"
+    echo "Passing following args to yarn run test: $MOCHA_ARGS"
     # Pass all args, except the last, to the speculos
     run_ts_tests "${@:1:$#-1}"
     ;;

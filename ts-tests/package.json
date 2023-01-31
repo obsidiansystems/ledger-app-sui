@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "src": ".",
   "scripts": {
-    "test": "mocha --no-parallel -r ts-node/register *.ts"
+    "test": "mocha --no-parallel --require ts-node/register *.ts"
   },
   "dependencies": {
     "@ledgerhq/hw-transport": "^6.7.0",

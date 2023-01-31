@@ -2,7 +2,7 @@ import { sendCommandAndAccept, BASE_URL } from "./common";
 import { expect } from 'chai';
 import { describe, it } from 'mocha';
 import Axios from 'axios';
-import { Common } from "hw-app-obsidian-common";
+import Sui from "hw-app-sui";
 import * as blake2b from "blake2b";
 import { instantiate, Nacl } from "js-nacl";
 
@@ -15,7 +15,7 @@ describe('basic tests', () => {
 
   it('provides a public key', async () => {
 
-    await sendCommandAndAccept(async (client : Common) => {
+    await sendCommandAndAccept(async (client : Sui) => {
       let rv = await client.getPublicKey("44'/784'/0'");
       expect(rv.publicKey).to.equal("3a33e8f670428a218e00c16bc6027021a45203eb0ef1fe3bb89e8c125db60eb4");
       expect(rv.address).to.equal("1eee7846e89d1afbf57b5ad9f7bf105bd853985e");
@@ -38,7 +38,7 @@ instantiate(n => { nacl=n; });
 function testTransaction(path: string, txn: string, prompts: any[]) {
      return async () => {
        await sendCommandAndAccept(
-         async (client : Common) => {
+         async (client : Sui) => {
 
            let pubkey = (await client.getPublicKey(path)).publicKey;
 
