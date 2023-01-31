@@ -18,7 +18,9 @@ use nanos_sdk::io::SyscallError;
 use core::convert::TryFrom;
 use core::future::Future;
 
-pub struct SuiPubKeyAddress(nanos_sdk::ecc::ECPublicKey<65, 'E'>, [u8; 20]);
+type SuiAddressRaw = [u8; 20];
+
+pub struct SuiPubKeyAddress(nanos_sdk::ecc::ECPublicKey<65, 'E'>, SuiAddressRaw);
 
 impl Address<SuiPubKeyAddress, nanos_sdk::ecc::ECPublicKey<65, 'E'>> for SuiPubKeyAddress {
     fn get_address(key: &nanos_sdk::ecc::ECPublicKey<65, 'E'>) -> Result<Self, SyscallError> {
@@ -29,7 +31,7 @@ impl Address<SuiPubKeyAddress, nanos_sdk::ecc::ECPublicKey<65, 'E'>> for SuiPubK
         let mut hasher: SHA3_256 = Hasher::new();
         hasher.update(&tmp);
         let hash: [u8; 32] = hasher.finalize();
-        let mut address: [u8; 20] = [0; 20];
+        let mut address: SuiAddressRaw = [0; 20];
         address.clone_from_slice(&hash[0..20]);
         Ok(SuiPubKeyAddress(key.clone(), address))
     }
@@ -139,7 +141,7 @@ const fn pay_sui_parser<BS: Readable>(
             SubInterp(recipient_parser()),
             SubInterp(DefaultInterp),
         ),
-        |(_, mut recipients, mut amounts): (_, ArrayVec<[u8; 20], 1>, ArrayVec<u64, 1>)| {
+        |(_, mut recipients, mut amounts): (_, ArrayVec<SuiAddressRaw, 1>, ArrayVec<u64, 1>)| {
             trace!("PaySui Ok");
             trace!("Amounts: {:?}", amounts.as_ref());
             let recipient = recipients.pop()?;
@@ -152,8 +154,8 @@ const fn pay_sui_parser<BS: Readable>(
 }
 
 const fn recipient_parser<BS: Readable>(
-) -> impl AsyncParser<Recipient, BS> + HasOutput<Recipient, Output = [u8; 20]> {
-    Action(DefaultInterp, |v: [u8; 20]| {
+) -> impl AsyncParser<Recipient, BS> + HasOutput<Recipient, Output = SuiAddressRaw> {
+    Action(DefaultInterp, |v: SuiAddressRaw| {
         trace!("Recipient Ok {}", HexSlice(&v[0..]));
         Some(v)
     })
@@ -163,7 +165,7 @@ const fn coin_parser<BS: Readable>(
 ) -> impl AsyncParser<ObjectRef, BS> + HasOutput<ObjectRef, Output = ()> {
     Action(
         (DefaultInterp, DefaultInterp, DefaultInterp),
-        |(_obj_id, _seq, _obj_dig): ([u8; 20], u64, [u8; 33])| {
+        |(_obj_id, _seq, _obj_dig): (SuiAddressRaw, u64, [u8; 33])| {
             trace!(
                 "Coin Ok {}, {}, {}",
                 HexSlice(_obj_id.as_ref()),
