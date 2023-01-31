@@ -83,13 +83,12 @@ rec {
     cp ${./rust-app/crab-small.gif} $dest/crab-small.gif
   '');
 
-  testPackage = (import ./ts-tests/override.nix { inherit pkgs; }).package;
-
-  testScript = pkgs.writeShellScriptBin "mocha-wrapper" ''
-    cd ${testPackage}/lib/node_modules/*/
-    export NO_UPDATE_NOTIFIER=true
-    exec ${pkgs.nodejs-14_x}/bin/npm --offline test -- "$@"
-  '';
+  inherit
+    (import ./ts-tests { inherit pkgs; })
+    testModules
+    testScript
+    testPackage
+    ;
 
   apiPort = 5005;
 
@@ -155,7 +154,11 @@ rec {
     appExe = rootCrate + "/bin/" + appName;
 
     rustShell = alamgu.perDevice.${device}.rustShell.overrideAttrs (old: {
-      nativeBuildInputs = old.nativeBuildInputs ++ [ pkgs.wget rootCrate.sdk.link_wrap ];
+      nativeBuildInputs = old.nativeBuildInputs ++ [
+        pkgs.yarn
+        pkgs.wget
+        rootCrate.sdk.link_wrap
+      ];
     });
 
     tarSrc = makeTarSrc { inherit appExe device; };
