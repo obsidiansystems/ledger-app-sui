@@ -139,11 +139,11 @@ const fn pay_sui_parser<BS: Readable>(
             SubInterp(recipient_parser()),
             SubInterp(DefaultInterp),
         ),
-        |(_, recipients, amounts): (_, Option<ArrayVec<[u8; 20], 1>>, Option<ArrayVec<u64, 1>>)| {
+        |(_, mut recipients, mut amounts): (_, ArrayVec<[u8; 20], 1>, ArrayVec<u64, 1>)| {
             trace!("PaySui Ok");
-            trace!("Amounts: {:?}", amounts.as_ref()?);
-            let recipient = recipients?.pop()?;
-            let amount = amounts?.pop()?;
+            trace!("Amounts: {:?}", amounts.as_ref());
+            let recipient = recipients.pop()?;
+            let amount = amounts.pop()?;
             scroller("Transfer", |w| {
                 Ok(write!(w, "{amount} to 0x{}", HexSlice(&recipient))?)
             })
@@ -163,12 +163,12 @@ const fn coin_parser<BS: Readable>(
 ) -> impl AsyncParser<ObjectRef, BS> + HasOutput<ObjectRef, Output = ()> {
     Action(
         (DefaultInterp, DefaultInterp, DefaultInterp),
-        |(_obj_id, _seq, _obj_dig): (Option<[u8; 20]>, Option<u64>, Option<[u8; 33]>)| {
+        |(_obj_id, _seq, _obj_dig): ([u8; 20], u64, [u8; 33])| {
             trace!(
                 "Coin Ok {}, {}, {}",
-                HexSlice(_obj_id?.as_ref()),
-                _seq?,
-                ledger_crypto_helpers::hasher::Base64Hash(_obj_dig?)
+                HexSlice(_obj_id.as_ref()),
+                _seq,
+                ledger_crypto_helpers::hasher::Base64Hash(_obj_dig)
             );
             Some(())
         },
@@ -198,9 +198,7 @@ const fn transaction_data_parser<BS: Readable>(
             DefaultInterp,
             DefaultInterp,
         ),
-        |(_, _sender, _, o_gas_price, o_gas_budget): (_, _, _, Option<u64>, Option<u64>)| {
-            let gas_price = o_gas_price?;
-            let gas_budget = o_gas_budget?;
+        |(_, _sender, _, gas_price, gas_budget): (_, _, _, u64, u64)| {
             scroller("Gas", |w| {
                 Ok(write!(w, "Price: {}, Budget: {}", gas_price, gas_budget)?)
             })

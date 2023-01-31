@@ -33,7 +33,7 @@ pub type BytesParamsT<BS: Readable> =
 const fn bytes_params_parser<BS: Readable>() -> BytesParamsT<BS> {
     Action(
         (DefaultInterp, DefaultInterp),
-        |(v1, v2): (Option<u8>, Option<[u8; 32]>)| {
+        |(v1, v2): (u8, [u8; 32])| {
             scroller("Got Bytes", |w| Ok(write!(w, "v1: {v1:?}, v2: {v2:02x?}")?))
         },
     )
@@ -44,7 +44,7 @@ pub type U16ParamsT<BS: Readable> =
 const fn u16_params_parser<BS: Readable>() -> U16ParamsT<BS> {
     Action(
         (DefaultInterp, DefaultInterp),
-        |(v1, v2): (Option<u16>, Option<u16>)| {
+        |(v1, v2): (u16, u16)| {
             scroller("Got U16", |w| Ok(write!(w, "v1: {v1:?}, v2: {v2:?}")?))
         },
     )
@@ -55,7 +55,7 @@ pub type U32ParamsT<BS: Readable> =
 const fn u32_params_parser<BS: Readable>() -> U32ParamsT<BS> {
     Action(
         (DefaultInterp, DefaultInterp),
-        |(v1, v2): (Option<u32>, Option<u32>)| {
+        |(v1, v2): (u32, u32)| {
             scroller("Got U32", |w| Ok(write!(w, "v1: {v1:?}, v2: {v2:?}")?))
         },
     )
@@ -66,7 +66,7 @@ pub type U64ParamsT<BS: Readable> =
 const fn u64_params_parser<BS: Readable>() -> U64ParamsT<BS> {
     Action(
         (DefaultInterp, DefaultInterp),
-        |(v1, v2): (Option<u64>, Option<u64>)| {
+        |(v1, v2): (u64, u64)| {
             scroller("Got U64", |w| Ok(write!(w, "v1: {v1:?}, v2: {v2:?}")?))
         },
     )
@@ -77,7 +77,7 @@ pub type DArrayParamsT<BS: Readable> =
 const fn darray_params_parser<BS: Readable>() -> DArrayParamsT<BS> {
     Action(
         (SubInterp(DefaultInterp), SubInterp(u32_params_parser())),
-        |(v1, _v2): (Option<ArrayVec<u8, 24>>, Option<ArrayVec<(), 4>>)| {
+        |(v1, _v2): (ArrayVec<u8, 24>, ArrayVec<(), 4>)| {
             scroller("Got Darray", |w| Ok(write!(w, "v1: {v1:02x?}")?))
         },
     )
