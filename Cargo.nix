@@ -160,96 +160,6 @@ rec {
         ];
 
       };
-      "sui" = rec {
-        crateName = "sui";
-        version = "0.0.1";
-        edition = "2018";
-        crateBin = [
-          {
-            name = "sui";
-            path = "bin-src/main.rs";
-            requiredFeatures = [ ];
-          }
-        ];
-        # We can't filter paths with references in Nix 2.4
-        # See https://github.com/NixOS/nix/issues/5410
-        src = if (lib.versionOlder builtins.nixVersion "2.4pre20211007")
-          then lib.cleanSourceWith { filter = sourceFilter;  src = ./rust-app; }
-          else ./rust-app;
-        authors = [
-          "jonored"
-          "yhql"
-        ];
-        dependencies = [
-          {
-            name = "alamgu-async-block";
-            packageId = "alamgu-async-block";
-          }
-          {
-            name = "arrayvec";
-            packageId = "arrayvec";
-            usesDefaultFeatures = false;
-          }
-          {
-            name = "ledger-crypto-helpers";
-            packageId = "ledger-crypto-helpers";
-          }
-          {
-            name = "ledger-log";
-            packageId = "ledger-log";
-          }
-          {
-            name = "ledger-parser-combinators";
-            packageId = "ledger-parser-combinators";
-          }
-          {
-            name = "ledger-prompts-ui";
-            packageId = "ledger-prompts-ui";
-            target = { target, features }: (builtins.elem "bolos" target."family");
-          }
-          {
-            name = "nanos_sdk";
-            packageId = "nanos_sdk";
-            target = { target, features }: (builtins.elem "bolos" target."family");
-          }
-          {
-            name = "nanos_ui";
-            packageId = "nanos_ui";
-            target = { target, features }: (builtins.elem "bolos" target."family");
-          }
-          {
-            name = "pin-cell";
-            packageId = "pin-cell";
-          }
-          {
-            name = "pin-project";
-            packageId = "pin-project";
-          }
-          {
-            name = "zeroize";
-            packageId = "zeroize";
-            usesDefaultFeatures = false;
-          }
-        ];
-        devDependencies = [
-          {
-            name = "nanos_sdk";
-            packageId = "nanos_sdk";
-            target = {target, features}: (builtins.elem "bolos" target."family");
-            features = [ "speculos" ];
-          }
-          {
-            name = "testmacro";
-            packageId = "testmacro";
-          }
-        ];
-        features = {
-          "extra_debug" = [ "ledger-log/log_trace" ];
-          "pending_review_screen" = [ "nanos_sdk/pending_review_screen" ];
-          "speculos" = [ "nanos_sdk/speculos" "ledger-log/speculos" "ledger-log/log_error" "ledger-parser-combinators/logging" ];
-        };
-        resolvedDefaultFeatures = [ "default" "extra_debug" "pending_review_screen" "speculos" ];
-      };
       "arrayvec" = rec {
         crateName = "arrayvec";
         version = "0.7.2";
@@ -320,8 +230,8 @@ rec {
         workspace_member = null;
         src = pkgs.fetchgit {
           url = "https://github.com/alamgu/enum-init";
-          rev = "a831c2fbbe00af926ae87c064bfe4da58d26777c";
-          sha256 = "1daqa7i1778rpvk8d442flk6bak6jxi6hrcc5j4maaa7ipjc6xlr";
+          rev = "5706da92215f1a5816d704229f8924d95d954a77";
+          sha256 = "0vh10l6glg4fry3z8am9skdlg2xcs0maqz5f24awwd9vl4ac6fv6";
         };
         procMacro = true;
         dependencies = [
@@ -403,8 +313,8 @@ rec {
         workspace_member = null;
         src = pkgs.fetchgit {
           url = "https://github.com/alamgu/ledger-crypto-helpers";
-          rev = "4236733f0dcb2965af225ac406f42b9b4841ee64";
-          sha256 = "0iiqkrh3wr33srqxpzhzf2shrl38mi1pfl8dbnwy9zkslpvgamhg";
+          rev = "d1f0fbbfbec3b6af1d454d8677a5ef70c9558f60";
+          sha256 = "1wspsawipjancx3gdxaprp88grpd81bjz23ba0f90b09xqydasp9";
         };
         dependencies = [
           {
@@ -426,18 +336,12 @@ rec {
             packageId = "nanos_sdk";
           }
           {
-            name = "nanos_ui";
-            packageId = "nanos_ui";
-          }
-          {
             name = "zeroize";
             packageId = "zeroize";
             usesDefaultFeatures = false;
           }
         ];
-        features = {
-          "speculos" = [ "nanos_sdk/speculos" ];
-        };
+
       };
       "ledger-log" = rec {
         crateName = "ledger-log";
@@ -446,8 +350,8 @@ rec {
         workspace_member = null;
         src = pkgs.fetchgit {
           url = "https://github.com/alamgu/ledger-log";
-          rev = "02f702bbec9ca9802151fd261508580eb3826287";
-          sha256 = "03qic29qkvis54bgh40wwja89kcp6kz6acd0ifzyvcqxicpmikmy";
+          rev = "aa326b3078f5a470047b0d13bc2c00cec39e600c";
+          sha256 = "016j013zq38zci0dz60y3daz3l7bj3jd5w17r18gpj450jkxkmb6";
         };
         dependencies = [
           {
@@ -477,8 +381,8 @@ rec {
         workspace_member = null;
         src = pkgs.fetchgit {
           url = "https://github.com/alamgu/ledger-parser-combinators";
-          rev = "f785f6fc2f6b53ec38ca01f4800c6ed7ebcf83e0";
-          sha256 = "116j60x4yp65x377nd58sqj9wjslal3nhjpn49m20wpk6dvplaif";
+          rev = "354e94ee170cd464b699c45b5c8759459b43d715";
+          sha256 = "1gqfs6f6ym8v2qpj9169pq6hhd6l85rqz6xvnpipx9af9x1nb3hl";
         };
         authors = [
           "Jonathan D.K. Gibbons <jonored@gmail.com>"
@@ -532,6 +436,14 @@ rec {
           {
             name = "trie-enum";
             packageId = "trie-enum";
+          }
+        ];
+        devDependencies = [
+          {
+            name = "nanos_sdk";
+            packageId = "nanos_sdk";
+            target = {target, features}: (builtins.elem "bolos" target."family");
+            features = [ "speculos" ];
           }
         ];
         features = {
@@ -870,6 +782,97 @@ rec {
         ];
 
       };
+      "sui" = rec {
+        crateName = "sui";
+        version = "0.0.1";
+        edition = "2018";
+        crateBin = [
+          {
+            name = "sui";
+            path = "bin-src/main.rs";
+            requiredFeatures = [ ];
+          }
+        ];
+        # We can't filter paths with references in Nix 2.4
+        # See https://github.com/NixOS/nix/issues/5410
+        src = if (lib.versionOlder builtins.nixVersion "2.4pre20211007")
+          then lib.cleanSourceWith { filter = sourceFilter;  src = ./rust-app; }
+          else ./rust-app;
+        authors = [
+          "Ericson2314"
+          "dfordivam"
+          "dbzguy56"
+        ];
+        dependencies = [
+          {
+            name = "alamgu-async-block";
+            packageId = "alamgu-async-block";
+          }
+          {
+            name = "arrayvec";
+            packageId = "arrayvec";
+            usesDefaultFeatures = false;
+          }
+          {
+            name = "ledger-crypto-helpers";
+            packageId = "ledger-crypto-helpers";
+          }
+          {
+            name = "ledger-log";
+            packageId = "ledger-log";
+          }
+          {
+            name = "ledger-parser-combinators";
+            packageId = "ledger-parser-combinators";
+          }
+          {
+            name = "ledger-prompts-ui";
+            packageId = "ledger-prompts-ui";
+            target = { target, features }: (builtins.elem "bolos" target."family");
+          }
+          {
+            name = "nanos_sdk";
+            packageId = "nanos_sdk";
+            target = { target, features }: (builtins.elem "bolos" target."family");
+          }
+          {
+            name = "nanos_ui";
+            packageId = "nanos_ui";
+            target = { target, features }: (builtins.elem "bolos" target."family");
+          }
+          {
+            name = "pin-cell";
+            packageId = "pin-cell";
+          }
+          {
+            name = "pin-project";
+            packageId = "pin-project";
+          }
+          {
+            name = "zeroize";
+            packageId = "zeroize";
+            usesDefaultFeatures = false;
+          }
+        ];
+        devDependencies = [
+          {
+            name = "nanos_sdk";
+            packageId = "nanos_sdk";
+            target = {target, features}: (builtins.elem "bolos" target."family");
+            features = [ "speculos" ];
+          }
+          {
+            name = "testmacro";
+            packageId = "testmacro";
+          }
+        ];
+        features = {
+          "extra_debug" = [ "ledger-log/log_trace" ];
+          "pending_review_screen" = [ "nanos_sdk/pending_review_screen" ];
+          "speculos" = [ "nanos_sdk/speculos" "ledger-log/speculos" "ledger-log/log_error" "ledger-parser-combinators/logging" ];
+        };
+        resolvedDefaultFeatures = [ "default" "extra_debug" "pending_review_screen" "speculos" ];
+      };
       "syn" = rec {
         crateName = "syn";
         version = "1.0.99";
@@ -974,8 +977,8 @@ rec {
         workspace_member = null;
         src = pkgs.fetchgit {
           url = "https://github.com/alamgu/trie-enum";
-          rev = "551bddc313f2af5c2dedb79f3d6de7328e34b208";
-          sha256 = "0ixqf9wqzw9a7scc2gw3bdn952grny5vkrgxgj78dqpnp5dy7h47";
+          rev = "0dedf0d0a941fc47b830d25d008f5ea42fdd3db4";
+          sha256 = "0pcqn250n8ma94zy39blgvx8mxmdk1k6wzz03zs6bb4wfcv1y7pz";
         };
         dependencies = [
           {

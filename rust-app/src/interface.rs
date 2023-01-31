@@ -1,13 +1,58 @@
+use ledger_parser_combinators::bcs::async_parser::*;
 use ledger_parser_combinators::core_parsers::*;
 use ledger_parser_combinators::endianness::*;
 
 // Payload for a public key request
 pub type Bip32Key = DArray<Byte, U32<{ Endianness::Little }>, 10>;
 
-// Payload for a signature request, content-agnostic.
-pub type SignPayload = DArray<U32<{ Endianness::Little }>, Byte, { usize::MAX }>;
+pub type SignParameters = (IntentMessage, Bip32Key);
 
-pub type SignParameters = (SignPayload, Bip32Key);
+// Sui Types
+pub type IntentMessage = (Intent, TransactionData);
+
+pub type TransactionData = (
+    TransactionKind,
+    SuiAddress, // sender
+    ObjectRef,  // gas_payment
+    Amount,     // gas_price
+    Amount,     // gas_budget
+);
+
+pub struct SingleTransactionKind;
+
+pub struct TransactionKind;
+
+pub type ObjectRef = (ObjectID, SequenceNumber, ObjectDigest);
+
+pub type Pay = (Coins, Recipients, Amounts);
+pub type PayAllSui = (Coins, Recipient);
+pub type PaySui = (Coins, Recipients, Amounts);
+
+pub type AccountAddress = SuiAddress;
+pub type ObjectID = AccountAddress;
+pub type SequenceNumber = U64<{ Endianness::Little }>;
+pub type ObjectDigest = SHA3_256_HASH;
+
+pub const SUI_ADDRESS_LENGTH: usize = 20;
+pub type SuiAddress = Array<Byte, SUI_ADDRESS_LENGTH>;
+
+pub const MAX_COIN_COINT: usize = 5;
+pub type Coins = Vec<ObjectRef, MAX_COIN_COINT>;
+
+pub type Recipient = SuiAddress;
+pub type Recipients = Vec<Recipient, 1>;
+
+pub type Amount = U64<{ Endianness::Little }>;
+pub type Amounts = Vec<Amount, 1>;
+
+pub type Intent = (IntentVersion, IntentScope, AppId);
+pub type IntentVersion = ULEB128;
+pub type IntentScope = ULEB128;
+pub type AppId = ULEB128;
+
+// TODO: confirm if 33 is indeed ok for all uses of SHA3_256_HASH
+#[allow(non_camel_case_types)]
+pub type SHA3_256_HASH = Array<Byte, 33>;
 
 #[repr(u8)]
 #[derive(Debug)]
