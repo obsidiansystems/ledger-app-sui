@@ -5,7 +5,8 @@ use alamgu_async_block::*;
 use arrayvec::ArrayVec;
 use core::fmt::Write;
 use ledger_crypto_helpers::common::{try_option, Address, HexSlice};
-use ledger_crypto_helpers::eddsa::{ed25519_public_key_bytes, eddsa_sign, with_public_keys};
+use ledger_crypto_helpers::ed25519::Ed25519;
+use ledger_crypto_helpers::eddsa::{ed25519_public_key_bytes, with_public_keys};
 use ledger_crypto_helpers::hasher::{Hasher, SHA3_256};
 use ledger_log::trace;
 use ledger_parser_combinators::async_parser::*;
@@ -212,46 +213,66 @@ const fn tx_parser<BS: Readable>(
     Action((intent_parser(), transaction_data_parser()), |_| Some(()))
 }
 
-#[cfg(not(target_os = "nanos"))]
-const MAX_TX_SIZE: usize = 2048;
-#[cfg(target_os = "nanos")]
-const MAX_TX_SIZE: usize = 600;
-
 pub async fn sign_apdu(io: HostIO) {
     let mut input = io.get_params::<2>().unwrap();
 
     let length = usize::from_le_bytes(input[0].read().await);
-    let mut txn = input[0].clone();
 
-    trace!("Beginning parse");
-    tx_parser().parse(&mut txn).await;
-
-    let path = BIP_PATH_PARSER.parse(&mut input[1].clone()).await;
-
-    if with_public_keys(&path, |_, address: &SuiPubKeyAddress| {
-        try_option(|| -> Option<()> {
-            scroller("Sign for Address", |w| Ok(write!(w, "{address}")?))?;
-            final_accept_prompt(&["Sign Transaction?"])?;
-            Some(())
-        }())
-    })
-    .ok()
-    .is_none()
     {
-        reject::<()>().await;
+        let mut txn = input[0].clone();
+
+        trace!("Beginning parse");
+        tx_parser().parse(&mut txn).await;
     }
 
-    let mut tx = ArrayVec::<u8, MAX_TX_SIZE>::new();
-
     {
-        let mut txn2 = input[0].clone();
+        let path = BIP_PATH_PARSER.parse(&mut input[1].clone()).await;
+
+        (|| async move {
+            if with_public_keys(&path, |_, address: &SuiPubKeyAddress| {
+                try_option(|| -> Option<()> {
+                    scroller("Sign for Address", |w| Ok(write!(w, "{address}")?))?;
+                    final_accept_prompt(&["Sign Transaction?"])?;
+                    Some(())
+                }())
+            })
+            .ok()
+            .is_none()
+            {
+                reject::<()>().await;
+            }
+        })()
+        .await;
+    }
+
+    // By the time we get here, we've approved and just need to do the signature.
+    let mut ed = {
+        let path = BIP_PATH_PARSER.parse(&mut input[1].clone()).await;
+        match Ed25519::new(&path).ok() {
+            Some(ed) => ed,
+            _ => reject().await,
+        }
+    };
+
+    trace!("doing final");
+    {
+        let mut txn = input[0].clone();
         for _ in 0..length {
-            let [b]: [u8; 1] = txn2.read().await;
-            let _ = tx.try_push(b);
+            let b: [u8; 1] = txn.read().await;
+            ed.update(&b);
         }
     }
-    // By the time we get here, we've approved and just need to do the signature.
-    if let Some(sig) = { eddsa_sign(&path, &tx).ok() } {
+    if ed.done_with_r().ok().is_none() {
+        reject::<()>().await;
+    }
+    {
+        let mut txn = input[0].clone();
+        for _ in 0..length {
+            let b: [u8; 1] = txn.read().await;
+            ed.update(&b);
+        }
+    }
+    if let Some(sig) = { ed.finalize().ok() } {
         io.result_final(&sig.0[0..]).await;
     } else {
         reject::<()>().await;
