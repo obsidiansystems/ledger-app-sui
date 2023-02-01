@@ -42,34 +42,25 @@ const fn bytes_params_parser<BS: Readable>() -> BytesParamsT<BS> {
 pub type U16ParamsT<BS: Readable> =
     impl AsyncParser<U16Params, BS> + HasOutput<U16Params, Output = ()>;
 const fn u16_params_parser<BS: Readable>() -> U16ParamsT<BS> {
-    Action(
-        (DefaultInterp, DefaultInterp),
-        |(v1, v2): (u16, u16)| {
-            scroller("Got U16", |w| Ok(write!(w, "v1: {v1:?}, v2: {v2:?}")?))
-        },
-    )
+    Action((DefaultInterp, DefaultInterp), |(v1, v2): (u16, u16)| {
+        scroller("Got U16", |w| Ok(write!(w, "v1: {v1:?}, v2: {v2:?}")?))
+    })
 }
 
 pub type U32ParamsT<BS: Readable> =
     impl AsyncParser<U32Params, BS> + HasOutput<U32Params, Output = ()>;
 const fn u32_params_parser<BS: Readable>() -> U32ParamsT<BS> {
-    Action(
-        (DefaultInterp, DefaultInterp),
-        |(v1, v2): (u32, u32)| {
-            scroller("Got U32", |w| Ok(write!(w, "v1: {v1:?}, v2: {v2:?}")?))
-        },
-    )
+    Action((DefaultInterp, DefaultInterp), |(v1, v2): (u32, u32)| {
+        scroller("Got U32", |w| Ok(write!(w, "v1: {v1:?}, v2: {v2:?}")?))
+    })
 }
 
 pub type U64ParamsT<BS: Readable> =
     impl AsyncParser<U64Params, BS> + HasOutput<U64Params, Output = ()>;
 const fn u64_params_parser<BS: Readable>() -> U64ParamsT<BS> {
-    Action(
-        (DefaultInterp, DefaultInterp),
-        |(v1, v2): (u64, u64)| {
-            scroller("Got U64", |w| Ok(write!(w, "v1: {v1:?}, v2: {v2:?}")?))
-        },
-    )
+    Action((DefaultInterp, DefaultInterp), |(v1, v2): (u64, u64)| {
+        scroller("Got U64", |w| Ok(write!(w, "v1: {v1:?}, v2: {v2:?}")?))
+    })
 }
 
 pub type DArrayParamsT<BS: Readable> =
