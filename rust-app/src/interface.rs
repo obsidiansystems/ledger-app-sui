@@ -36,8 +36,7 @@ pub type ObjectDigest = SHA3_256_HASH;
 pub const SUI_ADDRESS_LENGTH: usize = 20;
 pub type SuiAddress = Array<Byte, SUI_ADDRESS_LENGTH>;
 
-pub const MAX_COIN_COINT: usize = 5;
-pub type Coins = Vec<ObjectRef, MAX_COIN_COINT>;
+pub type Coins = Vec<ObjectRef, { usize::MAX }>;
 
 pub type Recipient = SuiAddress;
 pub type Recipients = Vec<Recipient, 1>;

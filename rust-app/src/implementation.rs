@@ -216,67 +216,69 @@ const fn tx_parser<BS: Readable>(
 pub async fn sign_apdu(io: HostIO) {
     let mut input = io.get_params::<2>().unwrap();
 
+    // Read length, and move input[0] by one byte
     let length = usize::from_le_bytes(input[0].read().await);
 
-    {
-        let mut txn = input[0].clone();
+    NoinlineFut((|mut txn: ByteStream| async move {
+        {
+            trace!("Beginning parse");
+            tx_parser().parse(&mut txn).await;
+        }
+    })(input[0].clone()))
+    .await;
 
-        trace!("Beginning parse");
-        tx_parser().parse(&mut txn).await;
-    }
-
-    {
-        let path = BIP_PATH_PARSER.parse(&mut input[1].clone()).await;
-
-        (|| async move {
-            if with_public_keys(&path, |_, address: &SuiPubKeyAddress| {
-                try_option(|| -> Option<()> {
-                    scroller("Sign for Address", |w| Ok(write!(w, "{address}")?))?;
-                    final_accept_prompt(&["Sign Transaction?"])?;
-                    Some(())
-                }())
-            })
-            .ok()
-            .is_none()
-            {
-                reject::<()>().await;
-            }
-        })()
-        .await;
-    }
+    NoinlineFut((|mut bs: ByteStream| async move {
+        let path = BIP_PATH_PARSER.parse(&mut bs).await;
+        if with_public_keys(&path, |_, address: &SuiPubKeyAddress| {
+            try_option(|| -> Option<()> {
+                scroller("Sign for Address", |w| Ok(write!(w, "{address}")?))?;
+                final_accept_prompt(&["Sign Transaction?"])?;
+                Some(())
+            }())
+        })
+        .ok()
+        .is_none()
+        {
+            reject::<()>().await;
+        }
+    })(input[1].clone()))
+    .await;
 
     // By the time we get here, we've approved and just need to do the signature.
-    let mut ed = {
-        let path = BIP_PATH_PARSER.parse(&mut input[1].clone()).await;
-        match Ed25519::new(&path).ok() {
-            Some(ed) => ed,
-            _ => reject().await,
-        }
-    };
+    NoinlineFut((|input: ArrayVec<ByteStream, 2>| async move {
+        let mut ed = {
+            let path = BIP_PATH_PARSER.parse(&mut input[1].clone()).await;
+            match Ed25519::new(path).ok() {
+                Some(ed) => ed,
+                _ => reject().await,
+            }
+        };
 
-    trace!("doing final");
-    {
-        let mut txn = input[0].clone();
-        for _ in 0..length {
-            let b: [u8; 1] = txn.read().await;
-            ed.update(&b);
+        trace!("doing final");
+        {
+            let mut txn = input[0].clone();
+            for _ in 0..length {
+                let b: [u8; 1] = txn.read().await;
+                ed.update(&b);
+            }
         }
-    }
-    if ed.done_with_r().ok().is_none() {
-        reject::<()>().await;
-    }
-    {
-        let mut txn = input[0].clone();
-        for _ in 0..length {
-            let b: [u8; 1] = txn.read().await;
-            ed.update(&b);
+        if ed.done_with_r().ok().is_none() {
+            reject::<()>().await;
         }
-    }
-    if let Some(sig) = { ed.finalize().ok() } {
-        io.result_final(&sig.0[0..]).await;
-    } else {
-        reject::<()>().await;
-    }
+        {
+            let mut txn = input[0].clone();
+            for _ in 0..length {
+                let b: [u8; 1] = txn.read().await;
+                ed.update(&b);
+            }
+        }
+        if let Some(sig) = { ed.finalize().ok() } {
+            io.result_final(&sig.0[0..]).await;
+        } else {
+            reject::<()>().await;
+        }
+    })(input))
+    .await
 }
 
 pub type APDUsFuture = impl Future<Output = ()>;

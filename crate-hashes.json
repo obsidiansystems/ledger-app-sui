@@ -1,7 +1,7 @@
 {
   "alamgu-async-block 0.1.0 (git+https://github.com/alamgu/alamgu-async-block?branch=prompt-queueing#9c9a2ed83cfcc02f6d2b27718da2a1211e74c2d2)": "0saccj2g8zmiphzj444r7yrz7pdyk45pxcsnb79flx0f02by67v1",
   "enum-init 0.1.0 (git+https://github.com/alamgu/enum-init#5706da92215f1a5816d704229f8924d95d954a77)": "0vh10l6glg4fry3z8am9skdlg2xcs0maqz5f24awwd9vl4ac6fv6",
-  "ledger-crypto-helpers 0.2.0 (git+https://github.com/alamgu/ledger-crypto-helpers#d1f0fbbfbec3b6af1d454d8677a5ef70c9558f60)": "1wspsawipjancx3gdxaprp88grpd81bjz23ba0f90b09xqydasp9",
+  "ledger-crypto-helpers 0.2.0 (git+https://github.com/alamgu/ledger-crypto-helpers#17ad6868f9becfdab4208edd7f449689a931b2e0)": "0i9mxdw7rcpyi4ngh3prk0f05fyffwi210k6yz91fj2i8lpcfhi4",
   "ledger-log 0.2.0 (git+https://github.com/alamgu/ledger-log#aa326b3078f5a470047b0d13bc2c00cec39e600c)": "016j013zq38zci0dz60y3daz3l7bj3jd5w17r18gpj450jkxkmb6",
   "ledger-parser-combinators 0.1.0 (git+https://github.com/alamgu/ledger-parser-combinators?branch=async-split-take-2#b6452625ec304b0dab3206548cc524d8f2511050)": "11qdda9ymshzzd0my4akr9cyhwrsby85k5192kr12wh460mraakm",
   "ledger-prompts-ui 0.1.0 (git+https://github.com/alamgu/ledger-prompts-ui#3cef68c0275b2a4d16b73d28bd042a59a0570831)": "0qf33ndkl4rmbznhifg1bg32alrrbzn9gx793zwnkcx0dfrgc1nb",
