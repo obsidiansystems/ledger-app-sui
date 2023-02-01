@@ -248,7 +248,7 @@ pub async fn sign_apdu(io: HostIO) {
     // By the time we get here, we've approved and just need to do the signature.
     let mut ed = {
         let path = BIP_PATH_PARSER.parse(&mut input[1].clone()).await;
-        match Ed25519::new(&path).ok() {
+        match Ed25519::new(path).ok() {
             Some(ed) => ed,
             _ => reject().await,
         }
