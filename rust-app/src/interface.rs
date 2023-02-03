@@ -26,7 +26,9 @@ pub type ObjectRef = (ObjectID, SequenceNumber, ObjectDigest);
 
 pub type Pay = (Coins, Recipients, Amounts);
 pub type PayAllSui = (Coins, Recipient);
-pub type PaySui = (Coins, Recipients, Amounts);
+pub type PaySui = (Coins, RecipientsAndAmounts);
+
+pub struct RecipientsAndAmounts;
 
 pub type AccountAddress = SuiAddress;
 pub type ObjectID = AccountAddress;

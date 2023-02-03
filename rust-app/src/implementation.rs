@@ -90,7 +90,7 @@ impl HasOutput<SingleTransactionKind> for SingleTransactionKind {
     type Output = ();
 }
 
-impl<BS: Readable> AsyncParser<SingleTransactionKind, BS> for SingleTransactionKind {
+impl<BS: Clone + Readable> AsyncParser<SingleTransactionKind, BS> for SingleTransactionKind {
     type State<'c> = impl Future<Output = Self::Output> + 'c where BS: 'c;
     fn parse<'a: 'c, 'b: 'c, 'c>(&'b self, input: &'a mut BS) -> Self::State<'c> {
         async move {
@@ -112,7 +112,7 @@ impl HasOutput<TransactionKind> for TransactionKind {
     type Output = ();
 }
 
-impl<BS: Readable> AsyncParser<TransactionKind, BS> for TransactionKind {
+impl<BS: Clone + Readable> AsyncParser<TransactionKind, BS> for TransactionKind {
     type State<'c> = impl Future<Output = Self::Output> + 'c where BS: 'c;
     fn parse<'a: 'c, 'b: 'c, 'c>(&'b self, input: &'a mut BS) -> Self::State<'c> {
         async move {
@@ -133,32 +133,64 @@ impl<BS: Readable> AsyncParser<TransactionKind, BS> for TransactionKind {
     }
 }
 
-const fn pay_sui_parser<BS: Readable>(
+const fn pay_sui_parser<BS: Clone + Readable>(
 ) -> impl AsyncParser<PaySui, BS> + HasOutput<PaySui, Output = ()> {
     Action(
-        (
-            SubInterp(coin_parser()),
-            SubInterp(recipient_parser()),
-            SubInterp(DefaultInterp),
-        ),
-        |(_, mut recipients, mut amounts): (_, ArrayVec<SuiAddressRaw, 1>, ArrayVec<u64, 1>)| {
+        (SubInterp(coin_parser()), RecipientsAndAmounts),
+        |(_, _): (_, _)| {
             trace!("PaySui Ok");
-            trace!("Amounts: {:?}", amounts.as_ref());
-            let recipient = recipients.pop()?;
-            let amount = amounts.pop()?;
-            scroller("Transfer", |w| {
-                Ok(write!(w, "{amount} to 0x{}", HexSlice(&recipient))?)
-            })
+            Some(())
         },
     )
 }
 
-const fn recipient_parser<BS: Readable>(
-) -> impl AsyncParser<Recipient, BS> + HasOutput<Recipient, Output = SuiAddressRaw> {
-    Action(DefaultInterp, |v: SuiAddressRaw| {
-        trace!("Recipient Ok {}", HexSlice(&v[0..]));
-        Some(v)
-    })
+impl HasOutput<RecipientsAndAmounts> for RecipientsAndAmounts {
+    type Output = ();
+}
+
+impl<BS: Clone + Readable> AsyncParser<RecipientsAndAmounts, BS> for RecipientsAndAmounts {
+    type State<'c> = impl Future<Output = Self::Output> + 'c where BS: 'c;
+    fn parse<'a: 'c, 'b: 'c, 'c>(&'b self, input: &'a mut BS) -> Self::State<'c> {
+        async move {
+            let length =
+                <DefaultInterp as AsyncParser<ULEB128, BS>>::parse(&DefaultInterp, input).await;
+            trace!("RecipientsAndAmounts length: {}", length);
+            let mut amt_bs = input.clone();
+
+            for _ in 0..length {
+                <DefaultInterp as AsyncParser<Recipient, BS>>::parse(&DefaultInterp, &mut amt_bs)
+                    .await;
+            }
+
+            let length_amt =
+                <DefaultInterp as AsyncParser<ULEB128, BS>>::parse(&DefaultInterp, &mut amt_bs)
+                    .await;
+            if length != length_amt {
+                trace!(
+                    "RecipientsAndAmounts length != length_amt: {}, {}",
+                    length,
+                    length_amt
+                );
+                reject::<()>().await;
+            }
+            for _ in 0..length {
+                let recipient =
+                    <DefaultInterp as AsyncParser<Recipient, BS>>::parse(&DefaultInterp, input)
+                        .await;
+                let amount =
+                    <DefaultInterp as AsyncParser<Amount, BS>>::parse(&DefaultInterp, &mut amt_bs)
+                        .await;
+                if scroller("Transfer", |w| {
+                    Ok(write!(w, "{amount} to 0x{}", HexSlice(&recipient))?)
+                })
+                .is_none()
+                {
+                    reject::<()>().await;
+                }
+            }
+            *input = amt_bs;
+        }
+    }
 }
 
 const fn coin_parser<BS: Readable>(
@@ -190,7 +222,7 @@ const fn intent_parser<BS: Readable>(
     })
 }
 
-const fn transaction_data_parser<BS: Readable>(
+const fn transaction_data_parser<BS: Clone + Readable>(
 ) -> impl AsyncParser<TransactionData, BS> + HasOutput<TransactionData, Output = ()> {
     Action(
         (
@@ -208,7 +240,7 @@ const fn transaction_data_parser<BS: Readable>(
     )
 }
 
-const fn tx_parser<BS: Readable>(
+const fn tx_parser<BS: Clone + Readable>(
 ) -> impl AsyncParser<IntentMessage, BS> + HasOutput<IntentMessage, Output = ()> {
     Action((intent_parser(), transaction_data_parser()), |_| Some(()))
 }
