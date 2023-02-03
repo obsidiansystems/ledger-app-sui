@@ -2,6 +2,7 @@ use crate::interface::*;
 use crate::test_parsers::*;
 use crate::utils::*;
 use alamgu_async_block::*;
+use arrayvec::ArrayString;
 use arrayvec::ArrayVec;
 use core::fmt::Write;
 use ledger_crypto_helpers::common::{try_option, Address, HexSlice};
@@ -12,7 +13,7 @@ use ledger_log::trace;
 use ledger_parser_combinators::async_parser::*;
 use ledger_parser_combinators::bcs::async_parser::*;
 use ledger_parser_combinators::interp::*;
-use ledger_prompts_ui::final_accept_prompt;
+use ledger_prompts_ui::{final_accept_prompt, mk_prompt_write};
 use nanos_sdk::io::SyscallError;
 
 use core::convert::TryFrom;
@@ -173,16 +174,25 @@ impl<BS: Clone + Readable> AsyncParser<RecipientsAndAmounts, BS> for RecipientsA
                 );
                 reject::<()>().await;
             }
-            for _ in 0..length {
+            for i in 0..length {
                 let recipient =
                     <DefaultInterp as AsyncParser<Recipient, BS>>::parse(&DefaultInterp, input)
                         .await;
                 let amount =
                     <DefaultInterp as AsyncParser<Amount, BS>>::parse(&DefaultInterp, &mut amt_bs)
                         .await;
-                if scroller("Transfer", |w| {
-                    Ok(write!(w, "{amount} to 0x{}", HexSlice(&recipient))?)
-                })
+
+                if (|| -> Option<()> {
+                    let mut buffer: ArrayString<22> = ArrayString::new();
+                    if length > 1 {
+                        write!(mk_prompt_write(&mut buffer), "Transfer ({})", i + 1).ok()?;
+                    } else {
+                        write!(mk_prompt_write(&mut buffer), "Transfer").ok()?;
+                    }
+                    scroller(&buffer, |w| {
+                        Ok(write!(w, "{amount} to 0x{}", HexSlice(&recipient))?)
+                    })
+                })()
                 .is_none()
                 {
                     reject::<()>().await;
