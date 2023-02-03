@@ -2,6 +2,7 @@ use crate::interface::*;
 use crate::test_parsers::*;
 use crate::utils::*;
 use alamgu_async_block::*;
+use arrayvec::ArrayString;
 use arrayvec::ArrayVec;
 use core::fmt::Write;
 use ledger_crypto_helpers::common::{try_option, Address, HexSlice};
@@ -12,7 +13,7 @@ use ledger_log::trace;
 use ledger_parser_combinators::async_parser::*;
 use ledger_parser_combinators::bcs::async_parser::*;
 use ledger_parser_combinators::interp::*;
-use ledger_prompts_ui::final_accept_prompt;
+use ledger_prompts_ui::{final_accept_prompt, mk_prompt_write};
 use nanos_sdk::io::SyscallError;
 
 use core::convert::TryFrom;
@@ -90,7 +91,7 @@ impl HasOutput<SingleTransactionKind> for SingleTransactionKind {
     type Output = ();
 }
 
-impl<BS: Readable> AsyncParser<SingleTransactionKind, BS> for SingleTransactionKind {
+impl<BS: Clone + Readable> AsyncParser<SingleTransactionKind, BS> for SingleTransactionKind {
     type State<'c> = impl Future<Output = Self::Output> + 'c where BS: 'c;
     fn parse<'a: 'c, 'b: 'c, 'c>(&'b self, input: &'a mut BS) -> Self::State<'c> {
         async move {
@@ -112,7 +113,7 @@ impl HasOutput<TransactionKind> for TransactionKind {
     type Output = ();
 }
 
-impl<BS: Readable> AsyncParser<TransactionKind, BS> for TransactionKind {
+impl<BS: Clone + Readable> AsyncParser<TransactionKind, BS> for TransactionKind {
     type State<'c> = impl Future<Output = Self::Output> + 'c where BS: 'c;
     fn parse<'a: 'c, 'b: 'c, 'c>(&'b self, input: &'a mut BS) -> Self::State<'c> {
         async move {
@@ -133,32 +134,73 @@ impl<BS: Readable> AsyncParser<TransactionKind, BS> for TransactionKind {
     }
 }
 
-const fn pay_sui_parser<BS: Readable>(
+const fn pay_sui_parser<BS: Clone + Readable>(
 ) -> impl AsyncParser<PaySui, BS> + HasOutput<PaySui, Output = ()> {
     Action(
-        (
-            SubInterp(coin_parser()),
-            SubInterp(recipient_parser()),
-            SubInterp(DefaultInterp),
-        ),
-        |(_, mut recipients, mut amounts): (_, ArrayVec<SuiAddressRaw, 1>, ArrayVec<u64, 1>)| {
+        (SubInterp(coin_parser()), RecipientsAndAmounts),
+        |(_, _): (_, _)| {
             trace!("PaySui Ok");
-            trace!("Amounts: {:?}", amounts.as_ref());
-            let recipient = recipients.pop()?;
-            let amount = amounts.pop()?;
-            scroller("Transfer", |w| {
-                Ok(write!(w, "{amount} to 0x{}", HexSlice(&recipient))?)
-            })
+            Some(())
         },
     )
 }
 
-const fn recipient_parser<BS: Readable>(
-) -> impl AsyncParser<Recipient, BS> + HasOutput<Recipient, Output = SuiAddressRaw> {
-    Action(DefaultInterp, |v: SuiAddressRaw| {
-        trace!("Recipient Ok {}", HexSlice(&v[0..]));
-        Some(v)
-    })
+impl HasOutput<RecipientsAndAmounts> for RecipientsAndAmounts {
+    type Output = ();
+}
+
+impl<BS: Clone + Readable> AsyncParser<RecipientsAndAmounts, BS> for RecipientsAndAmounts {
+    type State<'c> = impl Future<Output = Self::Output> + 'c where BS: 'c;
+    fn parse<'a: 'c, 'b: 'c, 'c>(&'b self, input: &'a mut BS) -> Self::State<'c> {
+        async move {
+            let length =
+                <DefaultInterp as AsyncParser<ULEB128, BS>>::parse(&DefaultInterp, input).await;
+            trace!("RecipientsAndAmounts length: {}", length);
+            let mut amt_bs = input.clone();
+
+            for _ in 0..length {
+                <DefaultInterp as AsyncParser<Recipient, BS>>::parse(&DefaultInterp, &mut amt_bs)
+                    .await;
+            }
+
+            let length_amt =
+                <DefaultInterp as AsyncParser<ULEB128, BS>>::parse(&DefaultInterp, &mut amt_bs)
+                    .await;
+            if length != length_amt {
+                trace!(
+                    "RecipientsAndAmounts length != length_amt: {}, {}",
+                    length,
+                    length_amt
+                );
+                reject::<()>().await;
+            }
+            for i in 0..length {
+                let recipient =
+                    <DefaultInterp as AsyncParser<Recipient, BS>>::parse(&DefaultInterp, input)
+                        .await;
+                let amount =
+                    <DefaultInterp as AsyncParser<Amount, BS>>::parse(&DefaultInterp, &mut amt_bs)
+                        .await;
+
+                if (|| -> Option<()> {
+                    let mut buffer: ArrayString<22> = ArrayString::new();
+                    if length > 1 {
+                        write!(mk_prompt_write(&mut buffer), "Transfer ({})", i + 1).ok()?;
+                    } else {
+                        write!(mk_prompt_write(&mut buffer), "Transfer").ok()?;
+                    }
+                    scroller(&buffer, |w| {
+                        Ok(write!(w, "{amount} to 0x{}", HexSlice(&recipient))?)
+                    })
+                })()
+                .is_none()
+                {
+                    reject::<()>().await;
+                }
+            }
+            *input = amt_bs;
+        }
+    }
 }
 
 const fn coin_parser<BS: Readable>(
@@ -190,7 +232,7 @@ const fn intent_parser<BS: Readable>(
     })
 }
 
-const fn transaction_data_parser<BS: Readable>(
+const fn transaction_data_parser<BS: Clone + Readable>(
 ) -> impl AsyncParser<TransactionData, BS> + HasOutput<TransactionData, Output = ()> {
     Action(
         (
@@ -208,7 +250,7 @@ const fn transaction_data_parser<BS: Readable>(
     )
 }
 
-const fn tx_parser<BS: Readable>(
+const fn tx_parser<BS: Clone + Readable>(
 ) -> impl AsyncParser<IntentMessage, BS> + HasOutput<IntentMessage, Output = ()> {
     Action((intent_parser(), transaction_data_parser()), |_| Some(()))
 }
@@ -253,11 +295,16 @@ pub async fn sign_apdu(io: HostIO) {
                 _ => reject().await,
             }
         };
-
         trace!("doing final");
+        const CHUNK_SIZE: usize = 128;
         {
+            let (chunks, rem) = (length / CHUNK_SIZE, length % CHUNK_SIZE);
             let mut txn = input[0].clone();
-            for _ in 0..length {
+            for _ in 0..chunks {
+                let b: [u8; CHUNK_SIZE] = txn.read().await;
+                ed.update(&b);
+            }
+            for _ in 0..rem {
                 let b: [u8; 1] = txn.read().await;
                 ed.update(&b);
             }
@@ -266,8 +313,13 @@ pub async fn sign_apdu(io: HostIO) {
             reject::<()>().await;
         }
         {
+            let (chunks, rem) = (length / CHUNK_SIZE, length % CHUNK_SIZE);
             let mut txn = input[0].clone();
-            for _ in 0..length {
+            for _ in 0..chunks {
+                let b: [u8; CHUNK_SIZE] = txn.read().await;
+                ed.update(&b);
+            }
+            for _ in 0..rem {
                 let b: [u8; 1] = txn.read().await;
                 ed.update(&b);
             }
