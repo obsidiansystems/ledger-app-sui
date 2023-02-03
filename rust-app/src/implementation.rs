@@ -285,11 +285,16 @@ pub async fn sign_apdu(io: HostIO) {
                 _ => reject().await,
             }
         };
-
         trace!("doing final");
+        const CHUNK_SIZE: usize = 128;
         {
+            let (chunks, rem) = (length / CHUNK_SIZE, length % CHUNK_SIZE);
             let mut txn = input[0].clone();
-            for _ in 0..length {
+            for _ in 0..chunks {
+                let b: [u8; CHUNK_SIZE] = txn.read().await;
+                ed.update(&b);
+            }
+            for _ in 0..rem {
                 let b: [u8; 1] = txn.read().await;
                 ed.update(&b);
             }
@@ -298,8 +303,13 @@ pub async fn sign_apdu(io: HostIO) {
             reject::<()>().await;
         }
         {
+            let (chunks, rem) = (length / CHUNK_SIZE, length % CHUNK_SIZE);
             let mut txn = input[0].clone();
-            for _ in 0..length {
+            for _ in 0..chunks {
+                let b: [u8; CHUNK_SIZE] = txn.read().await;
+                ed.update(&b);
+            }
+            for _ in 0..rem {
                 let b: [u8; 1] = txn.read().await;
                 ed.update(&b);
             }
