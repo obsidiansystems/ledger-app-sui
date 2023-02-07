@@ -37,7 +37,7 @@ const setAcceptAutomationRules = async function() {
   });
 }
 
-const processPrompts = function(prompts: [any]) {
+const processPrompts = function(prompts: any[]) {
   const i = prompts.filter((a : any) => !ignoredScreens.includes(a["text"])); // .values();
   let header = "";
   let prompt = "";
@@ -93,7 +93,7 @@ const fixRefPromptsForSPlus = function(prompts: any[]) {
   });
 }
 
-const sendCommandAndAccept = async function(command : any, prompts : any) {
+const sendCommandAndAccept = async function(command : any, prompts : any[]) {
   await setAcceptAutomationRules();
   await Axios.delete(BASE_URL + "/events");
 
@@ -107,7 +107,7 @@ const sendCommandAndAccept = async function(command : any, prompts : any) {
   }
   if(err) throw(err);
 
-  const actual_prompts = processPrompts((await Axios.get(BASE_URL + "/events")).data["events"] as [any]);
+  const actual_prompts = processPrompts((await Axios.get(BASE_URL + "/events")).data["events"] as any[]);
   try {
     expect(actual_prompts).to.deep.equal(prompts);
   } catch(e) {
