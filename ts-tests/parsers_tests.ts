@@ -71,7 +71,7 @@ function buildPayload(obj: TestParsersSchema): Buffer {
     ]);
 }
 
-let doTestParsersAPDU = async function(
+const doTestParsersAPDU = async function(
   client: any,
   obj: TestParsersSchema,
 ): Promise<void> {
@@ -97,7 +97,7 @@ describe('parsers tests', () => {
   it('can parse a bunch of data', async () => {
 
     await sendCommandAndAccept(async (client : any) => {
-      let obj = {
+      const obj = {
 
         bytes_params: {
           v1: 255,
