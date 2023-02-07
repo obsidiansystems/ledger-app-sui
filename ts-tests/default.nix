@@ -8,13 +8,13 @@ let
   inherit (import (import ../dep/alamgu/thunk.nix) {}) thunkSource;
   yarnDepsNix = pkgs.runCommand "yarn-deps.nix" {} ''
     ${yarn2nix}/bin/yarn2nix --offline \
-      <(sed -e '/hw-app-obsidian-common/,/^$/d' ${./yarn.lock}) \
+      <(sed -e '/hw-app-alamgu/,/^$/d' ${./yarn.lock}) \
       > $out
   '';
   yarnPackageNix = pkgs.runCommand "yarn-package.nix" {} ''
-    # We sed hw-app-obsidian-common to a constant here, so that the package.json can be whatever; we're overriding it anyways.
+    # We sed hw-app-alamgu to a constant here, so that the package.json can be whatever; we're overriding it anyways.
     ${yarn2nix}/bin/yarn2nix --template \
-      <(sed 's/"hw-app-obsidian-common".*$/"hw-app-obsidian-common": "0.0.1",/' ${./package.json}) \
+      <(sed 's/"hw-app-alamgu".*$/"hw-app-alamgu": "0.0.1",/' ${./package.json}) \
       > $out
   '';
   nixLib = yarn2nix.nixLib;
@@ -80,17 +80,17 @@ let
           });
         };
 
-        "hw-app-obsidian-common@0.0.1" = super._buildNodePackage rec {
-          key = "hw-app-obsidian-common";
+        "hw-app-alamgu@0.0.1" = super._buildNodePackage rec {
+          key = "hw-app-alamgu";
           version = "0.0.1";
-          src = thunkSource ../dep/hw-app-obsidian-common;
+          src = thunkSource ../dep/hw-app-alamgu;
           buildPhase = ''
             ln -s $nodeModules node_modules
             node $nodeModules/.bin/tsc
             node $nodeModules/.bin/tsc -m ES6 --outDir lib-es
           '';
           nodeModules = nixLib.linkNodeDeps {
-            name = "hw-app-obsidian-common";
+            name = "hw-app-alamgu";
             dependencies = nodeBuildInputs ++ [
               (s."@types/node@^16.10.3")
               (s."typescript@^4.4.3")
