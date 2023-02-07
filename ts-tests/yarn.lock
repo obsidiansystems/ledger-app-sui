@@ -536,7 +536,7 @@ he@1.2.0:
 
 "hw-app-obsidian-common@git+https://github.com/alamgu/hw-app-obsidian-common":
   version "0.0.1"
-  resolved "git+https://github.com/alamgu/hw-app-obsidian-common.git#1c6028286a82989b1a43d40e38a65aa1471dfbc0"
+  resolved "git+https://github.com/alamgu/hw-app-obsidian-common.git#2054ebd0e2502ff7ffa49bc56ea536095b4b729d"
   dependencies:
     "@ledgerhq/hw-transport" "^6.3.0"
     fast-sha256 "^1.3.0"

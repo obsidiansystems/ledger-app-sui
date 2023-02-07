@@ -17,10 +17,13 @@ describe('basic tests', () => {
 
     await sendCommandAndAccept(async (client : Common) => {
       let rv = await client.getPublicKey("0");
-      expect(rv.publicKey).to.equal("8118ad392b9276e348c1473649a3bbb7ec2b39380e40898d25b55e9e6ee94ca3");
+      expect(new Buffer(rv.publicKey).toString('hex')).to.equal("8118ad392b9276e348c1473649a3bbb7ec2b39380e40898d25b55e9e6ee94ca3");
       return;
     }, [
-      { "header": "Provide Public Key", "prompt": "For Address     8118ad392b9276e348c1473649a3bbb7ec2b39380e40898d25b55e9e6ee94ca3" },
+      {
+        "header": "Provide Public Key",
+        "prompt": "For Address     8118ad392b9276e348c1473649a3bbb7ec2b39380e40898d25b55e9e6ee94ca3",
+      },
       {
         "text": "Confirm",
         "x": 43,
@@ -34,20 +37,20 @@ let nacl : Nacl =null;
 
 instantiate(n => { nacl=n; });
 
-function testTransaction(path: string, txn: string, prompts: any[]) {
+function testTransaction(path: string, txn0: string, prompts: any[]) {
      return async () => {
        await sendCommandAndAccept(
          async (client : Common) => {
-
-           let pubkey = (await client.getPublicKey(path)).publicKey;
+           const txn = Buffer.from(txn0, "hex");
+           let { publicKey } = await client.getPublicKey(path);
 
            // We don't want the prompts from getPublicKey in our result
            await Axios.delete(BASE_URL + "/events");
 
            let sig = await client.signTransaction(path, txn);
-           expect(sig.signature.length).to.equal(128);
-           let hash = blake2b(32).update(Buffer.from(txn, "hex")).digest();
-           let pass = nacl.crypto_sign_verify_detached(Buffer.from(sig.signature, 'hex'), hash, Buffer.from(pubkey, 'hex'));
+           expect(sig.signature.length).to.equal(64);
+           let hash = blake2b(32).update(txn).digest();
+           let pass = nacl.crypto_sign_verify_detached(sig.signature, hash, publicKey);
            expect(pass).to.equal(true);
          }, prompts);
      }
