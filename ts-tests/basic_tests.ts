@@ -16,7 +16,7 @@ describe('basic tests', () => {
   it('provides a public key', async () => {
 
     await sendCommandAndAccept(async (client : Sui) => {
-      let rv = await client.getPublicKey("44'/784'/0'");
+      const rv = await client.getPublicKey("44'/784'/0'");
       expect(new Buffer(rv.publicKey).toString('hex')).to.equal("3a33e8f670428a218e00c16bc6027021a45203eb0ef1fe3bb89e8c125db60eb4");
       expect(new Buffer(rv.address).toString('hex')).to.equal("1eee7846e89d1afbf57b5ad9f7bf105bd853985e");
       return;
@@ -39,21 +39,20 @@ let nacl : Nacl =null;
 instantiate(n => { nacl=n; });
 
 function testTransaction(path: string, txn0: string, prompts: any[]) {
-     return async () => {
-       await sendCommandAndAccept(
-         async (client : Sui) => {
-           const txn = Buffer.from(txn0, "hex");
-           let { publicKey } = await client.getPublicKey(path);
+  return async () => {
+    await sendCommandAndAccept(async (client : Sui) => {
+      const txn = Buffer.from(txn0, "hex");
+      const { publicKey } = await client.getPublicKey(path);
 
-           // We don't want the prompts from getPublicKey in our result
-           await Axios.delete(BASE_URL + "/events");
+      // We don't want the prompts from getPublicKey in our result
+      await Axios.delete(BASE_URL + "/events");
 
-           let sig = await client.signTransaction(path, txn);
-           expect(sig.signature.length).to.equal(64);
-           let pass = nacl.crypto_sign_verify_detached(sig.signature, txn, publicKey);
-           expect(pass).to.equal(true);
-         }, prompts);
-     }
+      const sig = await client.signTransaction(path, txn);
+      expect(sig.signature.length).to.equal(64);
+      const pass = nacl.crypto_sign_verify_detached(sig.signature, txn, publicKey);
+      expect(pass).to.equal(true);
+    }, prompts);
+  }
 }
 
 describe("Signing tests", function() {
