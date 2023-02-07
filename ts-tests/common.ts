@@ -1,7 +1,7 @@
 import SpeculosTransport from '@ledgerhq/hw-transport-node-speculos';
 import Axios from 'axios';
 import Transport from "./http-transport";
-import { Common } from "hw-app-obsidian-common";
+import { Common } from "hw-app-alamgu";
 import { expect } from 'chai';
 
 const ignoredScreens = [ "W e l c o m e", "Cancel", "Working...", "Exit", "Alamgu Example 0.0.1"]

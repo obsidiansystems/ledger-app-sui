@@ -2,7 +2,7 @@ import { sendCommandAndAccept, BASE_URL } from "./common";
 import { expect } from 'chai';
 import { describe, it } from 'mocha';
 import Axios from 'axios';
-import { Common } from "hw-app-obsidian-common";
+import { Common } from "hw-app-alamgu";
 import * as blake2b from "blake2b";
 import { instantiate, Nacl } from "js-nacl";
 
