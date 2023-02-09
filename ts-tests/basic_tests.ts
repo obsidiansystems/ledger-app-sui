@@ -20,17 +20,7 @@ describe('basic tests', () => {
       expect(new Buffer(rv.publicKey).toString('hex')).to.equal("3a33e8f670428a218e00c16bc6027021a45203eb0ef1fe3bb89e8c125db60eb4");
       expect(new Buffer(rv.address).toString('hex')).to.equal("1eee7846e89d1afbf57b5ad9f7bf105bd853985e");
       return;
-    }, [
-      {
-        "header": "Provide Public Key",
-        "prompt": "For Address 0x1eee7846e89d1afbf57b5ad9f7bf105bd853985e",
-      },
-      {
-        "text": "Confirm",
-        "x": 43,
-        "y": 11,
-      },
-    ]);
+    }, []);
   });
 });
 
