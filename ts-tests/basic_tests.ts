@@ -19,17 +19,7 @@ describe('basic tests', () => {
       const rv = await client.getPublicKey("0");
       expect(new Buffer(rv.publicKey).toString('hex')).to.equal("8118ad392b9276e348c1473649a3bbb7ec2b39380e40898d25b55e9e6ee94ca3");
       return;
-    }, [
-      {
-        "header": "Provide Public Key",
-        "prompt": "For Address     8118ad392b9276e348c1473649a3bbb7ec2b39380e40898d25b55e9e6ee94ca3",
-      },
-      {
-        "text": "Confirm",
-        "x": 43,
-        "y": 11,
-      },
-    ]);
+    }, []);
   });
 });
 
