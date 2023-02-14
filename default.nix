@@ -203,4 +203,8 @@ rec {
 
   inherit (pkgs.nodePackages) node2nix;
 
+  sui-cli = alamgu.crate2nix-tools.generatedCargoNix {
+    name = "sui-cli";
+    src = ./rust-app;
+  };
 }
