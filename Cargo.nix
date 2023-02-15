@@ -459,8 +459,8 @@ rec {
         workspace_member = null;
         src = pkgs.fetchgit {
           url = "https://github.com/alamgu/ledger-prompts-ui";
-          rev = "3cef68c0275b2a4d16b73d28bd042a59a0570831";
-          sha256 = "0qf33ndkl4rmbznhifg1bg32alrrbzn9gx793zwnkcx0dfrgc1nb";
+          rev = "c1b6ab13769735d3412fa9c3edf59b6ad5e68d1e";
+          sha256 = "0n8hiw4ambwdw6pg61j9clpnzn8mz3d6fzkb1f2ia64zydbdf6gs";
         };
         dependencies = [
           {

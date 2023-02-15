@@ -34,7 +34,7 @@ const fn bytes_params_parser<BS: Readable>() -> BytesParamsT<BS> {
     Action(
         (DefaultInterp, DefaultInterp),
         |(v1, v2): (u8, [u8; 32])| {
-            scroller("Got Bytes", |w| Ok(write!(w, "v1: {v1:?}, v2: {v2:02x?}")?))
+            scroller_paginated("Got Bytes", |w| Ok(write!(w, "v1: {v1:?}, v2: {v2:02x?}")?))
         },
     )
 }
@@ -59,7 +59,7 @@ pub type U64ParamsT<BS: Readable> =
     impl AsyncParser<U64Params, BS> + HasOutput<U64Params, Output = ()>;
 const fn u64_params_parser<BS: Readable>() -> U64ParamsT<BS> {
     Action((DefaultInterp, DefaultInterp), |(v1, v2): (u64, u64)| {
-        scroller("Got U64", |w| Ok(write!(w, "v1: {v1:?}, v2: {v2:?}")?))
+        scroller_paginated("Got U64", |w| Ok(write!(w, "v1: {v1:?}, v2: {v2:?}")?))
     })
 }
 

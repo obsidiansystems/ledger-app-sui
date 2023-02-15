@@ -93,6 +93,30 @@ const fixRefPromptsForSPlus = function(prompts: any[]) {
   });
 }
 
+const paginate_prompts = function(page_length: number, prompts: any[]) {
+  let rv = [];
+  for (var ii in prompts) {
+    const value = prompts[ii];
+    if (value["paginate"]) {
+      const header = value["header"];
+      const prompt = value["prompt"];
+      let prompt_chunks = prompt.match(new RegExp('.{1,' + page_length + '}', 'g'));
+      if (prompt_chunks.length == 1) {
+        rv.push({header, prompt});
+      } else {
+        for (var j in prompt_chunks) {
+          const chunk = prompt_chunks[j];
+          let header_j = header + " (" + (Number(j) + 1).toString() + "/" + prompt_chunks.length.toString() + ")";
+          rv.push({"header": header_j, "prompt": chunk});
+        }
+      }
+    } else {
+      rv.push(value);
+    }
+  }
+  return rv;
+}
+
 const sendCommandAndAccept = async function(command : any, prompts : any[]) {
   await setAcceptAutomationRules();
   await Axios.delete(BASE_URL + "/events");
@@ -108,10 +132,10 @@ const sendCommandAndAccept = async function(command : any, prompts : any[]) {
 
   const actual_prompts = processPrompts((await Axios.get(BASE_URL + "/events")).data["events"] as any[]);
   try {
-    expect(actual_prompts).to.deep.equal(prompts);
+    expect(actual_prompts).to.deep.equal(paginate_prompts(16, prompts));
   } catch(e) {
     try {
-      expect(fixActualPromptsForSPlus(actual_prompts)).to.deep.equal(fixRefPromptsForSPlus(prompts));
+      expect(fixActualPromptsForSPlus(actual_prompts)).to.deep.equal(fixRefPromptsForSPlus(paginate_prompts(48, prompts)));
     } catch (_) {
       // Throw the original error if there is a mismatch as it is generally more useful
       throw(e);
