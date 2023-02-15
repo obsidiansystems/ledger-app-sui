@@ -177,15 +177,26 @@ impl<BS: Clone + Readable> AsyncParser<RecipientsAndAmounts, BS> for RecipientsA
                         .await;
 
                 if (|| -> Option<()> {
-                    let mut buffer: ArrayString<22> = ArrayString::new();
-                    if length > 1 {
-                        write!(mk_prompt_write(&mut buffer), "Transfer ({})", i + 1).ok()?;
-                    } else {
-                        write!(mk_prompt_write(&mut buffer), "Transfer").ok()?;
+                    {
+                        let mut buffer: ArrayString<16> = ArrayString::new();
+                        if length > 1 {
+                            write!(mk_prompt_write(&mut buffer), "To ({})", i + 1).ok()?;
+                        } else {
+                            write!(mk_prompt_write(&mut buffer), "To").ok()?;
+                        }
+                        scroller_paginated(&buffer, |w| {
+                            Ok(write!(w, "0x{}", HexSlice(&recipient))?)
+                        })?
                     }
-                    scroller(&buffer, |w| {
-                        Ok(write!(w, "{amount} to 0x{}", HexSlice(&recipient))?)
-                    })
+                    {
+                        let mut buffer: ArrayString<16> = ArrayString::new();
+                        if length > 1 {
+                            write!(mk_prompt_write(&mut buffer), "Amount ({})", i + 1).ok()?;
+                        } else {
+                            write!(mk_prompt_write(&mut buffer), "Amount").ok()?;
+                        }
+                        scroller_paginated(&buffer, |w| Ok(write!(w, "{amount}")?))
+                    }
                 })()
                 .is_none()
                 {
@@ -237,8 +248,11 @@ const fn transaction_data_parser<BS: Clone + Readable>(
             DefaultInterp,
         ),
         |(_, _sender, _, gas_price, gas_budget): (_, _, _, u64, u64)| {
-            scroller("Gas", |w| {
-                Ok(write!(w, "Price: {}, Budget: {}", gas_price, gas_budget)?)
+            scroller("Paying Gas (1/2)", |w| {
+                Ok(write!(w, "At most {}", gas_budget,)?)
+            })?;
+            scroller("Paying Gas (2/2)", |w| {
+                Ok(write!(w, "Price {}", gas_price)?)
             })
         },
     )
@@ -255,20 +269,14 @@ pub async fn sign_apdu(io: HostIO) {
     // Read length, and move input[0] by one byte
     let length = usize::from_le_bytes(input[0].read().await);
 
-    NoinlineFut((|mut txn: ByteStream| async move {
-        {
-            trace!("Beginning parse");
-            tx_parser().parse(&mut txn).await;
-        }
-    })(input[0].clone()))
-    .await;
-
+    if scroller("Transfer", |w| Ok(write!(w, "SUI")?)).is_none() {
+        reject::<()>().await;
+    };
     NoinlineFut((|mut bs: ByteStream| async move {
         let path = BIP_PATH_PARSER.parse(&mut bs).await;
         if with_public_keys(&path, |_, address: &SuiPubKeyAddress| {
             try_option(|| -> Option<()> {
-                scroller("Sign for Address", |w| Ok(write!(w, "{address}")?))?;
-                final_accept_prompt(&["Sign Transaction?"])?;
+                scroller_paginated("From", |w| Ok(write!(w, "{address}")?))?;
                 Some(())
             }())
         })
@@ -279,6 +287,18 @@ pub async fn sign_apdu(io: HostIO) {
         }
     })(input[1].clone()))
     .await;
+
+    NoinlineFut((|mut txn: ByteStream| async move {
+        {
+            trace!("Beginning parse");
+            tx_parser().parse(&mut txn).await;
+        }
+    })(input[0].clone()))
+    .await;
+
+    if final_accept_prompt(&["Sign Transaction?"]).is_none() {
+        reject::<()>().await;
+    };
 
     // By the time we get here, we've approved and just need to do the signature.
     NoinlineFut((|input: ArrayVec<ByteStream, 2>| async move {
