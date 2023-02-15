@@ -260,7 +260,51 @@ describe("Signing tests", function() {
            "text": "Confirm",
            "x": 43,
            "y": 11,
-         }
+         },
+       ]
+     ));
+
+  it("can sign a transaction from the web wallet",
+     testTransaction(
+       "m/44'/784'/0'/0/0",
+       "00000000050217a92f69e4967728db48687d250cf380f282aa5a570500000000000020a48499a5194408655004ea71cdc708316674580dc7a3f37506b42595ea04dabc29f6aaafd8777c4053b5fb671fdf34dde8abe8c37905000000000000203817c0a99f2f7c2be394acb0f71f0082a81c9eb4fa3c44ff605fe317dd0b19ce01af586283d8dfded7155c65b2546fa2a317230d31018096980000000000af586283d8dfded7155c65b2546fa2a317230d3117a92f69e4967728db48687d250cf380f282aa5a570500000000000020a48499a5194408655004ea71cdc708316674580dc7a3f37506b42595ea04dabc01000000000000002c01000000000000",
+       [
+         {
+           "header": "Transfer",
+           "prompt": "SUI",
+         },
+         {
+           "header": "From",
+           "prompt": "0xaf586283d8dfded7155c65b2546fa2a317230d31",
+           "paginate": true,
+         },
+         {
+           "header": "To",
+           "prompt": "0xaf586283d8dfded7155c65b2546fa2a317230d31",
+           "paginate": true,
+         },
+         {
+           "header": "Amount",
+           "prompt": "10000000",
+         },
+         {
+           "header": "Paying Gas (1/2)",
+           "prompt": "At most 300",
+         },
+         {
+           "header": "Paying Gas (2/2)",
+           "prompt": "Price 1",
+         },
+         {
+           "text": "Sign Transaction?",
+           "x": 19,
+           "y": 11,
+         },
+         {
+           "text": "Confirm",
+           "x": 43,
+           "y": 11,
+         },
        ]
      ));
 });
