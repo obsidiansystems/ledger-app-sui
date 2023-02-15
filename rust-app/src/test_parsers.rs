@@ -39,7 +39,7 @@ const fn bytes_params_parser() -> BytesParamsT {
         mkmvfn(
             |(v1, v2): (Option<u8>, Option<[u8; 32]>), destination: &mut Option<()>| {
                 *destination = Some(());
-                scroller("Got Bytes", |w| Ok(write!(w, "v1: {}, v2: {:02x?}", v1.as_ref().ok_or(ScrollerError)?, v2.as_ref().ok_or(ScrollerError)?)?))
+                scroller_paginated("Got Bytes", |w| Ok(write!(w, "v1: {}, v2: {:02x?}", v1.as_ref().ok_or(ScrollerError)?, v2.as_ref().ok_or(ScrollerError)?)?))
             },
         ),
     )
@@ -78,7 +78,7 @@ const fn u64_params_parser() -> U64ParamsT {
         mkmvfn(
             |(v1, v2): (Option<u64>, Option<u64>), destination: &mut Option<()>| {
                 *destination = Some(());
-                scroller("Got U64", |w| Ok(write!(w, "v1: {}, v2: {}", v1.as_ref().ok_or(ScrollerError)?, v2.as_ref().ok_or(ScrollerError)?)?))
+                scroller_paginated("Got U64", |w| Ok(write!(w, "v1: {}, v2: {}", v1.as_ref().ok_or(ScrollerError)?, v2.as_ref().ok_or(ScrollerError)?)?))
             },
         ),
     )
