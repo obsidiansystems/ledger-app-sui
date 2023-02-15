@@ -154,7 +154,7 @@ dependencies = [
 [[package]]
 name = "ledger-prompts-ui"
 version = "0.1.0"
-source = "git+https://github.com/alamgu/ledger-prompts-ui#3cef68c0275b2a4d16b73d28bd042a59a0570831"
+source = "git+https://github.com/alamgu/ledger-prompts-ui#c1b6ab13769735d3412fa9c3edf59b6ad5e68d1e"
 dependencies = [
  "arrayvec",
  "ledger-log",
