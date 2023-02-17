@@ -420,8 +420,8 @@ rec {
         workspace_member = null;
         src = pkgs.fetchgit {
           url = "https://github.com/alamgu/ledger-parser-combinators";
-          rev = "7bf12e17728a326ddca6eaad3797e05b5491082d";
-          sha256 = "0r0vy0fbapj3is91c3ds3qry56k4qbzv7lp2w33bgjymmckx6l8w";
+          rev = "42e75ab7b8cd900889c553dab7908acd6cd8b9c9";
+          sha256 = "0qvyf2xswi0k5fhbm1wln76j4ymd6wp407ywwy66gdp8sc9kybsr";
         };
         authors = [
           "Jonathan D.K. Gibbons <jonored@gmail.com>"
