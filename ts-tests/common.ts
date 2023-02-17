@@ -123,7 +123,7 @@ const sendCommandAndAccept = async function(command : any, prompts : any[]) {
 
   const transport = await Transport.open(BASE_URL + "/apdu");
   const client = new Common(transport, "alamgu-example");
-  // client.sendChunks = client.sendWithBlocks; // Use Block protocol
+  client.sendChunks = client.sendWithBlocks; // Use Block protocol
   let err = null;
 
   try { await command(client); } catch(e) {

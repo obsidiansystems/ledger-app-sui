@@ -21,9 +21,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "alamgu-async-block"
+version = "0.1.0"
+source = "git+https://github.com/alamgu/alamgu-async-block?branch=prompt-queueing#9c9a2ed83cfcc02f6d2b27718da2a1211e74c2d2"
+dependencies = [
+ "arrayvec",
+ "ledger-log",
+ "ledger-parser-combinators",
+ "nanos_sdk",
+ "nanos_ui",
+ "pin-project",
+]
+
+[[package]]
 name = "alamgu-example"
 version = "0.0.1"
 dependencies = [
+ "alamgu-async-block",
  "arrayvec",
  "ledger-crypto-helpers",
  "ledger-log",
@@ -31,6 +45,8 @@ dependencies = [
  "ledger-prompts-ui",
  "nanos_sdk",
  "nanos_ui",
+ "pin-cell",
+ "pin-project",
  "testmacro",
  "zeroize",
 ]
@@ -120,7 +136,7 @@ dependencies = [
 [[package]]
 name = "ledger-parser-combinators"
 version = "0.1.0"
-source = "git+https://github.com/alamgu/ledger-parser-combinators#7bf12e17728a326ddca6eaad3797e05b5491082d"
+source = "git+https://github.com/alamgu/ledger-parser-combinators?branch=async-split-take-2#b6452625ec304b0dab3206548cc524d8f2511050"
 dependencies = [
  "arrayvec",
  "bstringify",
@@ -128,7 +144,11 @@ dependencies = [
  "generic-array",
  "ledger-log",
  "nanos_sdk",
+ "num-derive",
+ "num-traits",
  "paste",
+ "pin-project",
+ "trie-enum",
 ]
 
 [[package]]
@@ -176,6 +196,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "num-derive"
+version = "0.3.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "876a53fff98e03a936a674b29568b0e605f06b29372c2489ff4de23f1949743d"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "num-traits"
 version = "0.2.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -189,6 +220,32 @@ name = "paste"
 version = "1.0.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d01a5bd0424d00070b0098dd17ebca6f961a959dead1dbcbbbc1d1cd8d3deeba"
+
+[[package]]
+name = "pin-cell"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e1f4c4ebd3c5f82080164b7d9cc8e505cd9536fda8c750b779daceb4b7180a7b"
+
+[[package]]
+name = "pin-project"
+version = "1.0.12"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ad29a609b6bcd67fee905812e544992d216af9d755757c05ed2d0e15a74c6ecc"
+dependencies = [
+ "pin-project-internal",
+]
+
+[[package]]
+name = "pin-project-internal"
+version = "1.0.12"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "069bdb1e05adc7a8990dce9cc75370895fbe4e3d58b9b73bf1aee56359344a55"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
 
 [[package]]
 name = "proc-macro2"
@@ -270,6 +327,14 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8576dbbfcaef9641452d5cf0df9b0e7eeab7694956dd33bb61515fb8f18cfdd5"
 dependencies = [
  "thread-id",
+]
+
+[[package]]
+name = "trie-enum"
+version = "0.1.0"
+source = "git+https://github.com/alamgu/trie-enum#0dedf0d0a941fc47b830d25d008f5ea42fdd3db4"
+dependencies = [
+ "paste",
 ]
 
 [[package]]

@@ -121,6 +121,45 @@ rec {
         ];
 
       };
+      "alamgu-async-block" = rec {
+        crateName = "alamgu-async-block";
+        version = "0.1.0";
+        edition = "2018";
+        workspace_member = null;
+        src = pkgs.fetchgit {
+          url = "https://github.com/alamgu/alamgu-async-block";
+          rev = "9c9a2ed83cfcc02f6d2b27718da2a1211e74c2d2";
+          sha256 = "0saccj2g8zmiphzj444r7yrz7pdyk45pxcsnb79flx0f02by67v1";
+        };
+        dependencies = [
+          {
+            name = "arrayvec";
+            packageId = "arrayvec";
+            usesDefaultFeatures = false;
+          }
+          {
+            name = "ledger-log";
+            packageId = "ledger-log";
+          }
+          {
+            name = "ledger-parser-combinators";
+            packageId = "ledger-parser-combinators";
+          }
+          {
+            name = "nanos_sdk";
+            packageId = "nanos_sdk";
+          }
+          {
+            name = "nanos_ui";
+            packageId = "nanos_ui";
+          }
+          {
+            name = "pin-project";
+            packageId = "pin-project";
+          }
+        ];
+
+      };
       "alamgu-example" = rec {
         crateName = "alamgu-example";
         version = "0.0.1";
@@ -142,6 +181,10 @@ rec {
           "yhql"
         ];
         dependencies = [
+          {
+            name = "alamgu-async-block";
+            packageId = "alamgu-async-block";
+          }
           {
             name = "arrayvec";
             packageId = "arrayvec";
@@ -173,6 +216,14 @@ rec {
             name = "nanos_ui";
             packageId = "nanos_ui";
             target = { target, features }: (builtins.elem "bolos" target."family");
+          }
+          {
+            name = "pin-cell";
+            packageId = "pin-cell";
+          }
+          {
+            name = "pin-project";
+            packageId = "pin-project";
           }
           {
             name = "zeroize";
@@ -420,8 +471,8 @@ rec {
         workspace_member = null;
         src = pkgs.fetchgit {
           url = "https://github.com/alamgu/ledger-parser-combinators";
-          rev = "7bf12e17728a326ddca6eaad3797e05b5491082d";
-          sha256 = "0r0vy0fbapj3is91c3ds3qry56k4qbzv7lp2w33bgjymmckx6l8w";
+          rev = "b6452625ec304b0dab3206548cc524d8f2511050";
+          sha256 = "11qdda9ymshzzd0my4akr9cyhwrsby85k5192kr12wh460mraakm";
         };
         authors = [
           "Jonathan D.K. Gibbons <jonored@gmail.com>"
@@ -449,17 +500,40 @@ rec {
             name = "ledger-log";
             packageId = "ledger-log";
             optional = true;
-            features = [ "log_trace" ];
           }
           {
             name = "nanos_sdk";
             packageId = "nanos_sdk";
             target = { target, features }: (builtins.elem "bolos" target."family");
-            features = [ "speculos" ];
+          }
+          {
+            name = "num-derive";
+            packageId = "num-derive";
+          }
+          {
+            name = "num-traits";
+            packageId = "num-traits";
+            usesDefaultFeatures = false;
           }
           {
             name = "paste";
             packageId = "paste";
+          }
+          {
+            name = "pin-project";
+            packageId = "pin-project";
+          }
+          {
+            name = "trie-enum";
+            packageId = "trie-enum";
+          }
+        ];
+        devDependencies = [
+          {
+            name = "nanos_sdk";
+            packageId = "nanos_sdk";
+            target = {target, features}: (builtins.elem "bolos" target."family");
+            features = [ "speculos" ];
           }
         ];
         features = {
@@ -591,6 +665,34 @@ rec {
         ];
 
       };
+      "num-derive" = rec {
+        crateName = "num-derive";
+        version = "0.3.3";
+        edition = "2018";
+        sha256 = "0gbl94ckzqjdzy4j8b1p55mz01g6n1l9bckllqvaj0wfz7zm6sl7";
+        procMacro = true;
+        libName = "num_derive";
+        authors = [
+          "The Rust Project Developers"
+        ];
+        dependencies = [
+          {
+            name = "proc-macro2";
+            packageId = "proc-macro2";
+          }
+          {
+            name = "quote";
+            packageId = "quote";
+          }
+          {
+            name = "syn";
+            packageId = "syn";
+          }
+        ];
+        features = {
+          "full-syntax" = [ "syn/full" ];
+        };
+      };
       "num-traits" = rec {
         crateName = "num-traits";
         version = "0.2.15";
@@ -618,6 +720,53 @@ rec {
         procMacro = true;
         authors = [
           "David Tolnay <dtolnay@gmail.com>"
+        ];
+
+      };
+      "pin-cell" = rec {
+        crateName = "pin-cell";
+        version = "0.2.0";
+        edition = "2018";
+        sha256 = "0yqa32vv9knsg6vm1ix8zlv9bk85wp49qzab2s021y65sgmw9x71";
+        authors = [
+          "Without Boats <boats@mozilla.com>"
+          "dignifiedquire <me@dignifiedquire.com>"
+        ];
+
+      };
+      "pin-project" = rec {
+        crateName = "pin-project";
+        version = "1.0.12";
+        edition = "2018";
+        sha256 = "1k3f9jkia3idxl2pqxamszwnl89dk52fa4jqj3p7zmmwnq4scadd";
+        dependencies = [
+          {
+            name = "pin-project-internal";
+            packageId = "pin-project-internal";
+          }
+        ];
+
+      };
+      "pin-project-internal" = rec {
+        crateName = "pin-project-internal";
+        version = "1.0.12";
+        edition = "2018";
+        sha256 = "0maa6icn7rdfy4xvgfaq7m7bwpw9f19wg76f1ncsiixd0lgdp6q6";
+        procMacro = true;
+        dependencies = [
+          {
+            name = "proc-macro2";
+            packageId = "proc-macro2";
+          }
+          {
+            name = "quote";
+            packageId = "quote";
+          }
+          {
+            name = "syn";
+            packageId = "syn";
+            features = [ "full" "visit-mut" ];
+          }
         ];
 
       };
@@ -755,7 +904,7 @@ rec {
           "quote" = [ "dep:quote" ];
           "test" = [ "syn-test-suite/all-features" ];
         };
-        resolvedDefaultFeatures = [ "clone-impls" "default" "derive" "full" "parsing" "printing" "proc-macro" "quote" ];
+        resolvedDefaultFeatures = [ "clone-impls" "default" "derive" "full" "parsing" "printing" "proc-macro" "quote" "visit-mut" ];
       };
       "testmacro" = rec {
         crateName = "testmacro";
@@ -816,6 +965,24 @@ rec {
           {
             name = "thread-id";
             packageId = "thread-id";
+          }
+        ];
+
+      };
+      "trie-enum" = rec {
+        crateName = "trie-enum";
+        version = "0.1.0";
+        edition = "2018";
+        workspace_member = null;
+        src = pkgs.fetchgit {
+          url = "https://github.com/alamgu/trie-enum";
+          rev = "0dedf0d0a941fc47b830d25d008f5ea42fdd3db4";
+          sha256 = "0pcqn250n8ma94zy39blgvx8mxmdk1k6wzz03zs6bb4wfcv1y7pz";
+        };
+        dependencies = [
+          {
+            name = "paste";
+            packageId = "paste";
           }
         ];
 
