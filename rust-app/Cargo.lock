@@ -118,7 +118,7 @@ dependencies = [
 [[package]]
 name = "ledger-parser-combinators"
 version = "0.1.0"
-source = "git+https://github.com/alamgu/ledger-parser-combinators?branch=async-split-take-2#b6452625ec304b0dab3206548cc524d8f2511050"
+source = "git+https://github.com/alamgu/ledger-parser-combinators?branch=async-split-take-2#2dccafbdaab9332cb209c3bb14f5e594aed2c374"
 dependencies = [
  "arrayvec",
  "bstringify",
