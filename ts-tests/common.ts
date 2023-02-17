@@ -1,36 +1,49 @@
 import SpeculosTransport from '@ledgerhq/hw-transport-node-speculos';
 import Axios from 'axios';
 import Transport from "./http-transport";
-import { Common } from "hw-app-obsidian-common";
+import { Common } from "hw-app-alamgu";
 import { expect } from 'chai';
 
-let ignoredScreens = [ "W e l c o m e", "Cancel", "Working...", "Exit", "Alamgu Example 0.0.1"]
+const ignoredScreens = [ "W e l c o m e", "Cancel", "Working...", "Exit", "Alamgu Example 0.0.1"]
 
 const API_PORT: number = 5005;
 
 const BASE_URL: string = `http://127.0.0.1:${API_PORT}`;
 
-let setAcceptAutomationRules = async function() {
-    await Axios.post(BASE_URL + "/automation", {
-      version: 1,
-      rules: [
-        ... ignoredScreens.map(txt => { return { "text": txt, "actions": [] } }),
-        { "y": 16, "actions": [] },
-        { "y": 31, "actions": [] },
-        { "y": 46, "actions": [] },
-        { "text": "Confirm", "actions": [ [ "button", 1, true ], [ "button", 2, true ], [ "button", 2, false ], [ "button", 1, false ] ]},
-        { "actions": [ [ "button", 2, true ], [ "button", 2, false ] ]}
-      ]
-    });
+const setAcceptAutomationRules = async function() {
+  await Axios.post(BASE_URL + "/automation", {
+    version: 1,
+    rules: [
+      ... ignoredScreens.map(txt => { return { "text": txt, "actions": [] } }),
+      { "y": 16, "actions": [] },
+      { "y": 31, "actions": [] },
+      { "y": 46, "actions": [] },
+      {
+        "text": "Confirm",
+        "actions": [
+          [ "button", 1, true ],
+          [ "button", 2, true ],
+          [ "button", 2, false ],
+          [ "button", 1, false ],
+        ],
+      },
+      {
+        "actions": [
+          [ "button", 2, true ],
+          [ "button", 2, false ],
+        ],
+      }
+    ]
+  });
 }
 
-let processPrompts = function(prompts: [any]) {
-  let i = prompts.filter((a : any) => !ignoredScreens.includes(a["text"])); // .values();
+const processPrompts = function(prompts: any[]) {
+  const i = prompts.filter((a : any) => !ignoredScreens.includes(a["text"])); // .values();
   let header = "";
   let prompt = "";
   let rv = [];
   for (var ii in i) {
-    let value = i[ii];
+    const value = i[ii];
     if(value["y"] == 1) {
       if(value["text"] != header) {
         if(header || prompt) rv.push({ header, prompt });
@@ -54,7 +67,7 @@ let processPrompts = function(prompts: [any]) {
   return rv;
 }
 
-let fixActualPromptsForSPlus = function(prompts: any[]) {
+const fixActualPromptsForSPlus = function(prompts: any[]) {
   return prompts.map ( (value) => {
     if (value["text"]) {
       value["x"] = "<patched>";
@@ -64,9 +77,9 @@ let fixActualPromptsForSPlus = function(prompts: any[]) {
 }
 
 // HACK to workaround the OCR bug https://github.com/LedgerHQ/speculos/issues/204
-let fixRefPromptsForSPlus = function(prompts: any[]) {
+const fixRefPromptsForSPlus = function(prompts: any[]) {
   return prompts.map ( (value) => {
-    let fixF = (str: string) => {
+    const fixF = (str: string) => {
       return str.replace(/S/g,"").replace(/I/g, "l");
     };
     if (value["header"]) {
@@ -80,12 +93,36 @@ let fixRefPromptsForSPlus = function(prompts: any[]) {
   });
 }
 
-let sendCommandAndAccept = async function(command : any, prompts : any) {
+const paginate_prompts = function(page_length: number, prompts: any[]) {
+  let rv = [];
+  for (var ii in prompts) {
+    const value = prompts[ii];
+    if (value["paginate"]) {
+      const header = value["header"];
+      const prompt = value["prompt"];
+      let prompt_chunks = prompt.match(new RegExp('.{1,' + page_length + '}', 'g'));
+      if (prompt_chunks.length == 1) {
+        rv.push({header, prompt});
+      } else {
+        for (var j in prompt_chunks) {
+          const chunk = prompt_chunks[j];
+          let header_j = header + " (" + (Number(j) + 1).toString() + "/" + prompt_chunks.length.toString() + ")";
+          rv.push({"header": header_j, "prompt": chunk});
+        }
+      }
+    } else {
+      rv.push(value);
+    }
+  }
+  return rv;
+}
+
+const sendCommandAndAccept = async function(command : any, prompts : any[]) {
   await setAcceptAutomationRules();
   await Axios.delete(BASE_URL + "/events");
 
-  let transport = await Transport.open(BASE_URL + "/apdu");
-  let client = new Common(transport, "alamgu-example");
+  const transport = await Transport.open(BASE_URL + "/apdu");
+  const client = new Common(transport, "alamgu-example");
   // client.sendChunks = client.sendWithBlocks; // Use Block protocol
   let err = null;
 
@@ -94,12 +131,12 @@ let sendCommandAndAccept = async function(command : any, prompts : any) {
   }
   if(err) throw(err);
 
-  let actual_prompts = processPrompts((await Axios.get(BASE_URL + "/events")).data["events"] as [any]);
+  const actual_prompts = processPrompts((await Axios.get(BASE_URL + "/events")).data["events"] as any[]);
   try {
-    expect(actual_prompts).to.deep.equal(prompts);
+    expect(actual_prompts).to.deep.equal(paginate_prompts(16, prompts));
   } catch(e) {
     try {
-      expect(fixActualPromptsForSPlus(actual_prompts)).to.deep.equal(fixRefPromptsForSPlus(prompts));
+      expect(fixActualPromptsForSPlus(actual_prompts)).to.deep.equal(fixRefPromptsForSPlus(paginate_prompts(48, prompts)));
     } catch (_) {
       // Throw the original error if there is a mismatch as it is generally more useful
       throw(e);

@@ -71,7 +71,7 @@ function buildPayload(obj: TestParsersSchema): Buffer {
     ]);
 }
 
-let doTestParsersAPDU = async function(
+const doTestParsersAPDU = async function(
   client: any,
   obj: TestParsersSchema,
 ): Promise<void> {
@@ -97,7 +97,7 @@ describe('parsers tests', () => {
   it('can parse a bunch of data', async () => {
 
     await sendCommandAndAccept(async (client : any) => {
-      let obj = {
+      const obj = {
 
         bytes_params: {
           v1: 255,
@@ -123,24 +123,32 @@ describe('parsers tests', () => {
       await doTestParsersAPDU(client, obj);
       return;
     }, [
-      { "header": "Got Bytes"
-        , "prompt": "v1: Some(255), v2: Some([12, 34, 56, 78, 90, ab, cd, ef, 12, 34, 56, 78, 90, ab, cd, ef, 12, 34, 56, 78, 90, ab, cd, ef, 12, 34, 56, 78, 90, ab, cd, ef])"
+      {
+        "header": "Got Bytes",
+        "prompt": "v1: 255, v2: [12, 34, 56, 78, 90, ab, cd, ef, 12, 34, 56, 78, 90, ab, cd, ef, 12, 34, 56, 78, 90, ab, cd, ef, 12, 34, 56, 78, 90, ab, cd, ef]",
+        "paginate": true,
       },
-      { "header": "Got U16"
-        , "prompt": "v1: Some(345), v2: Some(567)"
+      {
+        "header": "Got U16",
+        "prompt": "v1: 345, v2: 567",
       },
-      { "header": "Got U64"
-        , "prompt": "v1: Some(9007199254740992), v2: Some(18014398509481982)"
+      {
+        "header": "Got U64",
+        "prompt": "v1: 9007199254740992, v2: 18014398509481982",
+        "paginate": true,
       },
-      { "header": "Got U32"
-        , "prompt": "v1: Some(9), v2: Some(9)v1: Some(8), v2: Some(8)v1: Some(7), v2: Some(7)v1: Some(6), v2: Some(6)"
+      {
+        "header": "Got U32",
+        "prompt": "v1: 9, v2: 9v1: 8, v2: 8v1: 7, v2: 7v1: 6, v2: 6",
       },
-      { "header": "Got Darray"
-        , "prompt": "v1: Some([12, 34, 56, 78])"
+      {
+        "header": "Got Darray",
+        "prompt": "v1: [12, 34, 56, 78]",
       },
-      { "header": "Parse done"
-        , "prompt": ""
-      }
+      {
+        "header": "Parse done",
+        "prompt": "",
+      },
     ]);
   });
 });

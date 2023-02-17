@@ -224,9 +224,9 @@ rec {
       };
       "base64" = rec {
         crateName = "base64";
-        version = "0.13.0";
+        version = "0.13.1";
         edition = "2018";
-        sha256 = "1z82g23mbzjgijkpcrilc7nljpxpvpf7zxf6iyiapkgka2ngwkch";
+        sha256 = "1s494mqmzjb766fy1kqlccgfg2sdcjb6hzbvzqv2jw65fdi5h6wy";
         authors = [
           "Alice Maz <alice@alicemaz.com>"
           "Marshall Pierce <marshall@mpierce.org>"
@@ -250,10 +250,10 @@ rec {
       };
       "cc" = rec {
         crateName = "cc";
-        version = "1.0.73";
+        version = "1.0.78";
         edition = "2018";
         crateBin = [];
-        sha256 = "04ccylrjq94jssh8f7d7hxv64gs9f1m1jrsxb7wqgfxk4xljmzrg";
+        sha256 = "0gcch8g41jsjs4zk8fy7k4jhc33sfqdab4nxsrcsds2w6gi080d2";
         authors = [
           "Alex Crichton <alex@alexcrichton.com>"
         ];
@@ -269,8 +269,8 @@ rec {
         workspace_member = null;
         src = pkgs.fetchgit {
           url = "https://github.com/alamgu/enum-init";
-          rev = "a831c2fbbe00af926ae87c064bfe4da58d26777c";
-          sha256 = "1daqa7i1778rpvk8d442flk6bak6jxi6hrcc5j4maaa7ipjc6xlr";
+          rev = "5706da92215f1a5816d704229f8924d95d954a77";
+          sha256 = "0vh10l6glg4fry3z8am9skdlg2xcs0maqz5f24awwd9vl4ac6fv6";
         };
         procMacro = true;
         dependencies = [
@@ -352,8 +352,8 @@ rec {
         workspace_member = null;
         src = pkgs.fetchgit {
           url = "https://github.com/alamgu/ledger-crypto-helpers";
-          rev = "4236733f0dcb2965af225ac406f42b9b4841ee64";
-          sha256 = "0iiqkrh3wr33srqxpzhzf2shrl38mi1pfl8dbnwy9zkslpvgamhg";
+          rev = "0deb1ccb31e480ffab0c7c1fa5891db5e69e0f4c";
+          sha256 = "1sf1r64kp3d51hj76vsj14xmikbdhj2gvpl3wss554p1z7yyplav";
         };
         dependencies = [
           {
@@ -375,18 +375,12 @@ rec {
             packageId = "nanos_sdk";
           }
           {
-            name = "nanos_ui";
-            packageId = "nanos_ui";
-          }
-          {
             name = "zeroize";
             packageId = "zeroize";
             usesDefaultFeatures = false;
           }
         ];
-        features = {
-          "speculos" = [ "nanos_sdk/speculos" ];
-        };
+
       };
       "ledger-log" = rec {
         crateName = "ledger-log";
@@ -395,8 +389,8 @@ rec {
         workspace_member = null;
         src = pkgs.fetchgit {
           url = "https://github.com/alamgu/ledger-log";
-          rev = "02f702bbec9ca9802151fd261508580eb3826287";
-          sha256 = "03qic29qkvis54bgh40wwja89kcp6kz6acd0ifzyvcqxicpmikmy";
+          rev = "aa326b3078f5a470047b0d13bc2c00cec39e600c";
+          sha256 = "016j013zq38zci0dz60y3daz3l7bj3jd5w17r18gpj450jkxkmb6";
         };
         dependencies = [
           {
@@ -426,8 +420,8 @@ rec {
         workspace_member = null;
         src = pkgs.fetchgit {
           url = "https://github.com/alamgu/ledger-parser-combinators";
-          rev = "c7ee244c322d42cfaf2ef124170a6e695d208b6b";
-          sha256 = "1h7aghm8zvs3ymv19h6rczripgsa13n27cqwzzz2jnc7r2463n34";
+          rev = "7bf12e17728a326ddca6eaad3797e05b5491082d";
+          sha256 = "0r0vy0fbapj3is91c3ds3qry56k4qbzv7lp2w33bgjymmckx6l8w";
         };
         authors = [
           "Jonathan D.K. Gibbons <jonored@gmail.com>"
@@ -481,8 +475,8 @@ rec {
         workspace_member = null;
         src = pkgs.fetchgit {
           url = "https://github.com/alamgu/ledger-prompts-ui";
-          rev = "24d2f36da07131074211559cd28f235c3f7c9984";
-          sha256 = "0gy73gv2vrajyrzigr2iwfnw0gmj1wfpig0xlbhw1vpkpjg23w0q";
+          rev = "c1b6ab13769735d3412fa9c3edf59b6ad5e68d1e";
+          sha256 = "0n8hiw4ambwdw6pg61j9clpnzn8mz3d6fzkb1f2ia64zydbdf6gs";
         };
         dependencies = [
           {
@@ -509,9 +503,9 @@ rec {
       };
       "libc" = rec {
         crateName = "libc";
-        version = "0.2.132";
+        version = "0.2.139";
         edition = "2015";
-        sha256 = "199vm5mz5gmd73lx07g06g2d9kl1qrd4dcky2bdrcfhw6kjy8wc3";
+        sha256 = "0yaz3z56c72p2nfgv2y2zdi8bzi7x3kdq2hzgishgw0da8ky6790";
         authors = [
           "The Rust Project Developers"
         ];
@@ -618,9 +612,9 @@ rec {
       };
       "paste" = rec {
         crateName = "paste";
-        version = "1.0.8";
+        version = "1.0.11";
         edition = "2018";
-        sha256 = "08jv4b10pjdzxqgcn2id9216m30yjlhnylvs50lkc13s5yry48wl";
+        sha256 = "1fpf7n6wvlf1pg5xplgaknaim5kgrbmigpcq005hf02d8b85n6nh";
         procMacro = true;
         authors = [
           "David Tolnay <dtolnay@gmail.com>"
@@ -629,9 +623,9 @@ rec {
       };
       "proc-macro2" = rec {
         crateName = "proc-macro2";
-        version = "1.0.43";
+        version = "1.0.50";
         edition = "2018";
-        sha256 = "1avvpf4qki8mg2na60yr3afbsfl5p6vllac6516xgwy93g3a4b0a";
+        sha256 = "1qmsy8372anynndlfa0qig5y73gjnyvxldsrxs52vbygx9xxbxvf";
         authors = [
           "David Tolnay <dtolnay@gmail.com>"
           "Alex Crichton <alex@alexcrichton.com>"
@@ -649,9 +643,9 @@ rec {
       };
       "quote" = rec {
         crateName = "quote";
-        version = "1.0.21";
+        version = "1.0.23";
         edition = "2018";
-        sha256 = "0yai5cyd9h95n7hkwjcx8ig3yv0hindmz5gm60g9dmm7fzrlir5v";
+        sha256 = "0ywwzw5xfwwgq62ihp4fbjbfdjb3ilss2vh3fka18ai59lvdhml8";
         authors = [
           "David Tolnay <dtolnay@gmail.com>"
         ];
@@ -731,9 +725,9 @@ rec {
       };
       "syn" = rec {
         crateName = "syn";
-        version = "1.0.99";
+        version = "1.0.107";
         edition = "2018";
-        sha256 = "04xba78p559nl737llv7nqcwm723dp6ah5bbp0h5w1amqrpfznsq";
+        sha256 = "1xg3315vx8civ8y0l5zxq5mkx07qskaqwnjak18aw0vfn6sn8h0z";
         authors = [
           "David Tolnay <dtolnay@gmail.com>"
         ];
@@ -828,9 +822,9 @@ rec {
       };
       "typenum" = rec {
         crateName = "typenum";
-        version = "1.15.0";
+        version = "1.16.0";
         edition = "2018";
-        sha256 = "11yrvz1vd43gqv738yw1v75rzngjbs7iwcgzjy3cq5ywkv2imy6w";
+        sha256 = "1fhb9iaqyjn4dzn2vl86kxjhp4xpw5gynczlnqzf4x6rjgpn2ya9";
         build = "build/main.rs";
         authors = [
           "Paho Lurie-Gregg <paho@paholg.com>"
@@ -843,9 +837,9 @@ rec {
       };
       "unicode-ident" = rec {
         crateName = "unicode-ident";
-        version = "1.0.3";
+        version = "1.0.6";
         edition = "2018";
-        sha256 = "1bqswc96ws8l6k7xx56dg521a3l5imi3mhlcz7rsi6a92mxb7xf4";
+        sha256 = "1g2fdsw5sv9l1m73whm99za3lxq3nw4gzx5kvi562h4b46gjp8l4";
         authors = [
           "David Tolnay <dtolnay@gmail.com>"
         ];

@@ -1,6 +1,7 @@
 use crate::utils::*;
 use arrayvec::ArrayVec;
 use core::fmt::Write;
+use ledger_prompts_ui::ScrollerError;
 use ledger_parser_combinators::core_parsers::*;
 use ledger_parser_combinators::endianness::*;
 use ledger_parser_combinators::interp_parser::{
@@ -38,7 +39,7 @@ const fn bytes_params_parser() -> BytesParamsT {
         mkmvfn(
             |(v1, v2): (Option<u8>, Option<[u8; 32]>), destination: &mut Option<()>| {
                 *destination = Some(());
-                scroller("Got Bytes", |w| Ok(write!(w, "v1: {v1:?}, v2: {v2:02x?}")?))
+                scroller_paginated("Got Bytes", |w| Ok(write!(w, "v1: {}, v2: {:02x?}", v1.as_ref().ok_or(ScrollerError)?, v2.as_ref().ok_or(ScrollerError)?)?))
             },
         ),
     )
@@ -51,7 +52,7 @@ const fn u16_params_parser() -> U16ParamsT {
         mkmvfn(
             |(v1, v2): (Option<u16>, Option<u16>), destination: &mut Option<()>| {
                 *destination = Some(());
-                scroller("Got U16", |w| Ok(write!(w, "v1: {v1:?}, v2: {v2:?}")?))
+                scroller("Got U16", |w| Ok(write!(w, "v1: {}, v2: {}", v1.as_ref().ok_or(ScrollerError)?, v2.as_ref().ok_or(ScrollerError)?)?))
             },
         ),
     )
@@ -64,7 +65,7 @@ const fn u32_params_parser() -> U32ParamsT {
         mkmvfn(
             |(v1, v2): (Option<u32>, Option<u32>), destination: &mut Option<()>| {
                 *destination = Some(());
-                scroller("Got U32", |w| Ok(write!(w, "v1: {v1:?}, v2: {v2:?}")?))
+                scroller("Got U32", |w| Ok(write!(w, "v1: {}, v2: {}", v1.as_ref().ok_or(ScrollerError)?, v2.as_ref().ok_or(ScrollerError)?)?))
             },
         ),
     )
@@ -77,7 +78,7 @@ const fn u64_params_parser() -> U64ParamsT {
         mkmvfn(
             |(v1, v2): (Option<u64>, Option<u64>), destination: &mut Option<()>| {
                 *destination = Some(());
-                scroller("Got U64", |w| Ok(write!(w, "v1: {v1:?}, v2: {v2:?}")?))
+                scroller_paginated("Got U64", |w| Ok(write!(w, "v1: {}, v2: {}", v1.as_ref().ok_or(ScrollerError)?, v2.as_ref().ok_or(ScrollerError)?)?))
             },
         ),
     )
@@ -91,7 +92,7 @@ const fn darray_params_parser() -> DArrayParamsT {
             |(v1, _v2): (Option<ArrayVec<u8, 24>>, Option<ArrayVec<(), 4>>),
              destination: &mut Option<()>| {
                 *destination = Some(());
-                scroller("Got Darray", |w| Ok(write!(w, "v1: {v1:02x?}")?))
+                scroller("Got Darray", |w| Ok(write!(w, "v1: {:02x?}", v1.as_ref().ok_or(ScrollerError)?)?))
             },
         ),
     )
