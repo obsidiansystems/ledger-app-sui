@@ -46,6 +46,41 @@ where `DEVICE` is one of
 
 The last line printed out will be the path of the tarball.
 
+### Preparing Your Linux Machine for Ledger Device Communication
+
+On Linux, the "udev" rules must be set up to allow your user to communicate with the ledger device. MacOS devices do not need any configuration to communicate with a Ledger device, so if you are using Mac you can ignore this section.
+
+#### NixOS
+
+On NixOS, one can easily do this with by adding the following to configuration.nix:
+
+``` nix
+{
+  # ...
+  hardware.ledger.enable = true;
+  # ...
+}
+```
+
+#### Non-NixOS Linux Distros
+
+For non-NixOS Linux distros, LedgerHQ provides a [script](https://raw.githubusercontent.com/LedgerHQ/udev-rules/master/add_udev_rules.sh) for this purpose, in its own [specialized repo](https://github.com/LedgerHQ/udev-rules). Download this script, read it, customize it, and run it as root:
+
+```shell
+wget https://raw.githubusercontent.com/LedgerHQ/udev-rules/master/add_udev_rules.sh
+chmod +x add_udev_rules.sh
+```
+
+**We recommend against running the next command without reviewing the script** and modifying it to match your configuration.
+
+```shell
+sudo ./add_udev_rules.sh
+```
+
+Subsequently, unplug your ledger hardware wallet, and plug it in again for the changes to take effect.
+
+For more details, see [Ledger's documentation](https://support.ledger.com/hc/en-us/articles/115005165269-Fix-connection-issues).
+
 ### Installation using the pre-packaged tarball
 
 Before installing please ensure that your device is plugged, unlocked, and on the device home screen.
