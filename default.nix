@@ -141,14 +141,12 @@ rec {
       nanox = 400000;
     }.${device} or (throw "Unknown target device: `${device}'");
 
-    /*
     stack-check = makeStackCheck { inherit memLimit rootCrate device; };
     stack-check-with-logging = makeStackCheck {
       inherit memLimit device;
       rootCrate = rootCrate-with-logging;
       variant = "-with-logging";
     };
-    */
 
     rootCrate = app.rootCrate.build;
     rootCrate-with-logging = app-with-logging.rootCrate.build;
