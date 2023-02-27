@@ -195,7 +195,26 @@ impl<BS: Clone + Readable> AsyncParser<RecipientsAndAmounts, BS> for RecipientsA
                         } else {
                             write!(mk_prompt_write(&mut buffer), "Amount").ok()?;
                         }
-                        scroller_paginated(&buffer, |w| Ok(write!(w, "{amount}")?))
+                        let factor_pow = 9;
+                        let factor = u64::pow(10, factor_pow);
+                        let quotient = amount / factor;
+                        let remainder = amount % factor;
+                        let mut remainder_str: ArrayString<12> = ArrayString::new();
+                        {
+                            // Make a string for the remainder, containing at lease one zero
+                            // So 1 SUI will be displayed as "1.0"
+                            let mut rem = remainder;
+                            for i in 0..factor_pow {
+                                let f = u64::pow(10, factor_pow - i - 1);
+                                let r = rem / f;
+                                let _ = remainder_str.try_push(char::from(b'0' + r as u8));
+                                rem = rem % f;
+                                if rem == 0 {
+                                    break;
+                                }
+                            }
+                        }
+                        scroller_paginated(&buffer, |w| Ok(write!(w, "{quotient}.{}", remainder_str.as_str())?))
                     }
                 })()
                 .is_none()
