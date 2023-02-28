@@ -195,25 +195,7 @@ impl<BS: Clone + Readable> AsyncParser<RecipientsAndAmounts, BS> for RecipientsA
                         } else {
                             write!(mk_prompt_write(&mut buffer), "Amount").ok()?;
                         }
-                        let factor_pow = 9;
-                        let factor = u64::pow(10, factor_pow);
-                        let quotient = amount / factor;
-                        let remainder = amount % factor;
-                        let mut remainder_str: ArrayString<12> = ArrayString::new();
-                        {
-                            // Make a string for the remainder, containing at lease one zero
-                            // So 1 SUI will be displayed as "1.0"
-                            let mut rem = remainder;
-                            for i in 0..factor_pow {
-                                let f = u64::pow(10, factor_pow - i - 1);
-                                let r = rem / f;
-                                let _ = remainder_str.try_push(char::from(b'0' + r as u8));
-                                rem = rem % f;
-                                if rem == 0 {
-                                    break;
-                                }
-                            }
-                        }
+                        let (quotient, remainder_str) = get_amount_in_decimals(amount);
                         scroller_paginated(&buffer, |w| Ok(write!(w, "{quotient}.{}", remainder_str.as_str())?))
                     }
                 })()
@@ -225,6 +207,29 @@ impl<BS: Clone + Readable> AsyncParser<RecipientsAndAmounts, BS> for RecipientsA
             *input = amt_bs;
         }
     }
+}
+
+fn get_amount_in_decimals(amount: u64) -> (u64, ArrayString<12>) {
+    let factor_pow = 9;
+    let factor = u64::pow(10, factor_pow);
+    let quotient = amount / factor;
+    let remainder = amount % factor;
+    let mut remainder_str: ArrayString<12> = ArrayString::new();
+    {
+        // Make a string for the remainder, containing at lease one zero
+        // So 1 SUI will be displayed as "1.0"
+        let mut rem = remainder;
+        for i in 0..factor_pow {
+            let f = u64::pow(10, factor_pow - i - 1);
+            let r = rem / f;
+            let _ = remainder_str.try_push(char::from(b'0' + r as u8));
+            rem = rem % f;
+            if rem == 0 {
+                break;
+            }
+        }
+    }
+    (quotient, remainder_str)
 }
 
 const fn coin_parser<BS: Readable>(
