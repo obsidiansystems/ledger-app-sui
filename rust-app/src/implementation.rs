@@ -196,7 +196,9 @@ impl<BS: Clone + Readable> AsyncParser<RecipientsAndAmounts, BS> for RecipientsA
                             write!(mk_prompt_write(&mut buffer), "Amount").ok()?;
                         }
                         let (quotient, remainder_str) = get_amount_in_decimals(amount);
-                        scroller_paginated(&buffer, |w| Ok(write!(w, "{quotient}.{}", remainder_str.as_str())?))
+                        scroller_paginated(&buffer, |w| {
+                            Ok(write!(w, "{quotient}.{}", remainder_str.as_str())?)
+                        })
                     }
                 })()
                 .is_none()
