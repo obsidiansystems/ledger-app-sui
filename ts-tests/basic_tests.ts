@@ -79,7 +79,7 @@ describe("Signing tests", function() {
          },
          {
            "header": "Paying Gas (2/2)",
-           "prompt": "Price 1"
+           "prompt": "Price 0.000000001"
          },
          {
            "text": "Sign Transaction?",
@@ -249,7 +249,7 @@ describe("Signing tests", function() {
          },
          {
            "header": "Paying Gas (2/2)",
-           "prompt": "Price 1"
+           "prompt": "Price 0.000000001"
          },
          {
            "text": "Sign Transaction?",

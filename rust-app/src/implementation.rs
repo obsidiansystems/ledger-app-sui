@@ -275,8 +275,9 @@ const fn transaction_data_parser<BS: Clone + Readable>(
             scroller("Paying Gas (1/2)", |w| {
                 Ok(write!(w, "At most {}", gas_budget,)?)
             })?;
+            let (quotient, remainder_str) = get_amount_in_decimals(gas_price);
             scroller("Paying Gas (2/2)", |w| {
-                Ok(write!(w, "Price {}", gas_price)?)
+                Ok(write!(w, "Price {}.{}", quotient, remainder_str.as_str())?)
             })
         },
     )
