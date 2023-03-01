@@ -71,7 +71,7 @@ describe("Signing tests", function() {
          },
          {
            "header": "Amount",
-           "prompt": "10000000"
+           "prompt": "0.01"
          },
          {
            "header": "Paying Gas (1/2)",
@@ -79,7 +79,7 @@ describe("Signing tests", function() {
          },
          {
            "header": "Paying Gas (2/2)",
-           "prompt": "Price 1"
+           "prompt": "Price 0.000000001"
          },
          {
            "text": "Sign Transaction?",
@@ -115,7 +115,7 @@ describe("Signing tests", function() {
          },
          {
            "header": "Amount (1)",
-           "prompt": "1"
+           "prompt": "0.000000001"
          },
          {
            "header": "To (2)",
@@ -124,7 +124,7 @@ describe("Signing tests", function() {
          },
          {
            "header": "Amount (2)",
-           "prompt": "2"
+           "prompt": "0.000000002"
          },
          {
            "header": "To (3)",
@@ -133,7 +133,7 @@ describe("Signing tests", function() {
          },
          {
            "header": "Amount (3)",
-           "prompt": "3"
+           "prompt": "0.000000003"
          },
          {
            "header": "To (4)",
@@ -142,7 +142,7 @@ describe("Signing tests", function() {
          },
          {
            "header": "Amount (4)",
-           "prompt": "4"
+           "prompt": "0.000000004"
          },
          {
            "header": "To (5)",
@@ -151,7 +151,7 @@ describe("Signing tests", function() {
          },
          {
            "header": "Amount (5)",
-           "prompt": "5"
+           "prompt": "0.000000005"
          },
          {
            "header": "To (6)",
@@ -160,7 +160,7 @@ describe("Signing tests", function() {
          },
          {
            "header": "Amount (6)",
-           "prompt": "6"
+           "prompt": "0.000000006"
          },
          {
            "header": "To (7)",
@@ -169,7 +169,7 @@ describe("Signing tests", function() {
          },
          {
            "header": "Amount (7)",
-           "prompt": "7"
+           "prompt": "0.000000007"
          },
          {
            "header": "To (8)",
@@ -178,7 +178,7 @@ describe("Signing tests", function() {
          },
          {
            "header": "Amount (8)",
-           "prompt": "8"
+           "prompt": "0.000000008"
          },
          {
            "header": "To (9)",
@@ -187,7 +187,7 @@ describe("Signing tests", function() {
          },
          {
            "header": "Amount (9)",
-           "prompt": "9"
+           "prompt": "0.000000009"
          },
          {
            "header": "To (10)",
@@ -196,7 +196,7 @@ describe("Signing tests", function() {
          },
          {
            "header": "Amount (10)",
-           "prompt": "10"
+           "prompt": "0.00000001"
          },
          {
            "header": "To (11)",
@@ -205,7 +205,7 @@ describe("Signing tests", function() {
          },
          {
            "header": "Amount (11)",
-           "prompt": "11"
+           "prompt": "0.000000011"
          },
          {
            "header": "To (12)",
@@ -214,7 +214,7 @@ describe("Signing tests", function() {
          },
          {
            "header": "Amount (12)",
-           "prompt": "12"
+           "prompt": "0.000000012"
          },
          {
            "header": "To (13)",
@@ -223,7 +223,7 @@ describe("Signing tests", function() {
          },
          {
            "header": "Amount (13)",
-           "prompt": "13"
+           "prompt": "0.000000013"
          },
          {
            "header": "To (14)",
@@ -232,7 +232,7 @@ describe("Signing tests", function() {
          },
          {
            "header": "Amount (14)",
-           "prompt": "14"
+           "prompt": "0.000000014"
          },
          {
            "header": "To (15)",
@@ -241,7 +241,7 @@ describe("Signing tests", function() {
          },
          {
            "header": "Amount (15)",
-           "prompt": "15"
+           "prompt": "0.000000015"
          },
          {
            "header": "Paying Gas (1/2)",
@@ -249,7 +249,7 @@ describe("Signing tests", function() {
          },
          {
            "header": "Paying Gas (2/2)",
-           "prompt": "Price 1"
+           "prompt": "Price 0.000000001"
          },
          {
            "text": "Sign Transaction?",
