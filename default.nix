@@ -61,7 +61,7 @@ rec {
       ];
   };
 
-  makeTarSrc = { appExe, device }: pkgs.runCommandCC "make-tar-src-${device}" {
+  makeTarSrc = { appExe, device }: pkgs.runCommandCC "${appName}-${device}-tar-src" {
     nativeBuildInputs = [
       alamgu.cargo-ledger
       alamgu.ledgerRustPlatform.rust.cargo
@@ -167,7 +167,7 @@ rec {
     });
 
     tarSrc = makeTarSrc { inherit appExe device; };
-    tarball = pkgs.runCommandNoCC "app-tarball-${device}.tar.gz" { } ''
+    tarball = pkgs.runCommandNoCC "${appName}-${device}.tar.gz" { } ''
       tar -czvhf $out -C ${tarSrc} ${appName}
     '';
 
