@@ -66,6 +66,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a20104e2335ce8a659d6dd92a51a767a0c062599c73b343fd152cb401e828c3d"
 
 [[package]]
+name = "color_quant"
+version = "1.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3d7b894f5411737b7867f4827955924d7c254fc9f4d91a6aad6b097804b1018b"
+
+[[package]]
 name = "enum-init"
 version = "0.1.0"
 source = "git+https://github.com/alamgu/enum-init#5706da92215f1a5816d704229f8924d95d954a77"
@@ -84,6 +90,25 @@ checksum = "bff49e947297f3312447abdca79f45f4738097cc82b06e72054d2223f601f1b9"
 dependencies = [
  "typenum",
  "version_check",
+]
+
+[[package]]
+name = "gif"
+version = "0.11.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3edd93c6756b4dfaf2709eafcc345ba2636565295c198a9cfbf75fa5e3e00b06"
+dependencies = [
+ "color_quant",
+ "weezl",
+]
+
+[[package]]
+name = "include_gif"
+version = "0.1.0"
+source = "git+https://github.com/LedgerHQ/sdk_include_gif#699d28c6157518c4493899e2eeaa8af08346e5e7"
+dependencies = [
+ "gif",
+ "syn",
 ]
 
 [[package]]
@@ -134,9 +159,10 @@ dependencies = [
 [[package]]
 name = "ledger-prompts-ui"
 version = "0.1.0"
-source = "git+https://github.com/alamgu/ledger-prompts-ui#c1b6ab13769735d3412fa9c3edf59b6ad5e68d1e"
+source = "git+https://github.com/alamgu/ledger-prompts-ui#87c29519a43b5144058c97eb298a5297b342e0be"
 dependencies = [
  "arrayvec",
+ "include_gif",
  "ledger-log",
  "nanos_sdk",
  "nanos_ui",
@@ -169,9 +195,10 @@ dependencies = [
 
 [[package]]
 name = "nanos_ui"
-version = "0.1.0"
-source = "git+https://github.com/obsidiansystems/ledger-nanos-ui?branch=use-lib-bagl-for-x-and-splus#6ab6938354e73d3a8aacc941e9c7bc7f83c1081e"
+version = "0.2.0"
+source = "git+https://github.com/obsidiansystems/ledger-nanos-ui?branch=dn-make-from-pub#7d68e90f7a35736a44b8ab9cb620ed4d6cbc4495"
 dependencies = [
+ "include_gif",
  "nanos_sdk",
 ]
 
@@ -295,6 +322,12 @@ name = "version_check"
 version = "0.9.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "49874b5167b65d7193b8aba1567f5c7d93d001cafc34600cee003eda787e483f"
+
+[[package]]
+name = "weezl"
+version = "0.1.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9193164d4de03a926d909d3bc7c30543cecb35400c02114792c2cae20d5e2dbb"
 
 [[package]]
 name = "winapi"
