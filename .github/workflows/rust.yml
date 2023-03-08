@@ -2,9 +2,9 @@ name: Rust
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main, develop, develop-sync ]
   pull_request:
-    branches: [ main, develop ]
+    branches: [ main, develop, develop-sync ]
   workflow_dispatch:
     inputs: 
       name: 
