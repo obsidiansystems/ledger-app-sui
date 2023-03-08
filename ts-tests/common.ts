@@ -1,7 +1,7 @@
 import SpeculosTransport from '@ledgerhq/hw-transport-node-speculos';
 import Axios from 'axios';
 import Transport from "./http-transport";
-import Sui from "hw-app-sui";
+import Sui from "@mysten/ledgerjs-hw-app-sui";
 import { expect } from 'chai';
 
 const ignoredScreens = [ "W e l c o m e", "Cancel", "Working...", "Exit", "Sui 0.0.1", "ui 0.0.1"]

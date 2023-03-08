@@ -2,7 +2,7 @@ import { sendCommandAndAccept, BASE_URL } from "./common";
 import { expect } from 'chai';
 import { describe, it } from 'mocha';
 import Axios from 'axios';
-import Sui from "hw-app-sui";
+import Sui from "@mysten/ledgerjs-hw-app-sui";
 import * as blake2b from "blake2b";
 import { instantiate, Nacl } from "js-nacl";
 
