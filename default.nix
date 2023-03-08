@@ -5,9 +5,14 @@ rec {
 
   appName = "alamgu-example";
 
+  app-nix = alamgu.crate2nix-tools.generatedCargoNix {
+    name = "${appName}-nix";
+    src = builtins.filterSource (p: _: p != toString "./rust-app/target") ./rust-app;
+  };
+
   makeApp = { rootFeatures ? [ "default" ], release ? true, device }:
     let collection = alamgu.perDevice.${device};
-    in import ./Cargo.nix {
+    in import app-nix {
       inherit rootFeatures release;
       pkgs = collection.ledgerPkgs;
       buildRustCrateForPkgs = alamguLib.combineWrappers [
