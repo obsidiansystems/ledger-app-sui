@@ -1,4 +1,4 @@
-let self = import ./.;
+let self = import ./. { localSystem.system = "x86_64-linux"; };
     lib = self.pkgs.lib;
 in
   {
