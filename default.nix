@@ -1,5 +1,8 @@
+{ localSystem ? { system = builtins.currentSystem; }
+}:
+
 rec {
-  alamgu = import ./dep/alamgu {};
+  alamgu = import ./dep/alamgu { inherit localSystem; };
 
   inherit (alamgu) lib pkgs crate2nix alamguLib;
 
