@@ -44,7 +44,7 @@ const processPrompts = function(prompts: any[]) {
   let rv = [];
   for (var ii in i) {
     const value = i[ii];
-    if(value["y"] == 1) {
+    if(value["y"] == 0 || value["y"] == 1) { // S is 1, S+ is somehow 0
       if(value["text"] != header) {
         if(header || prompt) rv.push({ header, prompt });
         header = value["text"];
@@ -71,6 +71,7 @@ const fixActualPromptsForSPlus = function(prompts: any[]) {
   return prompts.map ( (value) => {
     if (value["text"]) {
       value["x"] = "<patched>";
+      value["y"] = "<patched>";
     }
     return value;
   });
@@ -88,6 +89,7 @@ const fixRefPromptsForSPlus = function(prompts: any[]) {
     } else if (value["text"]) {
       value["text"] = fixF(value["text"]);
       value["x"] = "<patched>";
+      value["y"] = "<patched>";
     }
     return value;
   });

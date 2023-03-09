@@ -1,5 +1,8 @@
+{ localSystem ? { system = builtins.currentSystem; }
+}:
+
 rec {
-  alamgu = import ./dep/alamgu {};
+  alamgu = import ./dep/alamgu { inherit localSystem; };
 
   inherit (alamgu) lib pkgs crate2nix alamguLib;
 
@@ -61,7 +64,9 @@ rec {
       ];
   };
 
-  makeTarSrc = { appExe, device }: pkgs.runCommandCC "make-tar-src-${device}" {
+  makeTarSrc = { appExe, device }:
+  let collection = alamgu.perDevice.${device};
+  in collection.ledgerPkgs.runCommandCC "${appName}-${device}-tar-src" {
     nativeBuildInputs = [
       alamgu.cargo-ledger
       alamgu.ledgerRustPlatform.rust.cargo
@@ -97,7 +102,11 @@ rec {
 
   apiPort = 5005;
 
+  # Tests don't yet run on Darwin
   runTests = { appExe, device, variant ? "", speculosCmd }:
+  if pkgs.stdenv.hostPlatform.isDarwin
+  then null
+  else
   pkgs.runCommandNoCC "run-tests-${device}${variant}" {
     nativeBuildInputs = [
       pkgs.wget alamgu.speculos.speculos testScript
@@ -167,7 +176,7 @@ rec {
     });
 
     tarSrc = makeTarSrc { inherit appExe device; };
-    tarball = pkgs.runCommandNoCC "app-tarball-${device}.tar.gz" { } ''
+    tarball = pkgs.runCommandNoCC "${appName}-${device}.tar.gz" { } ''
       tar -czvhf $out -C ${tarSrc} ${appName}
     '';
 
