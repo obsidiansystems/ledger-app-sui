@@ -1,5 +1,5 @@
 rec {
-  alamgu = import (fetchTarball "https://github.com/alamgu/alamgu/archive/develop.tar.gz") {};
+  alamgu = import (import ./dep/alamgu/thunk.nix) {};
   ledgerctl = alamgu.ledgerctl;
   this = ./.;
   load-app = alamgu.pkgs.writeScriptBin "load-app" ''

@@ -92,7 +92,7 @@ By using Nix, this can be done simply by using the `load-app` command, without m
 
 ```bash
 tar xzf /path/to/release.tar.gz
-cd alamgu-example
+cd alamgu-example-$DEVICE
 nix-shell
 load-app
 ```
@@ -107,7 +107,7 @@ For more information on how to install and use that tool see the [instructions f
 
 ```bash
 tar xzf release.tar.gz
-cd alamgu-example
+cd alamgu-example-$DEVICE
 ledgerctl install -f app.json
 ```
 
