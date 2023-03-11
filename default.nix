@@ -186,7 +186,7 @@ rec {
     loadApp = pkgs.writeScriptBin "load-app" ''
       #!/usr/bin/env bash
       cd ${tarSrc}/${appName}
-      ${alamgu.ledgerctl}/bin/ledgerctl install -f ${tarSrc}/${appName}/app.json
+      ${alamgu.ledgerctl}/bin/ledgerctl install -f ${tarSrc}/${appName}-${device}/app.json
     '';
 
     tarballShell = import (tarSrc + "/${appName}-${device}/shell.nix");
