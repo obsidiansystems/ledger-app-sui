@@ -8,7 +8,7 @@ resolver = "2"
 
 [dependencies]
 arrayvec = { version = "0.7.2", default-features = false }
-ledger-crypto-helpers = { git = "https://github.com/alamgu/ledger-crypto-helpers" }
+ledger-crypto-helpers = { git = "https://github.com/alamgu/ledger-crypto-helpers", branch = "dn-sdk-bump-fixes" }
 ledger-log = { git = "https://github.com/alamgu/ledger-log" }
 ledger-parser-combinators = { git = "https://github.com/alamgu/ledger-parser-combinators" }
 zeroize = { version = "1.5.2", default-features = false }
@@ -40,7 +40,7 @@ path = "bin-src/main.rs"
 
 [patch."https://github.com/LedgerHQ/ledger-nanos-sdk.git".nanos_sdk]
 git = "https://github.com/alamgu/ledger-nanos-sdk.git"
-branch = "memory-fixes-pending"
+branch = "relocating-loader-w-fixes"
 [patch."https://github.com/LedgerHQ/ledger-nanos-ui.git".nanos_ui]
 git = "https://github.com/obsidiansystems/ledger-nanos-ui"
 branch = "dn-make-from-pub"
