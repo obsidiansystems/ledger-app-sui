@@ -1,13 +1,21 @@
+{ localSystem ? { system = builtins.currentSystem; }
+}:
+
 rec {
-  alamgu = import ./dep/alamgu { backend = "mozilla"; };
+  alamgu = import ./dep/alamgu { inherit localSystem; };
 
   inherit (alamgu) lib pkgs crate2nix alamguLib;
 
   appName = "alamgu-example";
 
+  app-nix = alamgu.crate2nix-tools.generatedCargoNix {
+    name = "${appName}-nix";
+    src = builtins.filterSource (p: _: p != toString "./rust-app/target") ./rust-app;
+  };
+
   makeApp = { rootFeatures ? [ "default" ], release ? true, device }:
     let collection = alamgu.perDevice.${device};
-    in import ./Cargo.nix {
+    in import app-nix {
       inherit rootFeatures release;
       pkgs = collection.ledgerPkgs;
       buildRustCrateForPkgs = alamguLib.combineWrappers [
@@ -56,11 +64,14 @@ rec {
       ];
   };
 
-  makeTarSrc = { appExe, device }: pkgs.runCommandCC "make-tar-src-${device}" {
+  makeTarSrc = { appExe, device }:
+  let collection = alamgu.perDevice.${device};
+  in collection.ledgerPkgs.runCommandCC "${appName}-${device}-tar-src" {
     nativeBuildInputs = [
       alamgu.cargo-ledger
       alamgu.ledgerRustPlatform.rust.cargo
     ];
+    strictDeps = true;
   } (alamgu.cargoLedgerPreHook + ''
 
     cp ${./rust-app/Cargo.toml} ./Cargo.toml
@@ -70,8 +81,11 @@ rec {
 
     cargo-ledger --use-prebuilt ${appExe} --hex-next-to-json ledger ${device}
 
-    dest=$out/${appName}
-    mkdir -p $dest
+    dest=$out/${appName}-${device}
+    mkdir -p $dest/dep
+
+    # Copy Alamgu build infra thunk
+    cp -r ${./dep/alamgu} $dest/dep/alamgu
 
     # Create a file to indicate what device this is for
     echo ${device} > $dest/device
@@ -92,11 +106,16 @@ rec {
 
   apiPort = 5005;
 
+  # Tests don't yet run on Darwin
   runTests = { appExe, device, variant ? "", speculosCmd }:
+  if pkgs.stdenv.hostPlatform.isDarwin
+  then null
+  else
   pkgs.runCommandNoCC "run-tests-${device}${variant}" {
     nativeBuildInputs = [
       pkgs.wget alamgu.speculos.speculos testScript
     ];
+    strictDeps = true;
   } ''
     mkdir $out
     (
@@ -123,6 +142,7 @@ rec {
   makeStackCheck = { rootCrate, device, memLimit, variant ? "" }:
   pkgs.runCommandNoCC "stack-check-${device}${variant}" {
     nativeBuildInputs = [ alamgu.stack-sizes ];
+    strictDeps = true;
   } ''
     stack-sizes --mem-limit=${toString memLimit} ${rootCrate}/bin/${appName} ${rootCrate}/bin/*.o | tee $out
   '';
@@ -162,17 +182,17 @@ rec {
     });
 
     tarSrc = makeTarSrc { inherit appExe device; };
-    tarball = pkgs.runCommandNoCC "app-tarball-${device}.tar.gz" { } ''
-      tar -czvhf $out -C ${tarSrc} ${appName}
+    tarball = pkgs.runCommandNoCC "${appName}-${device}.tar.gz" { } ''
+      tar -czvhf $out -C ${tarSrc} "${appName}-${device}"
     '';
 
     loadApp = pkgs.writeScriptBin "load-app" ''
       #!/usr/bin/env bash
-      cd ${tarSrc}/${appName}
-      ${alamgu.ledgerctl}/bin/ledgerctl install -f ${tarSrc}/${appName}/app.json
+      cd ${tarSrc}/${appName}-${device}
+      ${alamgu.ledgerctl}/bin/ledgerctl install -f ${tarSrc}/${appName}-${device}/app.json
     '';
 
-    tarballShell = import (tarSrc + "/${appName}/shell.nix");
+    tarballShell = import (tarSrc + "/${appName}-${device}/shell.nix");
 
     speculosDeviceFlags = {
       nanos = [ "-m" "nanos" ];
@@ -200,6 +220,21 @@ rec {
   nanos = appForDevice "nanos";
   nanosplus = appForDevice "nanosplus";
   nanox = appForDevice "nanox";
+
+  cargoFmtCheck = pkgs.stdenv.mkDerivation {
+    pname = "cargo-fmt-${appName}";
+    inherit (nanos.rootCrate) version src;
+    nativeBuildInputs = [
+      pkgs.alamguRustPackages.cargo
+      pkgs.alamguRustPackages.rustfmt
+    ];
+    buildPhase = ''
+      cargo fmt --all --check
+    '';
+    installPhase = ''
+      touch "$out"
+    '';
+  };
 
   inherit (pkgs.nodePackages) node2nix;
 

@@ -34,6 +34,40 @@ There is a separate tarball for each device.
 
 #### Build one yourself, with Nix
 
+##### Set up build caches (optional)
+
+In addition to this app itself, the entire toolchain is packaged from source with Nix.
+That means that with usuing a pre-populated source of build artifacts, the first build will take a **very long time** as everything specific to Alamgu is built from source.
+(Other packages could also be built from source, but Nix by default ships configured to use the official `cache.nixos.org` build artifacts cache.)
+
+If you are comfortable trusting Obsidian Systems's build farm, you can use our public open source cache for this purpose:
+
+  - Store URL: `s3://obsidian-open-source`
+  - Public key (for build artifact signatures): `obsidian-open-source:KP1UbL7OIibSjFo9/2tiHCYLm/gJMfy8Tim7+7P4o0I=`
+
+To do this:
+
+1. First you want to include these two in your `/etc/nix/nix.conf` settings file.
+   After doing so, it should have two lines like this:
+   ```
+   substituters = https://cache.nixos.org/ s3://obsidian-open-source
+   trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= obsidian-open-source:KP1UbL7OIibSjFo9/2tiHCYLm/gJMfy8Tim7+7P4o0I=
+   ```
+   (The new values are each appended at the end of a space-separated list.)
+
+2. After updating that file, you probably need to restart your Nix daemon:
+
+   - On macOS:
+     - `sudo launchctl stop org.nixos.nix-daemon`
+     - `sudo launchctl start org.nixos.nix-daemon`
+   - On Linux:
+     - `sudo systemctl stop nix-daemon`
+     - `sudo systemctl start nix-daemon`
+
+(On NixOS these tasks are done differently, consult the NixOS documentation for how to update your system configuration which includes these settings and will restart the daemon.)
+
+##### Building
+
 There is a separate tarball for each device.
 To build one, run:
 ```bash
@@ -46,6 +80,41 @@ where `DEVICE` is one of
 
 The last line printed out will be the path of the tarball.
 
+### Preparing Your Linux Machine for Ledger Device Communication
+
+On Linux, the "udev" rules must be set up to allow your user to communicate with the ledger device. MacOS devices do not need any configuration to communicate with a Ledger device, so if you are using Mac you can ignore this section.
+
+#### NixOS
+
+On NixOS, one can easily do this with by adding the following to configuration.nix:
+
+``` nix
+{
+  # ...
+  hardware.ledger.enable = true;
+  # ...
+}
+```
+
+#### Non-NixOS Linux Distros
+
+For non-NixOS Linux distros, LedgerHQ provides a [script](https://raw.githubusercontent.com/LedgerHQ/udev-rules/master/add_udev_rules.sh) for this purpose, in its own [specialized repo](https://github.com/LedgerHQ/udev-rules). Download this script, read it, customize it, and run it as root:
+
+```shell
+wget https://raw.githubusercontent.com/LedgerHQ/udev-rules/master/add_udev_rules.sh
+chmod +x add_udev_rules.sh
+```
+
+**We recommend against running the next command without reviewing the script** and modifying it to match your configuration.
+
+```shell
+sudo ./add_udev_rules.sh
+```
+
+Subsequently, unplug your ledger hardware wallet, and plug it in again for the changes to take effect.
+
+For more details, see [Ledger's documentation](https://support.ledger.com/hc/en-us/articles/115005165269-Fix-connection-issues).
+
 ### Installation using the pre-packaged tarball
 
 Before installing please ensure that your device is plugged, unlocked, and on the device home screen.
@@ -57,7 +126,7 @@ By using Nix, this can be done simply by using the `load-app` command, without m
 
 ```bash
 tar xzf /path/to/release.tar.gz
-cd alamgu-example
+cd alamgu-example-$DEVICE
 nix-shell
 load-app
 ```
@@ -72,7 +141,7 @@ For more information on how to install and use that tool see the [instructions f
 
 ```bash
 tar xzf release.tar.gz
-cd alamgu-example
+cd alamgu-example-$DEVICE
 ledgerctl install -f app.json
 ```
 
