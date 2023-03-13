@@ -19,7 +19,7 @@ use nanos_sdk::io::SyscallError;
 use core::convert::TryFrom;
 use core::future::Future;
 
-type SuiAddressRaw = [u8; 20];
+type SuiAddressRaw = [u8; SUI_ADDRESS_LENGTH];
 
 pub struct SuiPubKeyAddress(nanos_sdk::ecc::ECPublicKey<65, 'E'>, SuiAddressRaw);
 
@@ -32,8 +32,8 @@ impl Address<SuiPubKeyAddress, nanos_sdk::ecc::ECPublicKey<65, 'E'>> for SuiPubK
         let mut hasher: SHA3_256 = Hasher::new();
         hasher.update(&tmp);
         let hash: [u8; 32] = hasher.finalize();
-        let mut address: SuiAddressRaw = [0; 20];
-        address.clone_from_slice(&hash[0..20]);
+        let mut address: SuiAddressRaw = [0; SUI_ADDRESS_LENGTH];
+        address.clone_from_slice(&hash[0..SUI_ADDRESS_LENGTH]);
         Ok(SuiPubKeyAddress(key.clone(), address))
     }
     fn get_binary_address(&self) -> &[u8] {
