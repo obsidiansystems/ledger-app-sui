@@ -103,6 +103,24 @@ impl<BS: Clone + Readable> AsyncParser<SingleTransactionKind, BS> for SingleTran
     }
 }
 
+impl<BS: Clone + Readable> AsyncParser<SingleTransactionKind, BS> for DropInterp {
+    type State<'c> = impl Future<Output = Self::Output> + 'c where BS: 'c;
+    fn parse<'a: 'c, 'b: 'c, 'c>(&'b self, input: &'a mut BS) -> Self::State<'c> {
+        async move {
+            let enum_variant =
+                <DefaultInterp as AsyncParser<ULEB128, BS>>::parse(&DefaultInterp, input).await;
+            match enum_variant {
+                // PaySui
+                5 => {
+                    trace!("SingleTransactionKind: PaySui");
+                    pay_sui_drop_parser().parse(input).await;
+                }
+                _ => reject_on(core::file!(), core::line!()).await,
+            }
+        }
+    }
+}
+
 impl HasOutput<TransactionKind> for TransactionKind {
     type Output = ();
 }
@@ -128,6 +146,27 @@ impl<BS: Clone + Readable> AsyncParser<TransactionKind, BS> for TransactionKind 
     }
 }
 
+impl<BS: Clone + Readable> AsyncParser<TransactionKind, BS> for DropInterp {
+    type State<'c> = impl Future<Output = Self::Output> + 'c where BS: 'c;
+    fn parse<'a: 'c, 'b: 'c, 'c>(&'b self, input: &'a mut BS) -> Self::State<'c> {
+        async move {
+            let enum_variant =
+                <DefaultInterp as AsyncParser<ULEB128, BS>>::parse(&DefaultInterp, input).await;
+            match enum_variant {
+                0 => {
+                    trace!("TransactionKind: Single");
+                    <DropInterp as AsyncParser<SingleTransactionKind, BS>>::parse(
+                        &DropInterp,
+                        input,
+                    )
+                    .await;
+                }
+                _ => reject_on(core::file!(), core::line!()).await,
+            }
+        }
+    }
+}
+
 const fn pay_sui_parser<BS: Clone + Readable>(
 ) -> impl AsyncParser<PaySui, BS> + HasOutput<PaySui, Output = ()> {
     Action(
@@ -137,6 +176,14 @@ const fn pay_sui_parser<BS: Clone + Readable>(
             Some(())
         },
     )
+}
+
+const fn pay_sui_drop_parser<BS: Clone + Readable>(
+) -> impl AsyncParser<PaySui, BS> + HasOutput<PaySui, Output = ()> {
+    Action((SubInterp(coin_parser()), DropInterp), |(_, _): (_, _)| {
+        trace!("PaySui Ok");
+        Some(())
+    })
 }
 
 impl HasOutput<RecipientsAndAmounts> for RecipientsAndAmounts {
@@ -205,6 +252,40 @@ impl<BS: Clone + Readable> AsyncParser<RecipientsAndAmounts, BS> for RecipientsA
                 {
                     reject::<()>().await;
                 }
+            }
+            *input = amt_bs;
+        }
+    }
+}
+
+impl<BS: Clone + Readable> AsyncParser<RecipientsAndAmounts, BS> for DropInterp {
+    type State<'c> = impl Future<Output = Self::Output> + 'c where BS: 'c;
+    fn parse<'a: 'c, 'b: 'c, 'c>(&'b self, input: &'a mut BS) -> Self::State<'c> {
+        async move {
+            let length =
+                <DefaultInterp as AsyncParser<ULEB128, BS>>::parse(&DefaultInterp, input).await;
+            trace!("RecipientsAndAmounts length: {}", length);
+            let mut amt_bs = input.clone();
+
+            for _ in 0..length {
+                <DefaultInterp as AsyncParser<Recipient, BS>>::parse(&DefaultInterp, &mut amt_bs)
+                    .await;
+            }
+
+            let length_amt =
+                <DefaultInterp as AsyncParser<ULEB128, BS>>::parse(&DefaultInterp, &mut amt_bs)
+                    .await;
+            if length != length_amt {
+                trace!(
+                    "RecipientsAndAmounts length != length_amt: {}, {}",
+                    length,
+                    length_amt
+                );
+                reject::<()>().await;
+            }
+            for _ in 0..length {
+                <DefaultInterp as AsyncParser<Amount, BS>>::parse(&DefaultInterp, &mut amt_bs)
+                    .await;
             }
             *input = amt_bs;
         }
@@ -285,9 +366,30 @@ const fn transaction_data_parser<BS: Clone + Readable>(
     )
 }
 
+const fn transaction_data_drop_parser<BS: Clone + Readable>(
+) -> impl AsyncParser<TransactionData, BS> + HasOutput<TransactionData, Output = ()> {
+    Action(
+        (
+            DropInterp,
+            DefaultInterp,
+            object_ref_parser(),
+            DefaultInterp,
+            DefaultInterp,
+        ),
+        |_| Some(()),
+    )
+}
+
 const fn tx_parser<BS: Clone + Readable>(
 ) -> impl AsyncParser<IntentMessage, BS> + HasOutput<IntentMessage, Output = ()> {
     Action((intent_parser(), transaction_data_parser()), |_| Some(()))
+}
+
+const fn tx_drop_parser<BS: Clone + Readable>(
+) -> impl AsyncParser<IntentMessage, BS> + HasOutput<IntentMessage, Output = ()> {
+    Action((intent_parser(), transaction_data_drop_parser()), |_| {
+        Some(())
+    })
 }
 
 pub async fn sign_apdu(io: HostIO) {
@@ -296,36 +398,53 @@ pub async fn sign_apdu(io: HostIO) {
     // Read length, and move input[0] by one byte
     let length = usize::from_le_bytes(input[0].read().await);
 
-    if scroller("Transfer", |w| Ok(write!(w, "SUI")?)).is_none() {
-        reject::<()>().await;
-    };
-    NoinlineFut((|mut bs: ByteStream| async move {
-        let path = BIP_PATH_PARSER.parse(&mut bs).await;
-        if with_public_keys(&path, false, |_, address: &SuiPubKeyAddress| {
-            try_option(|| -> Option<()> {
-                scroller_paginated("From", |w| Ok(write!(w, "{address}")?))?;
-                Some(())
-            }())
-        })
-        .ok()
-        .is_none()
+    let known_txn = NoinlineFut((|mut txn: ByteStream| async move {
         {
-            reject::<()>().await;
-        }
-    })(input[1].clone()))
-    .await;
-
-    NoinlineFut((|mut txn: ByteStream| async move {
-        {
-            trace!("Beginning parse");
-            tx_parser().parse(&mut txn).await;
+            trace!("Beginning check parse");
+            TryFuture(tx_drop_parser().parse(&mut txn)).await.is_some()
         }
     })(input[0].clone()))
     .await;
 
-    if final_accept_prompt(&["Sign Transaction?"]).is_none() {
-        reject::<()>().await;
-    };
+    if known_txn {
+        if scroller("Transfer", |w| Ok(write!(w, "SUI")?)).is_none() {
+            reject::<()>().await;
+        };
+        NoinlineFut((|mut bs: ByteStream| async move {
+            let path = BIP_PATH_PARSER.parse(&mut bs).await;
+            if with_public_keys(&path, false, |_, address: &SuiPubKeyAddress| {
+                try_option(|| -> Option<()> {
+                    scroller_paginated("From", |w| Ok(write!(w, "{address}")?))?;
+                    Some(())
+                }())
+            })
+            .ok()
+            .is_none()
+            {
+                reject::<()>().await;
+            }
+        })(input[1].clone()))
+        .await;
+
+        NoinlineFut((|mut txn: ByteStream| async move {
+            {
+                trace!("Beginning parse");
+                tx_parser().parse(&mut txn).await;
+            }
+        })(input[0].clone()))
+        .await;
+
+        if final_accept_prompt(&["Sign Transaction?"]).is_none() {
+            reject::<()>().await;
+        };
+    } else {
+        if scroller("WARNING", |w| Ok(write!(w, "Transaction not recognized")?)).is_none() {
+            reject::<()>().await;
+        };
+        if final_accept_prompt(&["Blind Sign Transaction?"]).is_none() {
+            reject::<()>().await;
+        };
+    }
 
     // By the time we get here, we've approved and just need to do the signature.
     NoinlineFut((|input: ArrayVec<ByteStream, 2>| async move {
