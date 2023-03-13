@@ -221,6 +221,21 @@ rec {
   nanosplus = appForDevice "nanosplus";
   nanox = appForDevice "nanox";
 
+  cargoFmtCheck = pkgs.stdenv.mkDerivation {
+    pname = "cargo-fmt-${appName}";
+    inherit (nanos.rootCrate) version src;
+    nativeBuildInputs = [
+      pkgs.alamguRustPackages.cargo
+      pkgs.alamguRustPackages.rustfmt
+    ];
+    buildPhase = ''
+      cargo fmt --all --check
+    '';
+    installPhase = ''
+      touch "$out"
+    '';
+  };
+
   inherit (pkgs.nodePackages) node2nix;
 
 }
