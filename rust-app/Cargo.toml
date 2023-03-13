@@ -43,7 +43,7 @@ git = "https://github.com/alamgu/ledger-nanos-sdk.git"
 branch = "memory-fixes-pending"
 [patch."https://github.com/LedgerHQ/ledger-nanos-ui.git".nanos_ui]
 git = "https://github.com/obsidiansystems/ledger-nanos-ui"
-branch = "use-lib-bagl-for-x-and-splus"
+branch = "dn-make-from-pub"
 
 [profile.dev]
 # We need this to ensure stack usage is minimal even on speculos
