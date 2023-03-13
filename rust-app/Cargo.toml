@@ -57,7 +57,7 @@ overflow-checks = false
 
 [package.metadata.nanos]
 name = "Alamgu Example"
-api_level = "12"
+api_level = "1"
 path = ["44'/535348'"]
 curve = ["ed25519"]
 flags = "0"
