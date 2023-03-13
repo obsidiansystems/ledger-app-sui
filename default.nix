@@ -80,8 +80,11 @@ rec {
 
     cargo-ledger --use-prebuilt ${appExe} --hex-next-to-json ledger ${device}
 
-    dest=$out/${appName}
-    mkdir -p $dest
+    dest=$out/${appName}-${device}
+    mkdir -p $dest/dep
+
+    # Copy Alamgu build infra thunk
+    cp -r ${./dep/alamgu} $dest/dep/alamgu
 
     # Create a file to indicate what device this is for
     echo ${device} > $dest/device
@@ -177,16 +180,16 @@ rec {
 
     tarSrc = makeTarSrc { inherit appExe device; };
     tarball = pkgs.runCommandNoCC "${appName}-${device}.tar.gz" { } ''
-      tar -czvhf $out -C ${tarSrc} ${appName}
+      tar -czvhf $out -C ${tarSrc} "${appName}-${device}"
     '';
 
     loadApp = pkgs.writeScriptBin "load-app" ''
       #!/usr/bin/env bash
-      cd ${tarSrc}/${appName}
-      ${alamgu.ledgerctl}/bin/ledgerctl install -f ${tarSrc}/${appName}/app.json
+      cd ${tarSrc}/${appName}-${device}
+      ${alamgu.ledgerctl}/bin/ledgerctl install -f ${tarSrc}/${appName}-${device}/app.json
     '';
 
-    tarballShell = import (tarSrc + "/${appName}/shell.nix");
+    tarballShell = import (tarSrc + "/${appName}-${device}/shell.nix");
 
     speculosDeviceFlags = {
       nanos = [ "-m" "nanos" ];
