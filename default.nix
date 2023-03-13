@@ -185,7 +185,7 @@ rec {
 
     loadApp = pkgs.writeScriptBin "load-app" ''
       #!/usr/bin/env bash
-      cd ${tarSrc}/${appName}
+      cd ${tarSrc}/${appName}-${device}
       ${alamgu.ledgerctl}/bin/ledgerctl install -f ${tarSrc}/${appName}-${device}/app.json
     '';
 
