@@ -71,6 +71,7 @@ rec {
       alamgu.cargo-ledger
       alamgu.ledgerRustPlatform.rust.cargo
     ];
+    strictDeps = true;
   } (alamgu.cargoLedgerPreHook + ''
 
     cp ${./rust-app/Cargo.toml} ./Cargo.toml
@@ -114,6 +115,7 @@ rec {
     nativeBuildInputs = [
       pkgs.wget alamgu.speculos.speculos testScript
     ];
+    strictDeps = true;
   } ''
     mkdir $out
     (
@@ -140,6 +142,7 @@ rec {
   makeStackCheck = { rootCrate, device, memLimit, variant ? "" }:
   pkgs.runCommandNoCC "stack-check-${device}${variant}" {
     nativeBuildInputs = [ alamgu.stack-sizes ];
+    strictDeps = true;
   } ''
     stack-sizes --mem-limit=${toString memLimit} ${rootCrate}/bin/${appName} ${rootCrate}/bin/*.o | tee $out
   '';
