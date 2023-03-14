@@ -57,7 +57,7 @@ pub async fn get_address_apdu(io: HostIO) {
 
     let mut rv = ArrayVec::<u8, 220>::new();
 
-    if with_public_keys(&path, false, |key, address: &SuiPubKeyAddress| {
+    if with_public_keys(&path, true, |key, address: &SuiPubKeyAddress| {
         try_option(|| -> Option<()> {
             let key_bytes = ed25519_public_key_bytes(key);
 
@@ -411,7 +411,7 @@ pub async fn sign_apdu(io: HostIO) {
         };
         NoinlineFut((|mut bs: ByteStream| async move {
             let path = BIP_PATH_PARSER.parse(&mut bs).await;
-            if with_public_keys(&path, false, |_, address: &SuiPubKeyAddress| {
+            if with_public_keys(&path, true, |_, address: &SuiPubKeyAddress| {
                 try_option(|| -> Option<()> {
                     scroller_paginated("From", |w| Ok(write!(w, "{address}")?))?;
                     Some(())
@@ -449,7 +449,7 @@ pub async fn sign_apdu(io: HostIO) {
     NoinlineFut((|input: ArrayVec<ByteStream, 2>| async move {
         let mut ed = {
             let path = BIP_PATH_PARSER.parse(&mut input[1].clone()).await;
-            match Ed25519::new(path, false).ok() {
+            match Ed25519::new(path, true).ok() {
                 Some(ed) => ed,
                 _ => reject().await,
             }
