@@ -34,7 +34,7 @@ pub async fn get_address_apdu(io: HostIO) {
 
     let mut rv = ArrayVec::<u8, 220>::new();
 
-    if with_public_keys(&path, |key, pkh: &PKH| {
+    if with_public_keys(&path, false, |key, pkh: &PKH| {
         try_option(|| -> Option<()> {
             // Should return the format that the chain customarily uses for public keys; for
             // ed25519 that's usually r | s with no prefix, which isn't quite our internal
@@ -82,7 +82,7 @@ pub async fn sign_apdu(io: HostIO) {
 
     let path = BIP_PATH_PARSER.parse(&mut input[1].clone()).await;
 
-    if with_public_keys(&path, |_, pkh: &PKH| {
+    if with_public_keys(&path, false, |_, pkh: &PKH| {
         try_option(|| -> Option<()> {
             scroller("Sign for Address", |w| Ok(write!(w, "{pkh}")?))?;
             final_accept_prompt(&["Sign Transaction?"])?;
