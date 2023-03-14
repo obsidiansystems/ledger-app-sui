@@ -136,7 +136,7 @@ For example, it might be `~/Downloads/release.tar.gz` if you downloaded a pre-bu
 
 #### Without Nix
 
-Without using Nix, the `ledgerctl` can be used directly to install the app with the following commands.
+Without using Nix, the [`ledgerctl`](https://github.com/LedgerHQ/ledgerctl) can be used directly to install the app with the following commands.
 For more information on how to install and use that tool see the [instructions from LedgerHQ](https://github.com/LedgerHQ/ledgerctl).
 
 ```bash
@@ -147,7 +147,7 @@ ledgerctl install -f app.json
 
 ## Using the app with generic CLI tool
 
-The bundled `generic-cli` tool can be used to obtaining the public key and do signing.
+The bundled [`generic-cli`](https://github.com/alamgu/alamgu-generic-cli) tool can be used to obtaining the public key and do signing.
 
 To use this tool using Nix, from the root level of this repo, run this command to enter a shell with all the tools you'll need:
 ```bash
