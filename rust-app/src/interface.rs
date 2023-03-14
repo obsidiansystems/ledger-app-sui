@@ -35,8 +35,9 @@ pub type ObjectID = AccountAddress;
 pub type SequenceNumber = U64<{ Endianness::Little }>;
 pub type ObjectDigest = SHA3_256_HASH;
 
-pub const SUI_ADDRESS_LENGTH: usize = 20;
-pub type SuiAddress = Array<Byte, SUI_ADDRESS_LENGTH>;
+pub const SUI_ADDRESS_LENGTH: usize = 32;
+pub const SUI_ADDRESS_LENGTH_OLD: usize = 20;
+pub type SuiAddress = Array<Byte, SUI_ADDRESS_LENGTH_OLD>;
 
 pub type Coins = Vec<ObjectRef, { usize::MAX }>;
 
