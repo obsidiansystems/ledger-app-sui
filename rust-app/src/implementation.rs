@@ -29,7 +29,7 @@ pub const GET_ADDRESS_IMPL: GetAddressImplT = Action(
     SubInterp(DefaultInterp),
     mkfn(
         |path: &ArrayVec<u32, 10>, destination: &mut Option<ArrayVec<u8, 128>>| -> Option<()> {
-            with_public_keys(path, |key: &_, pkh: &PKH| {
+            with_public_keys(path, false, |key: &_, pkh: &PKH| {
                 try_option(|| -> Option<()> {
                     let rv = destination.insert(ArrayVec::new());
 
@@ -131,7 +131,7 @@ pub static SIGN_IMPL: SignImplT = Action(
             // And ask the user if this is the key the meant to sign with:
             mkmvfn(
                 |path: ArrayVec<u32, 10>, destination: &mut Option<ArrayVec<u32, 10>>| {
-                    with_public_keys(&path, |_, pkh: &PKH| {
+                    with_public_keys(&path, false, |_, pkh: &PKH| {
                         try_option(|| -> Option<()> {
                             scroller("Sign for Address", |w| Ok(write!(w, "{pkh}")?))?;
                             Some(())
