@@ -11,6 +11,7 @@ rec {
   app-nix = alamgu.crate2nix-tools.generatedCargoNix {
     name = "${appName}-nix";
     src = builtins.filterSource (p: _: p != toString "./rust-app/target") ./rust-app;
+    additionalCrateHashes = builtins.fromJSON (builtins.readFile ./crate-hashes.json);
   };
 
   makeApp = { rootFeatures ? [ "default" ], release ? true, device }:
@@ -71,6 +72,7 @@ rec {
       alamgu.cargo-ledger
       alamgu.ledgerRustPlatform.rust.cargo
     ];
+    strictDeps = true;
   } (alamgu.cargoLedgerPreHook + ''
 
     cp ${./rust-app/Cargo.toml} ./Cargo.toml
@@ -114,6 +116,7 @@ rec {
     nativeBuildInputs = [
       pkgs.wget alamgu.speculos.speculos testScript
     ];
+    strictDeps = true;
   } ''
     mkdir $out
     (
@@ -140,6 +143,7 @@ rec {
   makeStackCheck = { rootCrate, device, memLimit, variant ? "" }:
   pkgs.runCommandNoCC "stack-check-${device}${variant}" {
     nativeBuildInputs = [ alamgu.stack-sizes ];
+    strictDeps = true;
   } ''
     stack-sizes --mem-limit=${toString memLimit} ${rootCrate}/bin/${appName} ${rootCrate}/bin/*.o | tee $out
   '';
@@ -217,6 +221,21 @@ rec {
   nanos = appForDevice "nanos";
   nanosplus = appForDevice "nanosplus";
   nanox = appForDevice "nanox";
+
+  cargoFmtCheck = pkgs.stdenv.mkDerivation {
+    pname = "cargo-fmt-${appName}";
+    inherit (nanos.rootCrate) version src;
+    nativeBuildInputs = [
+      pkgs.alamguRustPackages.cargo
+      pkgs.alamguRustPackages.rustfmt
+    ];
+    buildPhase = ''
+      cargo fmt --all --check
+    '';
+    installPhase = ''
+      touch "$out"
+    '';
+  };
 
   inherit (pkgs.nodePackages) node2nix;
 
