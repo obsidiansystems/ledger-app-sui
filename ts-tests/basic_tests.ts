@@ -18,7 +18,7 @@ describe('basic tests', () => {
     await sendCommandAndAccept(async (client : Sui) => {
       const rv = await client.getPublicKey("44'/784'/0'");
       expect(new Buffer(rv.publicKey).toString('hex')).to.equal("3a33e8f670428a218e00c16bc6027021a45203eb0ef1fe3bb89e8c125db60eb4");
-      expect(new Buffer(rv.address).toString('hex')).to.equal("1eee7846e89d1afbf57b5ad9f7bf105bd853985e");
+      expect(new Buffer(rv.address).toString('hex')).to.equal("6f87497c43ac79691341e79f0722a4d36d68775cb9ed75fedb4c6a9649f6dfab");
       return;
     }, []);
   });
@@ -61,7 +61,7 @@ describe("Signing tests", function() {
          },
          {
            "header": "From",
-           "prompt": "0x1eee7846e89d1afbf57b5ad9f7bf105bd853985e",
+           "prompt": "0x6f87497c43ac79691341e79f0722a4d36d68775cb9ed75fedb4c6a9649f6dfab",
            "paginate": true
          },
          {
@@ -105,7 +105,7 @@ describe("Signing tests", function() {
          },
          {
            "header": "From",
-           "prompt": "0x1eee7846e89d1afbf57b5ad9f7bf105bd853985e",
+           "prompt": "0x6f87497c43ac79691341e79f0722a4d36d68775cb9ed75fedb4c6a9649f6dfab",
            "paginate": true
          },
          {

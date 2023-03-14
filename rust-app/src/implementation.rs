@@ -8,7 +8,7 @@ use core::fmt::Write;
 use ledger_crypto_helpers::common::{try_option, Address, HexSlice};
 use ledger_crypto_helpers::ed25519::Ed25519;
 use ledger_crypto_helpers::eddsa::{ed25519_public_key_bytes, with_public_keys};
-use ledger_crypto_helpers::hasher::{Hasher, SHA3_256};
+use ledger_crypto_helpers::hasher::{Blake2b, Hasher};
 use ledger_log::trace;
 use ledger_parser_combinators::async_parser::*;
 use ledger_parser_combinators::bcs::async_parser::*;
@@ -20,6 +20,7 @@ use core::convert::TryFrom;
 use core::future::Future;
 
 type SuiAddressRaw = [u8; SUI_ADDRESS_LENGTH];
+type SuiAddressRawOld = [u8; SUI_ADDRESS_LENGTH_OLD];
 
 pub struct SuiPubKeyAddress(nanos_sdk::ecc::ECPublicKey<65, 'E'>, SuiAddressRaw);
 
@@ -29,12 +30,10 @@ impl Address<SuiPubKeyAddress, nanos_sdk::ecc::ECPublicKey<65, 'E'>> for SuiPubK
         let mut tmp = ArrayVec::<u8, 33>::new();
         let _ = tmp.try_push(0); // SIGNATURE_SCHEME_TO_FLAG['ED25519']
         let _ = tmp.try_extend_from_slice(key_bytes);
-        let mut hasher: SHA3_256 = Hasher::new();
+        let mut hasher: Blake2b = Hasher::new();
         hasher.update(&tmp);
-        let hash: [u8; 32] = hasher.finalize();
-        let mut address: SuiAddressRaw = [0; SUI_ADDRESS_LENGTH];
-        address.clone_from_slice(&hash[0..SUI_ADDRESS_LENGTH]);
-        Ok(SuiPubKeyAddress(key.clone(), address))
+        let hash: [u8; SUI_ADDRESS_LENGTH] = hasher.finalize();
+        Ok(SuiPubKeyAddress(key.clone(), hash))
     }
     fn get_binary_address(&self) -> &[u8] {
         &self.1
@@ -319,7 +318,7 @@ const fn coin_parser<BS: Readable>(
 ) -> impl AsyncParser<ObjectRef, BS> + HasOutput<ObjectRef, Output = ()> {
     Action(
         (DefaultInterp, DefaultInterp, DefaultInterp),
-        |(_obj_id, _seq, _obj_dig): (SuiAddressRaw, u64, [u8; 33])| {
+        |(_obj_id, _seq, _obj_dig): (SuiAddressRawOld, u64, [u8; 33])| {
             trace!(
                 "Coin Ok {}, {}, {}",
                 HexSlice(_obj_id.as_ref()),
