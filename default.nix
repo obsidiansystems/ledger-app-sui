@@ -11,6 +11,7 @@ rec {
   app-nix = alamgu.crate2nix-tools.generatedCargoNix {
     name = "${appName}-nix";
     src = builtins.filterSource (p: _: p != toString "./rust-app/target") ./rust-app;
+    additionalCrateHashes = builtins.fromJSON (builtins.readFile ./crate-hashes.json);
   };
 
   makeApp = { rootFeatures ? [ "default" ], release ? true, device }:
