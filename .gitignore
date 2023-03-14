@@ -1,5 +1,6 @@
 target
 app.json
+Cargo.nix
 
 result
 result-*
