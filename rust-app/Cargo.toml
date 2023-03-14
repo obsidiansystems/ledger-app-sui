@@ -8,7 +8,7 @@ resolver = "2"
 
 [dependencies]
 arrayvec = { version = "0.7.2", default-features = false }
-ledger-crypto-helpers = { git = "https://github.com/alamgu/ledger-crypto-helpers" }
+ledger-crypto-helpers = { git = "https://github.com/alamgu/ledger-crypto-helpers", branch = "dn-sdk-bump-fixes" }
 ledger-log = { git = "https://github.com/alamgu/ledger-log" }
 ledger-parser-combinators = { git = "https://github.com/alamgu/ledger-parser-combinators", branch="async-split-take-2" }
 alamgu-async-block = { git = "https://github.com/alamgu/alamgu-async-block", branch = "prompt-queueing" }
@@ -43,7 +43,7 @@ path = "bin-src/main.rs"
 
 [patch."https://github.com/LedgerHQ/ledger-nanos-sdk.git".nanos_sdk]
 git = "https://github.com/alamgu/ledger-nanos-sdk.git"
-branch = "memory-fixes-pending"
+branch = "relocating-loader-w-fixes"
 [patch."https://github.com/LedgerHQ/ledger-nanos-ui.git".nanos_ui]
 git = "https://github.com/obsidiansystems/ledger-nanos-ui"
 branch = "dn-make-from-pub"
@@ -60,6 +60,7 @@ overflow-checks = false
 
 [package.metadata.nanos]
 name = "Sui"
+api_level = "1"
 path = ["44'/784'"]
 curve = ["ed25519"]
 flags = "0"

@@ -122,7 +122,7 @@ dependencies = [
 [[package]]
 name = "ledger-crypto-helpers"
 version = "0.2.0"
-source = "git+https://github.com/alamgu/ledger-crypto-helpers#17ad6868f9becfdab4208edd7f449689a931b2e0"
+source = "git+https://github.com/alamgu/ledger-crypto-helpers?branch=dn-sdk-bump-fixes#ba04aa35372c2ebd62a98aeea42b8a8264775289"
 dependencies = [
  "arrayvec",
  "base64",
@@ -188,7 +188,7 @@ dependencies = [
 [[package]]
 name = "nanos_sdk"
 version = "0.2.0"
-source = "git+https://github.com/alamgu/ledger-nanos-sdk.git?branch=memory-fixes-pending#100b25ddfb6049f6520d46657cf13a36a3fdeae9"
+source = "git+https://github.com/alamgu/ledger-nanos-sdk.git?branch=relocating-loader-w-fixes#27c4df41a062cfc5382ef733a7f26aff10d6c6f7"
 dependencies = [
  "cc",
  "num-traits",

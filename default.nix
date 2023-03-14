@@ -196,8 +196,8 @@ rec {
 
     speculosDeviceFlags = {
       nanos = [ "-m" "nanos" ];
-      nanosplus = [ "-m" "nanosp" "-k" "1.0.3" ];
-      nanox = [ "-m" "nanox" ];
+      nanosplus = [ "-m" "nanosp" "-a" "1" ];
+      nanox = [ "-m" "nanox" "-a" "1" ];
     }.${device} or (throw "Unknown target device: `${device}'");
 
     speculosCmd = [
