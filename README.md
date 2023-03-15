@@ -4,6 +4,8 @@
 
 Written using [Alamgu](https://github.com/alamgu/).
 
+[Nix]: https://nixos.org/
+
 ## Device Compatability
 
 This application is compatible with
@@ -14,72 +16,15 @@ This application is compatible with
 Note: Compatibility with Ledger Nano X is only possible to check on [Speculos](https://github.com/ledgerHQ/speculos/) emulator,
 because the Nano X does not support side-loading apps under development.
 
-## Installing the app
-
-If you don't want to develop the app but just use it, installation should be very simple.
-The first step is to obtain a release tarball.
-The second step is to load that app from the tarball.
-
-### Obtaining a release tarball
-
-#### Download an official build
-
-Check the [releases page](https://github.com/obsidiansystems/ledger-app-sui/releases) of this app to see if an official build has been uploaded for this release.
-There is a separate tarball for each device.
-
-#### Build one yourself, with Nix
-
-##### Set up build caches (optional)
-
-In addition to this app itself, the entire toolchain is packaged from source with Nix.
-That means that with usuing a pre-populated source of build artifacts, the first build will take a **very long time** as everything specific to Alamgu is built from source.
-(Other packages could also be built from source, but Nix by default ships configured to use the official `cache.nixos.org` build artifacts cache.)
-
-If you are comfortable trusting Obsidian Systems's build farm, you can use our public open source cache for this purpose:
-
-  - Store URL: `s3://obsidian-open-source`
-  - Public key (for build artifact signatures): `obsidian-open-source:KP1UbL7OIibSjFo9/2tiHCYLm/gJMfy8Tim7+7P4o0I=`
-
-To do this:
-
-1. First you want to include these two in your `/etc/nix/nix.conf` settings file.
-   After doing so, it should have two lines like this:
-   ```
-   substituters = https://cache.nixos.org/ s3://obsidian-open-source
-   trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= obsidian-open-source:KP1UbL7OIibSjFo9/2tiHCYLm/gJMfy8Tim7+7P4o0I=
-   ```
-   (The new values are each appended at the end of a space-separated list.)
-
-2. After updating that file, you probably need to restart your Nix daemon:
-
-   - On macOS:
-     - `sudo launchctl stop org.nixos.nix-daemon`
-     - `sudo launchctl start org.nixos.nix-daemon`
-   - On Linux:
-     - `sudo systemctl stop nix-daemon`
-     - `sudo systemctl start nix-daemon`
-
-(On NixOS these tasks are done differently, consult the NixOS documentation for how to update your system configuration which includes these settings and will restart the daemon.)
-
-##### Building
-
-There is a separate tarball for each device.
-To build one, run:
-```bash
-nix-build -A $DEVICE.tarball
-```
-where `DEVICE` is one of
- - `nanos`, for Nano S
- - `nanox`, for Nano X
- - `nanosplus`, for Nano S+
-
-The last line printed out will be the path of the tarball.
-
-### Preparing Your Linux Machine for Ledger Device Communication
+## Preparing Your Linux Machine for Ledger Device Communication
 
 On Linux, the "udev" rules must be set up to allow your user to communicate with the ledger device. MacOS devices do not need any configuration to communicate with a Ledger device, so if you are using Mac you can ignore this section.
 
-#### NixOS
+### macOS
+
+No steps need to be taken in advance.
+
+### NixOS
 
 On NixOS, one can easily do this with by adding the following to configuration.nix:
 
@@ -91,7 +36,7 @@ On NixOS, one can easily do this with by adding the following to configuration.n
 }
 ```
 
-#### Non-NixOS Linux Distros
+### Non-NixOS Linux Distros
 
 For non-NixOS Linux distros, LedgerHQ provides a [script](https://raw.githubusercontent.com/LedgerHQ/udev-rules/master/add_udev_rules.sh) for this purpose, in its own [specialized repo](https://github.com/LedgerHQ/udev-rules). Download this script, read it, customize it, and run it as root:
 
@@ -110,10 +55,57 @@ Subsequently, unplug your ledger hardware wallet, and plug it in again for the c
 
 For more details, see [Ledger's documentation](https://support.ledger.com/hc/en-us/articles/115005165269-Fix-connection-issues).
 
+## Installing the app
+
+If you don't want to develop the app but just use it, installation should be very simple.
+The first step is to obtain a release tarball.
+The second step is to load that app from the tarball.
+
+Additionaly, if you are using [Nix], you can skip the tarball entirely and directly build/downoad and load the load.
+
+### Directly build/download and load the app with Nix
+
+First, follow our [general instructions](./NIX.md) for getting started with [Nix].
+
+Second, please ensure that your device is plugged, unlocked, and on the device home screen.
+
+Finally, run the following command to load the app on your device:
+```bash
+nix --extra-experimental-features nix-command run -f . $DEVICE.loadApp
+```
+where `DEVICE` is one of
+ - `nanos`, for Nano S
+ - `nanox`, for Nano X
+ - `nanosplus`, for Nano S+
+
+The app will be downloaded (if you have our Nix cache enabled) and/or freshly built as needed.
+
+### Obtaining a release tarball
+
+#### Download an official build
+
+Check the [releases page](https://github.com/obsidiansystems/sui/releases) of this app to see if an official build has been uploaded for this release.
+There is a separate tarball for each device.
+
+#### Build one yourself, with Nix
+
+First, follow our [general instructions](./NIX.md) for getting started with [Nix].
+
+There is a separate tarball for each device.
+To build one, run:
+```bash
+nix-build -A $DEVICE.tarball
+```
+where `DEVICE` is one of
+ - `nanos`, for Nano S
+ - `nanox`, for Nano X
+ - `nanosplus`, for Nano S+
+
+The last line printed out will be the path of the tarball.
+
 ### Installation using the pre-packaged tarball
 
 Before installing please ensure that your device is plugged, unlocked, and on the device home screen.
-Installing the app from a tarball can be done using [`ledgerctl`](https://github.com/ledgerHQ/ledgerctl).
 
 #### With Nix
 
