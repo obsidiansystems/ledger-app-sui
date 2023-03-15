@@ -40,7 +40,7 @@ path = "bin-src/main.rs"
 
 [patch."https://github.com/LedgerHQ/ledger-nanos-sdk.git".nanos_sdk]
 git = "https://github.com/alamgu/ledger-nanos-sdk.git"
-branch = "memory-fixes-pending"
+branch = "relocating-loader-w-fixes"
 [patch."https://github.com/LedgerHQ/ledger-nanos-ui.git".nanos_ui]
 git = "https://github.com/obsidiansystems/ledger-nanos-ui"
 branch = "dn-make-from-pub"
@@ -57,6 +57,7 @@ overflow-checks = false
 
 [package.metadata.nanos]
 name = "Alamgu Example"
+api_level = "1"
 path = ["44'/535348'"]
 curve = ["ed25519"]
 flags = "0"
