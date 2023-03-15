@@ -72,6 +72,9 @@ Additionaly, if you are using [Nix], you can skip the tarball entirely and direc
 
 First, follow our [general instructions](./NIX.md) for getting started with [Nix].
 
+Second, please ensure that your device is plugged, unlocked, and on the device home screen.
+
+Finally, run the following command to load the app on your device:
 ```bash
 nix --extra-experimental-features nix-command run -f . $DEVICE.loadApp
 ```
@@ -79,6 +82,8 @@ where `DEVICE` is one of
  - `nanos`, for Nano S
  - `nanox`, for Nano X
  - `nanosplus`, for Nano S+
+
+The app will be downloaded (if you have our Nix cache enabled) and/or freshly built as needed.
 
 ### Obtaining a release tarball
 
@@ -90,8 +95,6 @@ There is a separate tarball for each device.
 #### Build one yourself, with Nix
 
 First, follow our [general instructions](./NIX.md) for getting started with [Nix].
-
-##### Building
 
 There is a separate tarball for each device.
 To build one, run:
@@ -108,7 +111,6 @@ The last line printed out will be the path of the tarball.
 ### Installation using the pre-packaged tarball
 
 Before installing please ensure that your device is plugged, unlocked, and on the device home screen.
-Installing the app from a tarball can be done using [`ledgerctl`](https://github.com/ledgerHQ/ledgerctl).
 
 #### With Nix
 

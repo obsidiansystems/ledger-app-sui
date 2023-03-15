@@ -43,3 +43,12 @@ To do this:
 
 We don't currently do builds for "Apple Silicon" (i.e. `aarch64-darwin`).
 To take advantage of our build caches then, you should pass `--system x86_64-darwin` to every `nix` invocation to instead use Intel mac builds instead.
+
+That means when the instructions say something like:
+```bash
+nix foo bar baz...
+```
+instead do:
+```bash
+nix foo bar baz... --system x86_64-darwin
+```
