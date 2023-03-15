@@ -14,6 +14,18 @@ rec {
     additionalCrateHashes = builtins.fromJSON (builtins.readFile ./crate-hashes.json);
   };
 
+  makeLinkerScript = { pkgs, sdkSrc }:
+    pkgs.stdenvNoCC.mkDerivation {
+      name = "alamgu-linker-wrapper";
+      dontUnpack = true;
+      dontBuild = true;
+      installPhase = ''
+        mkdir -p "$out/bin"
+        cp "${sdkSrc}/scripts/link_wrap.sh" "$out/bin"
+        chmod +x "$out/bin/link_wrap.sh"
+      '';
+    };
+
   makeApp = { rootFeatures ? [ "default" ], release ? true, device }:
     let collection = alamgu.perDevice.${device};
     in import app-nix {
@@ -26,15 +38,9 @@ rec {
           defaultCrateOverrides = pkgs.defaultCrateOverrides // {
             nanos_sdk = attrs: {
               passthru = (attrs.passthru or {}) // {
-                link_wrap = pkgs.buildPackages.stdenvNoCC.mkDerivation {
-                  name = "alamgu-linker-wrapper";
-                  dontUnpack = true;
-                  dontBuild = true;
-                  installPhase = ''
-                    mkdir -p "$out/bin"
-                    cp "${attrs.src}/scripts/link_wrap.sh" "$out/bin"
-                    chmod +x "$out/bin/link_wrap.sh"
-                  '';
+                link_wrap = makeLinkerScript {
+                  pkgs = pkgs.buildPackages;
+                  sdkSrc = attrs.src;
                 };
               };
             };
@@ -178,7 +184,10 @@ rec {
       nativeBuildInputs = old.nativeBuildInputs ++ [
         pkgs.yarn
         pkgs.wget
-        rootCrate.sdk.link_wrap
+        (makeLinkerScript {
+          inherit pkgs;
+          sdkSrc = alamgu.thunkSource ./dep/ledger-nanos-sdk;
+        })
       ];
     });
 
