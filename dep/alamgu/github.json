@@ -1,8 +1,8 @@
 {
   "owner": "alamgu",
   "repo": "alamgu",
-  "branch": "newer-firmware",
+  "branch": "develop",
   "private": false,
-  "rev": "bc765884916fd120ec6b5759d885ff5bf0e5aa78",
-  "sha256": "1hsb1bdl2gksqwzm2q8qyv3rq5kh8x7hv44vyvn9kd7zsik0gdld"
+  "rev": "13ef77a28c0a1d56b1b816ed26454a88d778278d",
+  "sha256": "1f8cbnwdiwaldghzxbp808gz6ldavmn70hdf0vbd94nlzfcw4nbv"
 }
