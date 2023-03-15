@@ -192,8 +192,11 @@ rec {
     });
 
     tarSrc = makeTarSrc { inherit appExe device; };
-    tarball = pkgs.runCommandNoCC "${appName}-${device}.tar.gz" { } ''
-      tar -czvhf $out -C ${tarSrc} "${appName}-${device}"
+    tarball = pkgs.runCommandNoCC "${appName}-${device}.tar.gz" {} ''
+      dir="${appName}-${device}"
+      cp -r "${tarSrc}/$dir" ./
+      chmod -R ugo+w "$dir"
+      tar -czvhf $out -C . "${appName}-${device}"
     '';
 
     loadApp = pkgs.writeScriptBin "load-app" ''
