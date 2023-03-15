@@ -84,7 +84,7 @@ The app will be downloaded (if you have our Nix cache enabled) and/or freshly bu
 
 #### Download an official build
 
-Check the [releases page](https://github.com/obsidiansystems/sui/releases) of this app to see if an official build has been uploaded for this release.
+Check the [releases page](https://github.com/obsidiansystems/ledger-app-sui/releases) of this app to see if an official build has been uploaded for this release.
 There is a separate tarball for each device.
 
 #### Build one yourself, with Nix
