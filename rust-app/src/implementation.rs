@@ -150,7 +150,7 @@ pub static SIGN_IMPL: SignImplT = Action(
             final_accept_prompt(&["Sign Transaction?"])?;
 
             // By the time we get here, we've approved and just need to do the signature.
-            let sig = eddsa_sign(path.as_ref()?, &hash.as_ref()?.0[..]).ok()?;
+            let sig = eddsa_sign(path.as_ref()?, false, &hash.as_ref()?.0[..]).ok()?;
             let mut rv = ArrayVec::<u8, 128>::new();
             rv.try_extend_from_slice(&sig.0[..]).ok()?;
             *destination = Some(rv);
