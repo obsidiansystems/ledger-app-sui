@@ -96,7 +96,7 @@ pub async fn sign_apdu(io: HostIO) {
     }
 
     // By the time we get here, we've approved and just need to do the signature.
-    if let Some(sig) = { eddsa_sign(&path, &hash.deref().0).ok() } {
+    if let Some(sig) = { eddsa_sign(&path, false, &hash.deref().0).ok() } {
         io.result_final(&sig.0[0..]).await;
     } else {
         reject::<()>().await;
