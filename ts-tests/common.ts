@@ -4,7 +4,11 @@ import Transport from "./http-transport";
 import { Common } from "hw-app-alamgu";
 import { expect } from 'chai';
 
-const ignoredScreens = [ "W e l c o m e", "Cancel", "Working...", "Exit", "Alamgu Example 0.0.1"]
+const ignoredScreens = [ "W e l c o m e", "Cancel", "Working...", "Exit", "Alamgu Example 0.0.1"
+                         , "Blind Signing", "Enable Blind Signing", "Disable Blind Signing", "Back"
+                         /* The next ones are specifically for S+ in which OCR is broken */
+                         , "Blind igning", "Enable Blind igning", "Disable Blind igning"
+                       ];
 
 const API_PORT: number = 5005;
 
