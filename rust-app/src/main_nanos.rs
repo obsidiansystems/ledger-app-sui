@@ -1,10 +1,12 @@
 use crate::implementation::*;
 use crate::interface::*;
+use crate::menu::*;
+use crate::settings::*;
 
 use alamgu_async_block::*;
 
 use ledger_log::{info, trace};
-use ledger_prompts_ui::RootMenu;
+use ledger_prompts_ui::{handle_menu_button_event, show_menu};
 
 use core::cell::RefCell;
 use core::pin::Pin;
@@ -28,11 +30,11 @@ pub fn app_main() {
             core::mem::transmute(&states_backing.0)
         }));
 
-    let mut idle_menu = RootMenu::new([
-        concat!("Alamgu Example ", env!("CARGO_PKG_VERSION")),
-        "Exit",
-    ]);
-    let mut busy_menu = RootMenu::new(["Working...", "Cancel"]);
+    let mut idle_menu = IdleMenuWithSettings {
+        idle_menu: IdleMenu::AppMain,
+        settings: Settings::new(),
+    };
+    let mut busy_menu = BusyMenu::Working;
 
     info!("Alamgu Example {}", env!("CARGO_PKG_VERSION"));
     info!(
@@ -41,15 +43,15 @@ pub fn app_main() {
         core::mem::size_of::<Option<APDUsFuture>>()
     );
 
-    let // Draw some 'welcome' screen
-        menu = |states : core::cell::Ref<'_, Option<APDUsFuture>>, idle : & mut RootMenu<2>, busy : & mut RootMenu<2>| {
-            match states.is_none() {
-                true => idle.show(),
-                _ => busy.show(),
-            }
-        };
+    let menu = |states: core::cell::Ref<'_, Option<APDUsFuture>>,
+                idle: &IdleMenuWithSettings,
+                busy: &BusyMenu| match states.is_none() {
+        true => show_menu(idle),
+        _ => show_menu(busy),
+    };
 
-    menu(states.borrow(), &mut idle_menu, &mut busy_menu);
+    // Draw some 'welcome' screen
+    menu(states.borrow(), &idle_menu, &busy_menu);
     loop {
         // Wait for either a specific button push to exit the app
         // or an APDU command
@@ -72,26 +74,30 @@ pub fn app_main() {
                     }
                     Err(sw) => comm.borrow_mut().reply(sw),
                 };
-                menu(states.borrow(), &mut idle_menu, &mut busy_menu);
+                // Reset BusyMenu if we are done handling APDU
+                if states.borrow().is_none() {
+                    busy_menu = BusyMenu::Working;
+                }
+                menu(states.borrow(), &idle_menu, &busy_menu);
                 trace!("Command done");
             }
             io::Event::Button(btn) => {
                 trace!("Button received");
                 match states.borrow().is_none() {
                     true => {
-                        if let Some(1) = idle_menu.update(btn) {
+                        if let Some(DoExitApp) = handle_menu_button_event(&mut idle_menu, btn) {
                             info!("Exiting app at user direction via root menu");
                             nanos_sdk::exit_app(0)
                         }
                     }
                     _ => {
-                        if let Some(1) = idle_menu.update(btn) {
+                        if let Some(DoCancel) = handle_menu_button_event(&mut busy_menu, btn) {
                             info!("Resetting at user direction via busy menu");
                             PinMut::as_mut(&mut states.borrow_mut()).set(None);
                         }
                     }
                 };
-                menu(states.borrow(), &mut idle_menu, &mut busy_menu);
+                menu(states.borrow(), &idle_menu, &busy_menu);
                 trace!("Button done");
             }
             io::Event::Ticker => {
