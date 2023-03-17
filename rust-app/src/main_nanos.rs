@@ -72,7 +72,10 @@ pub fn app_main() {
                         comm.borrow_mut().reply_ok();
                         trace!("Replied");
                     }
-                    Err(sw) => comm.borrow_mut().reply(sw),
+                    Err(sw) => {
+                        PinMut::as_mut(&mut states.0.borrow_mut()).set(None);
+                        comm.borrow_mut().reply(sw);
+                    }
                 };
                 // Reset BusyMenu if we are done handling APDU
                 if states.borrow().is_none() {
