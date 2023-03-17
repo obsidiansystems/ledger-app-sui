@@ -4,7 +4,11 @@ import Transport from "./http-transport";
 import Sui from "@mysten/ledgerjs-hw-app-sui";
 import { expect } from 'chai';
 
-const ignoredScreens = [ "W e l c o m e", "Cancel", "Working...", "Exit", "Sui 0.0.1", "ui 0.0.1"]
+const ignoredScreens = [ "W e l c o m e", "Cancel", "Working...", "Exit", "Sui 0.0.1", "ui 0.0.1"
+                         , "Blind Signing", "Enable Blind Signing", "Disable Blind Signing", "Back"
+                         /* The next ones are specifically for S+ in which OCR is broken */
+                         , "Blind igning", "Enable Blind igning", "Disable Blind igning"
+                       ];
 
 const API_PORT: number = 5005;
 
@@ -145,4 +149,27 @@ const sendCommandAndAccept = async function(command : any, prompts : any[]) {
   }
 }
 
-export { sendCommandAndAccept, BASE_URL }
+const sendCommandExpectFail = async function(command : any) {
+  await setAcceptAutomationRules();
+  await Axios.delete(BASE_URL + "/events");
+
+  const transport = await Transport.open(BASE_URL + "/apdu");
+  const client = new Sui(transport);
+  // client.sendChunks = client.sendWithBlocks; // Use Block protocol
+
+  try { await command(client); } catch(e) {
+    return;
+  }
+  expect.fail("Command should have failed");
+}
+
+let toggleBlindSigningSettings = async function() {
+  await Axios.post(BASE_URL + "/button/right", {"action":"press-and-release"});
+  await Axios.post(BASE_URL + "/button/both", {"action":"press-and-release"});
+  await Axios.post(BASE_URL + "/button/both", {"action":"press-and-release"});
+  await Axios.post(BASE_URL + "/button/right", {"action":"press-and-release"});
+  await Axios.post(BASE_URL + "/button/both", {"action":"press-and-release"});
+  await Axios.post(BASE_URL + "/button/left", {"action":"press-and-release"});
+}
+
+export { sendCommandAndAccept, BASE_URL, sendCommandExpectFail, toggleBlindSigningSettings }

@@ -90,7 +90,7 @@ impl Menu for IdleMenuWithSettings {
         use crate::menu::SettingsSubMenu::*;
         match self.idle_menu {
             AppMain => concat!("Sui ", env!("CARGO_PKG_VERSION")),
-            Settings(None) => "Settings",
+            Settings(None) => "Blind Signing",
             Settings(Some(EnableBlindSigning)) => "Enable Blind Signing",
             Settings(Some(DisableBlindSigning)) => "Disable Blind Signing",
             Settings(Some(Back)) => "Back",

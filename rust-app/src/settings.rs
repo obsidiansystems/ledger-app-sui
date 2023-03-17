@@ -7,6 +7,7 @@ mod nanos {
     #[link_section = ".nvm_data"]
     static mut SETTINGS: NVMData<AtomicStorage<u8>> = NVMData::new(AtomicStorage::new(&0));
 
+    #[derive(Clone, Copy)]
     pub struct Settings;
 
     impl Settings {
@@ -31,6 +32,7 @@ mod nanos {
 
 #[cfg(not(target_os = "nanos"))]
 mod nanosplus {
+    #[derive(Clone, Copy)]
     pub struct Settings(u8);
 
     impl Settings {
