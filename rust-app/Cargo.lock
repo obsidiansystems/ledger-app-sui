@@ -161,7 +161,7 @@ dependencies = [
 [[package]]
 name = "ledger-prompts-ui"
 version = "0.1.0"
-source = "git+https://github.com/alamgu/ledger-prompts-ui#87c29519a43b5144058c97eb298a5297b342e0be"
+source = "git+https://github.com/alamgu/ledger-prompts-ui#f326cb514dfd48545126a35cda71b61907ff2b0b"
 dependencies = [
  "arrayvec",
  "include_gif",
