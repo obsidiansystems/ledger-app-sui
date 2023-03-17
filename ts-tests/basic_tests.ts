@@ -1,4 +1,4 @@
-import { sendCommandAndAccept, BASE_URL } from "./common";
+import { sendCommandAndAccept, BASE_URL, sendCommandExpectFail, toggleBlindSigningSettings } from "./common";
 import { expect } from 'chai';
 import { describe, it } from 'mocha';
 import Axios from 'axios';
