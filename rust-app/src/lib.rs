@@ -7,7 +7,10 @@
 #![cfg_attr(all(target_family = "bolos", test), no_main)]
 #![cfg_attr(target_family = "bolos", feature(custom_test_frameworks))]
 #![reexport_test_harness_main = "test_main"]
-#![cfg_attr(target_family = "bolos", test_runner(nanos_sdk::testing::sdk_test_runner))]
+#![cfg_attr(
+    target_family = "bolos",
+    test_runner(nanos_sdk::testing::sdk_test_runner)
+)]
 #![feature(cfg_version)]
 #![cfg_attr(all(not(version("1.65"))), feature(generic_associated_types))]
 
