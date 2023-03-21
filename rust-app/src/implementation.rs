@@ -80,11 +80,15 @@ pub async fn get_address_apdu(io: HostIO) {
     io.result_final(&rv).await;
 }
 
-impl HasOutput<SingleTransactionKind> for SingleTransactionKind {
+impl<const PROMPT: bool> HasOutput<SingleTransactionKind<PROMPT>>
+    for SingleTransactionKind<PROMPT>
+{
     type Output = ();
 }
 
-impl<BS: Clone + Readable> AsyncParser<SingleTransactionKind, BS> for SingleTransactionKind {
+impl<BS: Clone + Readable, const PROMPT: bool> AsyncParser<SingleTransactionKind<PROMPT>, BS>
+    for SingleTransactionKind<PROMPT>
+{
     type State<'c> = impl Future<Output = Self::Output> + 'c where BS: 'c;
     fn parse<'a: 'c, 'b: 'c, 'c>(&'b self, input: &'a mut BS) -> Self::State<'c> {
         async move {
@@ -94,7 +98,7 @@ impl<BS: Clone + Readable> AsyncParser<SingleTransactionKind, BS> for SingleTran
                 // PaySui
                 5 => {
                     trace!("SingleTransactionKind: PaySui");
-                    pay_sui_parser().parse(input).await;
+                    pay_sui_parser::<_, PROMPT>().parse(input).await;
                 }
                 _ => reject_on(core::file!(), core::line!()).await,
             }
@@ -102,29 +106,13 @@ impl<BS: Clone + Readable> AsyncParser<SingleTransactionKind, BS> for SingleTran
     }
 }
 
-impl<BS: Clone + Readable> AsyncParser<SingleTransactionKind, BS> for DropInterp {
-    type State<'c> = impl Future<Output = Self::Output> + 'c where BS: 'c;
-    fn parse<'a: 'c, 'b: 'c, 'c>(&'b self, input: &'a mut BS) -> Self::State<'c> {
-        async move {
-            let enum_variant =
-                <DefaultInterp as AsyncParser<ULEB128, BS>>::parse(&DefaultInterp, input).await;
-            match enum_variant {
-                // PaySui
-                5 => {
-                    trace!("SingleTransactionKind: PaySui");
-                    pay_sui_drop_parser().parse(input).await;
-                }
-                _ => reject_on(core::file!(), core::line!()).await,
-            }
-        }
-    }
-}
-
-impl HasOutput<TransactionKind> for TransactionKind {
+impl<const PROMPT: bool> HasOutput<TransactionKind<PROMPT>> for TransactionKind<PROMPT> {
     type Output = ();
 }
 
-impl<BS: Clone + Readable> AsyncParser<TransactionKind, BS> for TransactionKind {
+impl<BS: Clone + Readable, const PROMPT: bool> AsyncParser<TransactionKind<PROMPT>, BS>
+    for TransactionKind<PROMPT>
+{
     type State<'c> = impl Future<Output = Self::Output> + 'c where BS: 'c;
     fn parse<'a: 'c, 'b: 'c, 'c>(&'b self, input: &'a mut BS) -> Self::State<'c> {
         async move {
@@ -133,10 +121,10 @@ impl<BS: Clone + Readable> AsyncParser<TransactionKind, BS> for TransactionKind 
             match enum_variant {
                 0 => {
                     trace!("TransactionKind: Single");
-                    <SingleTransactionKind as AsyncParser<SingleTransactionKind, BS>>::parse(
-                        &SingleTransactionKind,
-                        input,
-                    )
+                    <SingleTransactionKind<PROMPT> as AsyncParser<
+                        SingleTransactionKind<PROMPT>,
+                        BS,
+                    >>::parse(&SingleTransactionKind::<PROMPT>, input)
                     .await;
                 }
                 _ => reject_on(core::file!(), core::line!()).await,
@@ -145,31 +133,10 @@ impl<BS: Clone + Readable> AsyncParser<TransactionKind, BS> for TransactionKind 
     }
 }
 
-impl<BS: Clone + Readable> AsyncParser<TransactionKind, BS> for DropInterp {
-    type State<'c> = impl Future<Output = Self::Output> + 'c where BS: 'c;
-    fn parse<'a: 'c, 'b: 'c, 'c>(&'b self, input: &'a mut BS) -> Self::State<'c> {
-        async move {
-            let enum_variant =
-                <DefaultInterp as AsyncParser<ULEB128, BS>>::parse(&DefaultInterp, input).await;
-            match enum_variant {
-                0 => {
-                    trace!("TransactionKind: Single");
-                    <DropInterp as AsyncParser<SingleTransactionKind, BS>>::parse(
-                        &DropInterp,
-                        input,
-                    )
-                    .await;
-                }
-                _ => reject_on(core::file!(), core::line!()).await,
-            }
-        }
-    }
-}
-
-const fn pay_sui_parser<BS: Clone + Readable>(
-) -> impl AsyncParser<PaySui, BS> + HasOutput<PaySui, Output = ()> {
+const fn pay_sui_parser<BS: Clone + Readable, const PROMPT: bool>(
+) -> impl AsyncParser<PaySui<PROMPT>, BS> + HasOutput<PaySui<PROMPT>, Output = ()> {
     Action(
-        (SubInterp(coin_parser()), RecipientsAndAmounts),
+        (SubInterp(coin_parser()), RecipientsAndAmounts::<PROMPT>),
         |(_, _): (_, _)| {
             trace!("PaySui Ok");
             Some(())
@@ -177,19 +144,13 @@ const fn pay_sui_parser<BS: Clone + Readable>(
     )
 }
 
-const fn pay_sui_drop_parser<BS: Clone + Readable>(
-) -> impl AsyncParser<PaySui, BS> + HasOutput<PaySui, Output = ()> {
-    Action((SubInterp(coin_parser()), DropInterp), |(_, _): (_, _)| {
-        trace!("PaySui Ok");
-        Some(())
-    })
-}
-
-impl HasOutput<RecipientsAndAmounts> for RecipientsAndAmounts {
+impl<const PROMPT: bool> HasOutput<RecipientsAndAmounts<PROMPT>> for RecipientsAndAmounts<PROMPT> {
     type Output = ();
 }
 
-impl<BS: Clone + Readable> AsyncParser<RecipientsAndAmounts, BS> for RecipientsAndAmounts {
+impl<BS: Clone + Readable, const PROMPT: bool> AsyncParser<RecipientsAndAmounts<PROMPT>, BS>
+    for RecipientsAndAmounts<PROMPT>
+{
     type State<'c> = impl Future<Output = Self::Output> + 'c where BS: 'c;
     fn parse<'a: 'c, 'b: 'c, 'c>(&'b self, input: &'a mut BS) -> Self::State<'c> {
         async move {
@@ -222,69 +183,36 @@ impl<BS: Clone + Readable> AsyncParser<RecipientsAndAmounts, BS> for RecipientsA
                     <DefaultInterp as AsyncParser<Amount, BS>>::parse(&DefaultInterp, &mut amt_bs)
                         .await;
 
-                if (|| -> Option<()> {
-                    {
-                        let mut buffer: ArrayString<16> = ArrayString::new();
-                        if length > 1 {
-                            write!(mk_prompt_write(&mut buffer), "To ({})", i + 1).ok()?;
-                        } else {
-                            write!(mk_prompt_write(&mut buffer), "To").ok()?;
+                if PROMPT
+                    && (|| -> Option<()> {
+                        {
+                            let mut buffer: ArrayString<16> = ArrayString::new();
+                            if length > 1 {
+                                write!(mk_prompt_write(&mut buffer), "To ({})", i + 1).ok()?;
+                            } else {
+                                write!(mk_prompt_write(&mut buffer), "To").ok()?;
+                            }
+                            scroller_paginated(&buffer, |w| {
+                                Ok(write!(w, "0x{}", HexSlice(&recipient))?)
+                            })?
                         }
-                        scroller_paginated(&buffer, |w| {
-                            Ok(write!(w, "0x{}", HexSlice(&recipient))?)
-                        })?
-                    }
-                    {
-                        let mut buffer: ArrayString<16> = ArrayString::new();
-                        if length > 1 {
-                            write!(mk_prompt_write(&mut buffer), "Amount ({})", i + 1).ok()?;
-                        } else {
-                            write!(mk_prompt_write(&mut buffer), "Amount").ok()?;
+                        {
+                            let mut buffer: ArrayString<16> = ArrayString::new();
+                            if length > 1 {
+                                write!(mk_prompt_write(&mut buffer), "Amount ({})", i + 1).ok()?;
+                            } else {
+                                write!(mk_prompt_write(&mut buffer), "Amount").ok()?;
+                            }
+                            let (quotient, remainder_str) = get_amount_in_decimals(amount);
+                            scroller_paginated(&buffer, |w| {
+                                Ok(write!(w, "{quotient}.{}", remainder_str.as_str())?)
+                            })
                         }
-                        let (quotient, remainder_str) = get_amount_in_decimals(amount);
-                        scroller_paginated(&buffer, |w| {
-                            Ok(write!(w, "{quotient}.{}", remainder_str.as_str())?)
-                        })
-                    }
-                })()
-                .is_none()
+                    })()
+                    .is_none()
                 {
                     reject::<()>().await;
                 }
-            }
-            *input = amt_bs;
-        }
-    }
-}
-
-impl<BS: Clone + Readable> AsyncParser<RecipientsAndAmounts, BS> for DropInterp {
-    type State<'c> = impl Future<Output = Self::Output> + 'c where BS: 'c;
-    fn parse<'a: 'c, 'b: 'c, 'c>(&'b self, input: &'a mut BS) -> Self::State<'c> {
-        async move {
-            let length =
-                <DefaultInterp as AsyncParser<ULEB128, BS>>::parse(&DefaultInterp, input).await;
-            trace!("RecipientsAndAmounts length: {}", length);
-            let mut amt_bs = input.clone();
-
-            for _ in 0..length {
-                <DefaultInterp as AsyncParser<Recipient, BS>>::parse(&DefaultInterp, &mut amt_bs)
-                    .await;
-            }
-
-            let length_amt =
-                <DefaultInterp as AsyncParser<ULEB128, BS>>::parse(&DefaultInterp, &mut amt_bs)
-                    .await;
-            if length != length_amt {
-                trace!(
-                    "RecipientsAndAmounts length != length_amt: {}, {}",
-                    length,
-                    length_amt
-                );
-                reject::<()>().await;
-            }
-            for _ in 0..length {
-                <DefaultInterp as AsyncParser<Amount, BS>>::parse(&DefaultInterp, &mut amt_bs)
-                    .await;
             }
             *input = amt_bs;
         }
@@ -343,52 +271,38 @@ const fn intent_parser<BS: Readable>(
     })
 }
 
-const fn transaction_data_parser<BS: Clone + Readable>(
-) -> impl AsyncParser<TransactionData, BS> + HasOutput<TransactionData, Output = ()> {
+const fn transaction_data_parser<BS: Clone + Readable, const PROMPT: bool>(
+) -> impl AsyncParser<TransactionData<PROMPT>, BS> + HasOutput<TransactionData<PROMPT>, Output = ()>
+{
     Action(
         (
-            TransactionKind,
+            TransactionKind::<PROMPT>,
             DefaultInterp,
             object_ref_parser(),
             DefaultInterp,
             DefaultInterp,
         ),
         |(_, _sender, _, gas_price, gas_budget): (_, _, _, u64, u64)| {
-            scroller("Paying Gas (1/2)", |w| {
-                Ok(write!(w, "At most {}", gas_budget,)?)
-            })?;
-            let (quotient, remainder_str) = get_amount_in_decimals(gas_price);
-            scroller("Paying Gas (2/2)", |w| {
-                Ok(write!(w, "Price {}.{}", quotient, remainder_str.as_str())?)
-            })
+            if PROMPT {
+                scroller("Paying Gas (1/2)", |w| {
+                    Ok(write!(w, "At most {}", gas_budget,)?)
+                })?;
+                let (quotient, remainder_str) = get_amount_in_decimals(gas_price);
+                scroller("Paying Gas (2/2)", |w| {
+                    Ok(write!(w, "Price {}.{}", quotient, remainder_str.as_str())?)
+                })?
+            }
+            Some(())
         },
     )
 }
 
-const fn transaction_data_drop_parser<BS: Clone + Readable>(
-) -> impl AsyncParser<TransactionData, BS> + HasOutput<TransactionData, Output = ()> {
+const fn tx_parser<BS: Clone + Readable, const PROMPT: bool>(
+) -> impl AsyncParser<IntentMessage<PROMPT>, BS> + HasOutput<IntentMessage<PROMPT>, Output = ()> {
     Action(
-        (
-            DropInterp,
-            DefaultInterp,
-            object_ref_parser(),
-            DefaultInterp,
-            DefaultInterp,
-        ),
+        (intent_parser(), transaction_data_parser::<_, PROMPT>()),
         |_| Some(()),
     )
-}
-
-const fn tx_parser<BS: Clone + Readable>(
-) -> impl AsyncParser<IntentMessage, BS> + HasOutput<IntentMessage, Output = ()> {
-    Action((intent_parser(), transaction_data_parser()), |_| Some(()))
-}
-
-const fn tx_drop_parser<BS: Clone + Readable>(
-) -> impl AsyncParser<IntentMessage, BS> + HasOutput<IntentMessage, Output = ()> {
-    Action((intent_parser(), transaction_data_drop_parser()), |_| {
-        Some(())
-    })
 }
 
 pub async fn sign_apdu(io: HostIO) {
@@ -400,7 +314,9 @@ pub async fn sign_apdu(io: HostIO) {
     let known_txn = NoinlineFut((|mut txn: ByteStream| async move {
         {
             trace!("Beginning check parse");
-            TryFuture(tx_drop_parser().parse(&mut txn)).await.is_some()
+            TryFuture(tx_parser::<_, false>().parse(&mut txn))
+                .await
+                .is_some()
         }
     })(input[0].clone()))
     .await;
@@ -428,7 +344,7 @@ pub async fn sign_apdu(io: HostIO) {
         NoinlineFut((|mut txn: ByteStream| async move {
             {
                 trace!("Beginning parse");
-                tx_parser().parse(&mut txn).await;
+                tx_parser::<_, true>().parse(&mut txn).await;
             }
         })(input[0].clone()))
         .await;
