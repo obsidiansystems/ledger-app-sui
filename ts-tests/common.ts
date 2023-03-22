@@ -3,6 +3,7 @@ import Axios from 'axios';
 import Transport from "./http-transport";
 import Sui from "@mysten/ledgerjs-hw-app-sui";
 import { expect } from 'chai';
+import { instantiate, Nacl } from "js-nacl";
 
 const ignoredScreens = [ "W e l c o m e", "Cancel", "Working...", "Exit", "Sui 0.0.1", "ui 0.0.1"
                          , "Blind Signing", "Enable Blind Signing", "Disable Blind Signing", "Back"
@@ -171,5 +172,9 @@ let toggleBlindSigningSettings = async function() {
   await Axios.post(BASE_URL + "/button/both", {"action":"press-and-release"});
   await Axios.post(BASE_URL + "/button/left", {"action":"press-and-release"});
 }
+
+export let nacl : Nacl =null;
+
+instantiate(n => { nacl = n; });
 
 export { sendCommandAndAccept, BASE_URL, sendCommandExpectFail, toggleBlindSigningSettings }

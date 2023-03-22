@@ -10,23 +10,47 @@ pub type SignParameters = (IntentMessage<true>, Bip32Key);
 // Sui Types
 pub type IntentMessage<const PROMPT: bool> = (Intent, TransactionData<PROMPT>);
 
-pub type TransactionData<const PROMPT: bool> = (
+pub struct TransactionData;
+
+pub type TransactionDataV1<const PROMPT: bool> = (
     TransactionKind<PROMPT>,
     SuiAddress, // sender
-    ObjectRef,  // gas_payment
-    Amount,     // gas_price
-    Amount,     // gas_budget
+    GasData<PROMPT>, // gas_data
+    TransactionExpiration, // expiration
 );
 
-pub struct SingleTransactionKind<const PROMPT: bool>;
+pub type GasData<const PROMPT: bool> = (
+    Vec<ObjectRef, { usize::MAX }>,  // payment
+    SuiAddress, // owner
+    Amount, // price
+    Amount, // budget
+);
+
+pub struct TransactionExpiration;
+pub struct TransactionExpiration_None;
+pub type TransactionExpiration_Epoch = EpochId;
 
 pub struct TransactionKind<const PROMPT: bool>;
 
-pub type ObjectRef = (ObjectID, SequenceNumber, ObjectDigest);
+pub type ProgrammableTransaction<const PROMPT: bool> = (
+    Vec<CallArg, { usize::MAX }>,  // inputs
+    Vec<Comand, { usize::MAX }>,  // commands
+)
 
-pub type Pay = (Coins, Recipients, Amounts);
-pub type PayAllSui = (Coins, Recipient);
-pub type PaySui<const PROMPT: bool> = (Coins, RecipientsAndAmounts<PROMPT>);
+pub struct CallArg;
+pub type CallArgPure = Vec<u8, { usize::MAX }>;
+pub type CallArgObject = ObjectArg;
+
+pub struct ObjectArg;
+
+pub type ImmOrOwnedObject = ObjectRef;
+pub type SharedObject = (
+    ObjectId, // id
+    SequenceNumber, // initial_shared_version
+    bool, // mutable
+)
+
+pub type ObjectRef = (ObjectID, SequenceNumber, ObjectDigest);
 
 pub struct RecipientsAndAmounts<const PROMPT: bool>;
 

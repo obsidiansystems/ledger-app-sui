@@ -80,14 +80,14 @@ pub async fn get_address_apdu(io: HostIO) {
     io.result_final(&rv).await;
 }
 
-impl<const PROMPT: bool> HasOutput<SingleTransactionKind<PROMPT>>
-    for SingleTransactionKind<PROMPT>
+impl<const PROMPT: bool> HasOutput<ProgrammableTransaction<PROMPT>>
+    for ProgrammableTransaction<PROMPT>
 {
     type Output = ();
 }
 
-impl<BS: Clone + Readable, const PROMPT: bool> AsyncParser<SingleTransactionKind<PROMPT>, BS>
-    for SingleTransactionKind<PROMPT>
+impl<BS: Clone + Readable, const PROMPT: bool> AsyncParser<ProgrammableTransaction<PROMPT>, BS>
+    for ProgrammableTransaction<PROMPT>
 {
     type State<'c> = impl Future<Output = Self::Output> + 'c where BS: 'c;
     fn parse<'a: 'c, 'b: 'c, 'c>(&'b self, input: &'a mut BS) -> Self::State<'c> {
@@ -97,7 +97,7 @@ impl<BS: Clone + Readable, const PROMPT: bool> AsyncParser<SingleTransactionKind
             match enum_variant {
                 // PaySui
                 5 => {
-                    trace!("SingleTransactionKind: PaySui");
+                    trace!("ProgrammableTransaction: PaySui");
                     pay_sui_parser::<_, PROMPT>().parse(input).await;
                 }
                 _ => reject_on(core::file!(), core::line!()).await,
@@ -121,10 +121,10 @@ impl<BS: Clone + Readable, const PROMPT: bool> AsyncParser<TransactionKind<PROMP
             match enum_variant {
                 0 => {
                     trace!("TransactionKind: Single");
-                    <SingleTransactionKind<PROMPT> as AsyncParser<
-                        SingleTransactionKind<PROMPT>,
+                    <ProgrammableTransaction<PROMPT> as AsyncParser<
+                        ProgrammableTransaction<PROMPT>,
                         BS,
-                    >>::parse(&SingleTransactionKind::<PROMPT>, input)
+                    >>::parse(&ProgrammableTransaction::<PROMPT>, input)
                     .await;
                 }
                 _ => reject_on(core::file!(), core::line!()).await,
