@@ -261,4 +261,30 @@ rec {
 
   inherit (pkgs.nodePackages) node2nix;
 
+  nixpkgs-unstable = import ./dep/nixpkgs-unstable {
+    inherit localSystem;
+  };
+
+  sui-node-shell = nixpkgs-unstable.mkShell {
+    strictDeps = true;
+    nativeBuildInputs = with nixpkgs-unstable.buildPackages; [
+      rustc
+      cargo
+      rustPlatform.bindgenHook
+      pkg-config
+    ];
+    buildInputs = with pkgs; [
+      libclang openssl postgresql.lib rocksdb
+    ];
+  };
+
+  sui-wallet-shell = nixpkgs-unstable.mkShell {
+    strictDeps = true;
+    nativeBuildInputs = with nixpkgs-unstable.buildPackages; lib.optional stdenv.isLinux [
+      # TODO make avaiable everywhere or skip whole thing on macOS
+      turbo
+    ] ++ [
+      nodejs-14_x nodePackages.pnpm
+    ];
+  };
 }
