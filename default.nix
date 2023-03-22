@@ -274,7 +274,7 @@ rec {
       pkg-config
     ];
     buildInputs = with pkgs; [
-      libclang openssl postgresql.lib
+      libclang openssl postgresql.lib rocksdb
     ];
   };
 
