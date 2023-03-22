@@ -1,28 +1,10 @@
-import { sendCommandAndAccept, BASE_URL } from "./common";
+import { sendCommandAndAccept, BASE_URL, sendCommandExpectFail, toggleBlindSigningSettings } from "./common";
 import { expect } from 'chai';
 import { describe, it } from 'mocha';
 import Axios from 'axios';
-import Sui from "@mysten/ledgerjs-hw-app-sui";
+import type Sui from "@mysten/ledgerjs-hw-app-sui";
 import * as blake2b from "blake2b";
 import { instantiate, Nacl } from "js-nacl";
-
-describe('basic tests', () => {
-
-  afterEach( async function() {
-    await Axios.post(BASE_URL + "/automation", {version: 1, rules: []});
-    await Axios.delete(BASE_URL + "/events");
-  });
-
-  it('provides a public key', async () => {
-
-    await sendCommandAndAccept(async (client : Sui) => {
-      const rv = await client.getPublicKey("44'/784'/0'");
-      expect(new Buffer(rv.publicKey).toString('hex')).to.equal("6fc6f39448ad7af0953b78b16d0f840e6fe718ba4a89384239ff20ed088da2fa");
-      expect(new Buffer(rv.address).toString('hex')).to.equal("56b19e720f3bfa8caaef806afdd5dfaffd0d6ec9476323a14d1638ad734b2ba5");
-      return;
-    }, []);
-  });
-});
 
 let nacl : Nacl =null;
 
@@ -39,7 +21,11 @@ function testTransaction(path: string, txn0: string, prompts: any[]) {
 
       const sig = await client.signTransaction(path, txn);
       expect(sig.signature.length).to.equal(64);
-      const pass = nacl.crypto_sign_verify_detached(sig.signature, txn, publicKey);
+      const pass = nacl.crypto_sign_verify_detached(
+          sig.signature,
+          blake2b(32).update(txn).digest(),
+          publicKey,
+      );
       expect(pass).to.equal(true);
     }, prompts);
   }

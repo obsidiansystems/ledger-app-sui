@@ -10,7 +10,7 @@ Written using [Alamgu](https://github.com/alamgu/).
 
 This application is compatible with
 - Ledger Nano S, running firmware 2.1.0 and above
-- Ledger Nano S+, running firmware 1.0.3
+- Ledger Nano S+, running firmware 1.1.0
 - Ledger Nano X
 
 Note: Compatibility with Ledger Nano X is only possible to check on [Speculos](https://github.com/ledgerHQ/speculos/) emulator,

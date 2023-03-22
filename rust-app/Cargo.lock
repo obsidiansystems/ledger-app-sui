@@ -23,7 +23,7 @@ dependencies = [
 [[package]]
 name = "alamgu-async-block"
 version = "0.1.0"
-source = "git+https://github.com/alamgu/alamgu-async-block?branch=prompt-queueing#af41c5bb63c9b8f47b1dea0ff3c79410493ce0fa"
+source = "git+https://github.com/alamgu/alamgu-async-block?branch=prompt-queueing#56c1e971d31325133899229540af789f32d9d225"
 dependencies = [
  "arrayvec",
  "ledger-log",
@@ -122,7 +122,7 @@ dependencies = [
 [[package]]
 name = "ledger-crypto-helpers"
 version = "0.2.0"
-source = "git+https://github.com/alamgu/ledger-crypto-helpers#031de63eda95a0271e6939775e1988775b8981cc"
+source = "git+https://github.com/alamgu/ledger-crypto-helpers#0f4beea77b87cb665496120b8fb7d935ff08cba3"
 dependencies = [
  "arrayvec",
  "base64",
@@ -161,7 +161,7 @@ dependencies = [
 [[package]]
 name = "ledger-prompts-ui"
 version = "0.1.0"
-source = "git+https://github.com/alamgu/ledger-prompts-ui#87c29519a43b5144058c97eb298a5297b342e0be"
+source = "git+https://github.com/alamgu/ledger-prompts-ui#f326cb514dfd48545126a35cda71b61907ff2b0b"
 dependencies = [
  "arrayvec",
  "include_gif",
