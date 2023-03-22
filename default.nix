@@ -71,7 +71,7 @@ rec {
       ];
   };
 
-  makeTarSrc = { appExe, device }:
+  makeArchiveSource = { appExe, device }:
   let collection = alamgu.perDevice.${device};
   in collection.ledgerPkgs.runCommandCC "${appName}-${device}-tar-src" {
     nativeBuildInputs = [
@@ -191,21 +191,31 @@ rec {
       ];
     });
 
-    tarSrc = makeTarSrc { inherit appExe device; };
+    archiveSource = makeArchiveSource { inherit appExe device; };
+
     tarball = pkgs.runCommandNoCC "${appName}-${device}.tar.gz" {} ''
       dir="${appName}-${device}"
-      cp -r "${tarSrc}/$dir" ./
+      cp -r "${archiveSource}/$dir" ./
       chmod -R ugo+w "$dir"
       tar -czvhf $out -C . "${appName}-${device}"
     '';
 
-    loadApp = pkgs.writeScriptBin "load-app" ''
-      #!/usr/bin/env bash
-      cd ${tarSrc}/${appName}-${device}
-      ${alamgu.ledgerctl}/bin/ledgerctl install -f ${tarSrc}/${appName}-${device}/app.json
+    zip = pkgs.runCommandNoCC "${appName}-${device}.zip" {
+      nativeBuildInputs = [ pkgs.zip ];
+    } ''
+      dir="${appName}-${device}"
+      cp -r "${archiveSource}/$dir" ./
+      chmod -R ugo+w "$dir"
+      zip -r $out "${appName}-${device}"
     '';
 
-    tarballShell = import (tarSrc + "/${appName}-${device}/shell.nix");
+    loadApp = pkgs.writeScriptBin "load-app" ''
+      #!/usr/bin/env bash
+      cd ${archiveSource}/${appName}-${device}
+      ${alamgu.ledgerctl}/bin/ledgerctl install -f ${archiveSource}/${appName}-${device}/app.json
+    '';
+
+    tarballShell = import (archiveSource + "/${appName}-${device}/shell.nix");
 
     speculosDeviceFlags = {
       nanos = [ "-m" "nanos" ];
