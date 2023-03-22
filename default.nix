@@ -280,8 +280,11 @@ rec {
 
   sui-wallet-shell = nixpkgs-unstable.mkShell {
     strictDeps = true;
-    nativeBuildInputs = with nixpkgs-unstable.buildPackages; [
-      turbo nodejs-14_x nodePackages.pnpm
+    nativeBuildInputs = with nixpkgs-unstable.buildPackages; lib.optional stdenv.isLinux [
+      # TODO make avaiable everywhere or skip whole thing on macOS
+      turbo
+    ] ++ [
+      nodejs-14_x nodePackages.pnpm
     ];
   };
 }
