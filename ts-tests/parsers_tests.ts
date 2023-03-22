@@ -126,6 +126,7 @@ describe('parsers tests', () => {
       {
         "header": "Got Bytes",
         "prompt": "v1: 255, v2: [12, 34, 56, 78, 90, ab, cd, ef, 12, 34, 56, 78, 90, ab, cd, ef, 12, 34, 56, 78, 90, ab, cd, ef, 12, 34, 56, 78, 90, ab, cd, ef]",
+        "paginate": true,
       },
       {
         "header": "Got U16",
@@ -134,6 +135,7 @@ describe('parsers tests', () => {
       {
         "header": "Got U64",
         "prompt": "v1: 9007199254740992, v2: 18014398509481982",
+        "paginate": true,
       },
       {
         "header": "Got U32",

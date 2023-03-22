@@ -26,9 +26,9 @@ docker run \
 
 # Run tests
 # The speculos-wrapper need to be invoked from a dir further down, as it refers to "../ts-tests"
-nix-shell -A alamgu.perDevice.nanos.rustShell --run "cd $OUT_DIR; ../speculos-wrapper -m nanos ../$OUT_DIR/nanos/$APP_NAME"
-nix-shell -A alamgu.perDevice.nanosplus.rustShell --run "cd $OUT_DIR; ../speculos-wrapper -m nanosp -k 1.0.3 ../$OUT_DIR/nanosplus/$APP_NAME"
-nix-shell -A alamgu.perDevice.nanox.rustShell --run "cd $OUT_DIR; ../speculos-wrapper -m nanox ../$OUT_DIR/nanox/$APP_NAME"
+nix-shell -A nanos.rustShell --run "cd $OUT_DIR; ../speculos-wrapper -m nanos ../$OUT_DIR/nanos/$APP_NAME"
+nix-shell -A nanosplus.rustShell --run "cd $OUT_DIR; ../speculos-wrapper -m nanosp -a 1 ../$OUT_DIR/nanosplus/$APP_NAME"
+nix-shell -A nanox.rustShell --run "cd $OUT_DIR; ../speculos-wrapper -m nanox -a 1 ../$OUT_DIR/nanox/$APP_NAME"
 
 echo "Tests done!"
 

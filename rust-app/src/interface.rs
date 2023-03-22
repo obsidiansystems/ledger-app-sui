@@ -5,38 +5,39 @@ use ledger_parser_combinators::endianness::*;
 // Payload for a public key request
 pub type Bip32Key = DArray<Byte, U32<{ Endianness::Little }>, 10>;
 
-pub type SignParameters = (IntentMessage, Bip32Key);
+pub type SignParameters = (IntentMessage<true>, Bip32Key);
 
 // Sui Types
-pub type IntentMessage = (Intent, TransactionData);
+pub type IntentMessage<const PROMPT: bool> = (Intent, TransactionData<PROMPT>);
 
-pub type TransactionData = (
-    TransactionKind,
+pub type TransactionData<const PROMPT: bool> = (
+    TransactionKind<PROMPT>,
     SuiAddress, // sender
     ObjectRef,  // gas_payment
     Amount,     // gas_price
     Amount,     // gas_budget
 );
 
-pub struct SingleTransactionKind;
+pub struct SingleTransactionKind<const PROMPT: bool>;
 
-pub struct TransactionKind;
+pub struct TransactionKind<const PROMPT: bool>;
 
 pub type ObjectRef = (ObjectID, SequenceNumber, ObjectDigest);
 
 pub type Pay = (Coins, Recipients, Amounts);
 pub type PayAllSui = (Coins, Recipient);
-pub type PaySui = (Coins, RecipientsAndAmounts);
+pub type PaySui<const PROMPT: bool> = (Coins, RecipientsAndAmounts<PROMPT>);
 
-pub struct RecipientsAndAmounts;
+pub struct RecipientsAndAmounts<const PROMPT: bool>;
 
 pub type AccountAddress = SuiAddress;
 pub type ObjectID = AccountAddress;
 pub type SequenceNumber = U64<{ Endianness::Little }>;
 pub type ObjectDigest = SHA3_256_HASH;
 
-pub const SUI_ADDRESS_LENGTH: usize = 20;
-pub type SuiAddress = Array<Byte, SUI_ADDRESS_LENGTH>;
+pub const SUI_ADDRESS_LENGTH: usize = 32;
+pub const SUI_ADDRESS_LENGTH_OLD: usize = 20;
+pub type SuiAddress = Array<Byte, SUI_ADDRESS_LENGTH_OLD>;
 
 pub type Coins = Vec<ObjectRef, { usize::MAX }>;
 

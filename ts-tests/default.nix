@@ -7,21 +7,10 @@ let
   yarn2nix = import ../dep/yarn2nix { inherit pkgs; };
   inherit (import (import ../dep/alamgu/thunk.nix) {}) thunkSource;
   yarnDepsNix = pkgs.runCommand "yarn-deps.nix" {} ''
-    ${yarn2nix}/bin/yarn2nix --offline \
-      <(sed \
-        -e '/^"hw-app-alamgu/,/^$/d' \
-        -e '/^"hw-app-sui/,/^$/d' \
-        "${./yarn.lock}") \
-      > $out
+    ${yarn2nix}/bin/yarn2nix --offline ${./yarn.lock} > $out
   '';
   yarnPackageNix = pkgs.runCommand "yarn-package.nix" {} ''
-    # We sed hw-app-alamgu to a constant here, so that the package.json can be whatever; we're overriding it anyways.
-    ${yarn2nix}/bin/yarn2nix --template \
-      <(sed \
-        -e 's/"hw-app-alamgu".*$/"hw-app-alamgu": "0.0.1",/' \
-        -e 's/"hw-app-sui".*$/"hw-app-sui": "0.0.0",/' \
-        "${./package.json}") \
-      > $out
+    ${yarn2nix}/bin/yarn2nix --template ${./package.json} > $out
   '';
   nixLib = yarn2nix.nixLib;
 
@@ -84,57 +73,6 @@ let
               ${pkgs.nodePackages.node-gyp}/bin/node-gyp rebuild --nodedir=${lib.getDev nodejs} # /include/node
             '';
           });
-        };
-
-        "hw-app-alamgu@0.0.1" = super._buildNodePackage rec {
-          key = "hw-app-alamgu";
-          version = "0.0.1";
-          src = thunkSource ../dep/hw-app-alamgu;
-          buildPhase = ''
-            ln -s $nodeModules node_modules
-            node $nodeModules/.bin/tsc
-            node $nodeModules/.bin/tsc -m ES6 --outDir lib-es
-          '';
-          nodeModules = nixLib.linkNodeDeps {
-            name = "hw-app-alamgu";
-            dependencies = nodeBuildInputs ++ [
-              (s."@types/node@^16.10.3")
-              (s."typescript@^4.4.3")
-            ];
-          };
-          passthru = { inherit nodeModules; };
-          NODE_PATH = nodeModules;
-          nodeBuildInputs = [
-            (s."@ledgerhq/hw-transport@^6.3.0")
-            (s."fast-sha256@^1.3.0")
-            (s."typedoc@^0.22.7")
-          ];
-        };
-
-        "hw-app-sui@0.0.0" = super._buildNodePackage rec {
-          key = "hw-app-sui";
-          version = "0.0.1";
-          src = thunkSource ../dep/hw-app-sui;
-          buildPhase = ''
-            ln -s $nodeModules node_modules
-            node $nodeModules/.bin/tsc
-            node $nodeModules/.bin/tsc -m ES6 --outDir lib-es
-          '';
-          nodeModules = nixLib.linkNodeDeps {
-            name = "hw-app-sui";
-            dependencies = nodeBuildInputs ++ [
-              (s."@types/node@^16.10.3")
-              (s."typescript@^4.4.3")
-            ];
-          };
-          passthru = { inherit nodeModules; };
-          NODE_PATH = nodeModules;
-          nodeBuildInputs = [
-            (s."@ledgerhq/hw-transport@^6.3.0")
-            (s."fast-sha256@^1.3.0")
-            (s."typedoc@^0.22.7")
-            (s."hw-app-alamgu@0.0.1")
-          ];
         };
 
       };

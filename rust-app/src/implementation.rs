@@ -6,9 +6,8 @@ use arrayvec::ArrayString;
 use arrayvec::ArrayVec;
 use core::fmt::Write;
 use ledger_crypto_helpers::common::{try_option, Address, HexSlice};
-use ledger_crypto_helpers::ed25519::Ed25519;
-use ledger_crypto_helpers::eddsa::{ed25519_public_key_bytes, with_public_keys};
-use ledger_crypto_helpers::hasher::{Hasher, SHA3_256};
+use ledger_crypto_helpers::eddsa::{ed25519_public_key_bytes, eddsa_sign, with_public_keys};
+use ledger_crypto_helpers::hasher::{Blake2b, Hasher};
 use ledger_log::trace;
 use ledger_parser_combinators::async_parser::*;
 use ledger_parser_combinators::bcs::async_parser::*;
@@ -19,7 +18,8 @@ use nanos_sdk::io::SyscallError;
 use core::convert::TryFrom;
 use core::future::Future;
 
-type SuiAddressRaw = [u8; 20];
+type SuiAddressRaw = [u8; SUI_ADDRESS_LENGTH];
+type SuiAddressRawOld = [u8; SUI_ADDRESS_LENGTH_OLD];
 
 pub struct SuiPubKeyAddress(nanos_sdk::ecc::ECPublicKey<65, 'E'>, SuiAddressRaw);
 
@@ -29,12 +29,10 @@ impl Address<SuiPubKeyAddress, nanos_sdk::ecc::ECPublicKey<65, 'E'>> for SuiPubK
         let mut tmp = ArrayVec::<u8, 33>::new();
         let _ = tmp.try_push(0); // SIGNATURE_SCHEME_TO_FLAG['ED25519']
         let _ = tmp.try_extend_from_slice(key_bytes);
-        let mut hasher: SHA3_256 = Hasher::new();
+        let mut hasher: Blake2b = Hasher::new();
         hasher.update(&tmp);
-        let hash: [u8; 32] = hasher.finalize();
-        let mut address: SuiAddressRaw = [0; 20];
-        address.clone_from_slice(&hash[0..20]);
-        Ok(SuiPubKeyAddress(key.clone(), address))
+        let hash: [u8; SUI_ADDRESS_LENGTH] = hasher.finalize();
+        Ok(SuiPubKeyAddress(key.clone(), hash))
     }
     fn get_binary_address(&self) -> &[u8] {
         &self.1
@@ -58,7 +56,7 @@ pub async fn get_address_apdu(io: HostIO) {
 
     let mut rv = ArrayVec::<u8, 220>::new();
 
-    if with_public_keys(&path, |key, address: &SuiPubKeyAddress| {
+    if with_public_keys(&path, true, |key, address: &SuiPubKeyAddress| {
         try_option(|| -> Option<()> {
             let key_bytes = ed25519_public_key_bytes(key);
 
@@ -81,11 +79,15 @@ pub async fn get_address_apdu(io: HostIO) {
     io.result_final(&rv).await;
 }
 
-impl HasOutput<SingleTransactionKind> for SingleTransactionKind {
+impl<const PROMPT: bool> HasOutput<SingleTransactionKind<PROMPT>>
+    for SingleTransactionKind<PROMPT>
+{
     type Output = ();
 }
 
-impl<BS: Clone + Readable> AsyncParser<SingleTransactionKind, BS> for SingleTransactionKind {
+impl<BS: Clone + Readable, const PROMPT: bool> AsyncParser<SingleTransactionKind<PROMPT>, BS>
+    for SingleTransactionKind<PROMPT>
+{
     type State<'c> = impl Future<Output = Self::Output> + 'c where BS: 'c;
     fn parse<'a: 'c, 'b: 'c, 'c>(&'b self, input: &'a mut BS) -> Self::State<'c> {
         async move {
@@ -95,7 +97,7 @@ impl<BS: Clone + Readable> AsyncParser<SingleTransactionKind, BS> for SingleTran
                 // PaySui
                 5 => {
                     trace!("SingleTransactionKind: PaySui");
-                    pay_sui_parser().parse(input).await;
+                    pay_sui_parser::<_, PROMPT>().parse(input).await;
                 }
                 _ => reject_on(core::file!(), core::line!()).await,
             }
@@ -103,11 +105,13 @@ impl<BS: Clone + Readable> AsyncParser<SingleTransactionKind, BS> for SingleTran
     }
 }
 
-impl HasOutput<TransactionKind> for TransactionKind {
+impl<const PROMPT: bool> HasOutput<TransactionKind<PROMPT>> for TransactionKind<PROMPT> {
     type Output = ();
 }
 
-impl<BS: Clone + Readable> AsyncParser<TransactionKind, BS> for TransactionKind {
+impl<BS: Clone + Readable, const PROMPT: bool> AsyncParser<TransactionKind<PROMPT>, BS>
+    for TransactionKind<PROMPT>
+{
     type State<'c> = impl Future<Output = Self::Output> + 'c where BS: 'c;
     fn parse<'a: 'c, 'b: 'c, 'c>(&'b self, input: &'a mut BS) -> Self::State<'c> {
         async move {
@@ -116,10 +120,10 @@ impl<BS: Clone + Readable> AsyncParser<TransactionKind, BS> for TransactionKind 
             match enum_variant {
                 0 => {
                     trace!("TransactionKind: Single");
-                    <SingleTransactionKind as AsyncParser<SingleTransactionKind, BS>>::parse(
-                        &SingleTransactionKind,
-                        input,
-                    )
+                    <SingleTransactionKind<PROMPT> as AsyncParser<
+                        SingleTransactionKind<PROMPT>,
+                        BS,
+                    >>::parse(&SingleTransactionKind::<PROMPT>, input)
                     .await;
                 }
                 _ => reject_on(core::file!(), core::line!()).await,
@@ -128,10 +132,10 @@ impl<BS: Clone + Readable> AsyncParser<TransactionKind, BS> for TransactionKind 
     }
 }
 
-const fn pay_sui_parser<BS: Clone + Readable>(
-) -> impl AsyncParser<PaySui, BS> + HasOutput<PaySui, Output = ()> {
+const fn pay_sui_parser<BS: Clone + Readable, const PROMPT: bool>(
+) -> impl AsyncParser<PaySui<PROMPT>, BS> + HasOutput<PaySui<PROMPT>, Output = ()> {
     Action(
-        (SubInterp(coin_parser()), RecipientsAndAmounts),
+        (SubInterp(coin_parser()), RecipientsAndAmounts::<PROMPT>),
         |(_, _): (_, _)| {
             trace!("PaySui Ok");
             Some(())
@@ -139,11 +143,13 @@ const fn pay_sui_parser<BS: Clone + Readable>(
     )
 }
 
-impl HasOutput<RecipientsAndAmounts> for RecipientsAndAmounts {
+impl<const PROMPT: bool> HasOutput<RecipientsAndAmounts<PROMPT>> for RecipientsAndAmounts<PROMPT> {
     type Output = ();
 }
 
-impl<BS: Clone + Readable> AsyncParser<RecipientsAndAmounts, BS> for RecipientsAndAmounts {
+impl<BS: Clone + Readable, const PROMPT: bool> AsyncParser<RecipientsAndAmounts<PROMPT>, BS>
+    for RecipientsAndAmounts<PROMPT>
+{
     type State<'c> = impl Future<Output = Self::Output> + 'c where BS: 'c;
     fn parse<'a: 'c, 'b: 'c, 'c>(&'b self, input: &'a mut BS) -> Self::State<'c> {
         async move {
@@ -176,18 +182,33 @@ impl<BS: Clone + Readable> AsyncParser<RecipientsAndAmounts, BS> for RecipientsA
                     <DefaultInterp as AsyncParser<Amount, BS>>::parse(&DefaultInterp, &mut amt_bs)
                         .await;
 
-                if (|| -> Option<()> {
-                    let mut buffer: ArrayString<22> = ArrayString::new();
-                    if length > 1 {
-                        write!(mk_prompt_write(&mut buffer), "Transfer ({})", i + 1).ok()?;
-                    } else {
-                        write!(mk_prompt_write(&mut buffer), "Transfer").ok()?;
-                    }
-                    scroller(&buffer, |w| {
-                        Ok(write!(w, "{amount} to 0x{}", HexSlice(&recipient))?)
-                    })
-                })()
-                .is_none()
+                if PROMPT
+                    && (|| -> Option<()> {
+                        {
+                            let mut buffer: ArrayString<16> = ArrayString::new();
+                            if length > 1 {
+                                write!(mk_prompt_write(&mut buffer), "To ({})", i + 1).ok()?;
+                            } else {
+                                write!(mk_prompt_write(&mut buffer), "To").ok()?;
+                            }
+                            scroller_paginated(&buffer, |w| {
+                                Ok(write!(w, "0x{}", HexSlice(&recipient))?)
+                            })?
+                        }
+                        {
+                            let mut buffer: ArrayString<16> = ArrayString::new();
+                            if length > 1 {
+                                write!(mk_prompt_write(&mut buffer), "Amount ({})", i + 1).ok()?;
+                            } else {
+                                write!(mk_prompt_write(&mut buffer), "Amount").ok()?;
+                            }
+                            let (quotient, remainder_str) = get_amount_in_decimals(amount);
+                            scroller_paginated(&buffer, |w| {
+                                Ok(write!(w, "{quotient}.{}", remainder_str.as_str())?)
+                            })
+                        }
+                    })()
+                    .is_none()
                 {
                     reject::<()>().await;
                 }
@@ -197,11 +218,34 @@ impl<BS: Clone + Readable> AsyncParser<RecipientsAndAmounts, BS> for RecipientsA
     }
 }
 
+fn get_amount_in_decimals(amount: u64) -> (u64, ArrayString<12>) {
+    let factor_pow = 9;
+    let factor = u64::pow(10, factor_pow);
+    let quotient = amount / factor;
+    let remainder = amount % factor;
+    let mut remainder_str: ArrayString<12> = ArrayString::new();
+    {
+        // Make a string for the remainder, containing at lease one zero
+        // So 1 SUI will be displayed as "1.0"
+        let mut rem = remainder;
+        for i in 0..factor_pow {
+            let f = u64::pow(10, factor_pow - i - 1);
+            let r = rem / f;
+            let _ = remainder_str.try_push(char::from(b'0' + r as u8));
+            rem = rem % f;
+            if rem == 0 {
+                break;
+            }
+        }
+    }
+    (quotient, remainder_str)
+}
+
 const fn coin_parser<BS: Readable>(
 ) -> impl AsyncParser<ObjectRef, BS> + HasOutput<ObjectRef, Output = ()> {
     Action(
         (DefaultInterp, DefaultInterp, DefaultInterp),
-        |(_obj_id, _seq, _obj_dig): (SuiAddressRaw, u64, [u8; 33])| {
+        |(_obj_id, _seq, _obj_dig): (SuiAddressRawOld, u64, [u8; 33])| {
             trace!(
                 "Coin Ok {}, {}, {}",
                 HexSlice(_obj_id.as_ref()),
@@ -226,27 +270,38 @@ const fn intent_parser<BS: Readable>(
     })
 }
 
-const fn transaction_data_parser<BS: Clone + Readable>(
-) -> impl AsyncParser<TransactionData, BS> + HasOutput<TransactionData, Output = ()> {
+const fn transaction_data_parser<BS: Clone + Readable, const PROMPT: bool>(
+) -> impl AsyncParser<TransactionData<PROMPT>, BS> + HasOutput<TransactionData<PROMPT>, Output = ()>
+{
     Action(
         (
-            TransactionKind,
+            TransactionKind::<PROMPT>,
             DefaultInterp,
             object_ref_parser(),
             DefaultInterp,
             DefaultInterp,
         ),
         |(_, _sender, _, gas_price, gas_budget): (_, _, _, u64, u64)| {
-            scroller("Gas", |w| {
-                Ok(write!(w, "Price: {}, Budget: {}", gas_price, gas_budget)?)
-            })
+            if PROMPT {
+                scroller("Paying Gas (1/2)", |w| {
+                    Ok(write!(w, "At most {}", gas_budget,)?)
+                })?;
+                let (quotient, remainder_str) = get_amount_in_decimals(gas_price);
+                scroller("Paying Gas (2/2)", |w| {
+                    Ok(write!(w, "Price {}.{}", quotient, remainder_str.as_str())?)
+                })?
+            }
+            Some(())
         },
     )
 }
 
-const fn tx_parser<BS: Clone + Readable>(
-) -> impl AsyncParser<IntentMessage, BS> + HasOutput<IntentMessage, Output = ()> {
-    Action((intent_parser(), transaction_data_parser()), |_| Some(()))
+const fn tx_parser<BS: Clone + Readable, const PROMPT: bool>(
+) -> impl AsyncParser<IntentMessage<PROMPT>, BS> + HasOutput<IntentMessage<PROMPT>, Output = ()> {
+    Action(
+        (intent_parser(), transaction_data_parser::<_, PROMPT>()),
+        |_| Some(()),
+    )
 }
 
 pub async fn sign_apdu(io: HostIO) {
@@ -255,70 +310,75 @@ pub async fn sign_apdu(io: HostIO) {
     // Read length, and move input[0] by one byte
     let length = usize::from_le_bytes(input[0].read().await);
 
-    NoinlineFut((|mut txn: ByteStream| async move {
+    let known_txn = NoinlineFut((|mut txn: ByteStream| async move {
         {
-            trace!("Beginning parse");
-            tx_parser().parse(&mut txn).await;
+            trace!("Beginning check parse");
+            TryFuture(tx_parser::<_, false>().parse(&mut txn))
+                .await
+                .is_some()
         }
     })(input[0].clone()))
     .await;
 
-    NoinlineFut((|mut bs: ByteStream| async move {
-        let path = BIP_PATH_PARSER.parse(&mut bs).await;
-        if with_public_keys(&path, |_, address: &SuiPubKeyAddress| {
-            try_option(|| -> Option<()> {
-                scroller("Sign for Address", |w| Ok(write!(w, "{address}")?))?;
-                final_accept_prompt(&["Sign Transaction?"])?;
-                Some(())
-            }())
-        })
-        .ok()
-        .is_none()
-        {
+    if known_txn {
+        if scroller("Transfer", |w| Ok(write!(w, "SUI")?)).is_none() {
             reject::<()>().await;
-        }
-    })(input[1].clone()))
-    .await;
+        };
+        NoinlineFut((|mut bs: ByteStream| async move {
+            let path = BIP_PATH_PARSER.parse(&mut bs).await;
+            if with_public_keys(&path, true, |_, address: &SuiPubKeyAddress| {
+                try_option(|| -> Option<()> {
+                    scroller_paginated("From", |w| Ok(write!(w, "{address}")?))?;
+                    Some(())
+                }())
+            })
+            .ok()
+            .is_none()
+            {
+                reject::<()>().await;
+            }
+        })(input[1].clone()))
+        .await;
+
+        NoinlineFut((|mut txn: ByteStream| async move {
+            {
+                trace!("Beginning parse");
+                tx_parser::<_, true>().parse(&mut txn).await;
+            }
+        })(input[0].clone()))
+        .await;
+
+        if final_accept_prompt(&["Sign Transaction?"]).is_none() {
+            reject::<()>().await;
+        };
+    } else {
+        if scroller("WARNING", |w| Ok(write!(w, "Transaction not recognized")?)).is_none() {
+            reject::<()>().await;
+        };
+        if final_accept_prompt(&["Blind Sign Transaction?"]).is_none() {
+            reject::<()>().await;
+        };
+    }
 
     // By the time we get here, we've approved and just need to do the signature.
     NoinlineFut((|input: ArrayVec<ByteStream, 2>| async move {
-        let mut ed = {
-            let path = BIP_PATH_PARSER.parse(&mut input[1].clone()).await;
-            match Ed25519::new(path).ok() {
-                Some(ed) => ed,
-                _ => reject().await,
-            }
-        };
-        trace!("doing final");
-        const CHUNK_SIZE: usize = 128;
+        let mut hasher: Blake2b = Hasher::new();
         {
-            let (chunks, rem) = (length / CHUNK_SIZE, length % CHUNK_SIZE);
             let mut txn = input[0].clone();
+            const CHUNK_SIZE: usize = 128;
+            let (chunks, rem) = (length / CHUNK_SIZE, length % CHUNK_SIZE);
             for _ in 0..chunks {
                 let b: [u8; CHUNK_SIZE] = txn.read().await;
-                ed.update(&b);
+                hasher.update(&b);
             }
             for _ in 0..rem {
                 let b: [u8; 1] = txn.read().await;
-                ed.update(&b);
+                hasher.update(&b);
             }
         }
-        if ed.done_with_r().ok().is_none() {
-            reject::<()>().await;
-        }
-        {
-            let (chunks, rem) = (length / CHUNK_SIZE, length % CHUNK_SIZE);
-            let mut txn = input[0].clone();
-            for _ in 0..chunks {
-                let b: [u8; CHUNK_SIZE] = txn.read().await;
-                ed.update(&b);
-            }
-            for _ in 0..rem {
-                let b: [u8; 1] = txn.read().await;
-                ed.update(&b);
-            }
-        }
-        if let Some(sig) = { ed.finalize().ok() } {
+        let hash: [u8; SUI_ADDRESS_LENGTH] = hasher.finalize();
+        let path = BIP_PATH_PARSER.parse(&mut input[1].clone()).await;
+        if let Some(sig) = { eddsa_sign(&path, true, &hash).ok() } {
             io.result_final(&sig.0[0..]).await;
         } else {
             reject::<()>().await;
