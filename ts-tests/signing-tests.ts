@@ -21,7 +21,11 @@ function testTransaction(path: string, txn0: string, prompts: any[]) {
 
       const sig = await client.signTransaction(path, txn);
       expect(sig.signature.length).to.equal(64);
-      const pass = nacl.crypto_sign_verify_detached(sig.signature, txn, publicKey);
+      const pass = nacl.crypto_sign_verify_detached(
+          sig.signature,
+          blake2b(32).update(txn).digest(),
+          publicKey,
+      );
       expect(pass).to.equal(true);
     }, prompts);
   }
