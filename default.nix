@@ -261,8 +261,27 @@ rec {
 
   inherit (pkgs.nodePackages) node2nix;
 
-  sui-cli = alamgu.crate2nix-tools.generatedCargoNix {
-    name = "sui-cli";
-    src = ./rust-app;
+  nixpkgs-unstable = import ./dep/nixpkgs-unstable {
+    inherit localSystem;
+  };
+
+  sui-node-shell = nixpkgs-unstable.mkShell {
+    strictDeps = true;
+    nativeBuildInputs = with nixpkgs-unstable.buildPackages; [
+      rustc
+      cargo
+      rustPlatform.bindgenHook
+      pkg-config
+    ];
+    buildInputs = with pkgs; [
+      libclang openssl postgresql.lib
+    ];
+  };
+
+  sui-wallet-shell = nixpkgs-unstable.mkShell {
+    strictDeps = true;
+    nativeBuildInputs = with nixpkgs-unstable.buildPackages; [
+      turbo nodejs-14_x nodePackages.pnpm
+    ];
   };
 }
