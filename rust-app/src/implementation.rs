@@ -361,27 +361,30 @@ pub async fn sign_apdu(io: HostIO) {
     }
 
     // By the time we get here, we've approved and just need to do the signature.
-    let mut hasher: Blake2b = Hasher::new();
-    {
-        let mut txn = input[0].clone();
-        const CHUNK_SIZE: usize = 128;
-        let (chunks, rem) = (length / CHUNK_SIZE, length % CHUNK_SIZE);
-        for _ in 0..chunks {
-            let b: [u8; CHUNK_SIZE] = txn.read().await;
-            hasher.update(&b);
+    NoinlineFut((|input: ArrayVec<ByteStream, 2>| async move {
+        let mut hasher: Blake2b = Hasher::new();
+        {
+            let mut txn = input[0].clone();
+            const CHUNK_SIZE: usize = 128;
+            let (chunks, rem) = (length / CHUNK_SIZE, length % CHUNK_SIZE);
+            for _ in 0..chunks {
+                let b: [u8; CHUNK_SIZE] = txn.read().await;
+                hasher.update(&b);
+            }
+            for _ in 0..rem {
+                let b: [u8; 1] = txn.read().await;
+                hasher.update(&b);
+            }
         }
-        for _ in 0..rem {
-            let b: [u8; 1] = txn.read().await;
-            hasher.update(&b);
+        let hash: [u8; SUI_ADDRESS_LENGTH] = hasher.finalize();
+        let path = BIP_PATH_PARSER.parse(&mut input[1].clone()).await;
+        if let Some(sig) = { eddsa_sign(&path, true, &hash).ok() } {
+            io.result_final(&sig.0[0..]).await;
+        } else {
+            reject::<()>().await;
         }
-    }
-    let hash: [u8; SUI_ADDRESS_LENGTH] = hasher.finalize();
-    let path = BIP_PATH_PARSER.parse(&mut input[1].clone()).await;
-    if let Some(sig) = { eddsa_sign(&path, true, &hash).ok() } {
-        io.result_final(&sig.0[0..]).await;
-    } else {
-        reject::<()>().await;
-    }
+    })(input))
+    .await
 }
 
 pub type APDUsFuture = impl Future<Output = ()>;
