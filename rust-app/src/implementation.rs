@@ -119,6 +119,9 @@ impl<BS: Clone + Readable> AsyncParser<CallArgSchema, BS> for DefaultInterp {
                         ),
                         _ => {
                             trace!("CallArgSchema: OtherPure with length: {}", length);
+                            for _ in 0..length {
+                                let _: [u8; 1] = input.read().await;
+                            }
                             CallArg::OtherPure
                         }
                     }
@@ -146,7 +149,10 @@ impl<BS: Clone + Readable> AsyncParser<CallArgSchema, BS> for DefaultInterp {
                     }
                     CallArg::ObjectArg
                 }
-                _ => reject_on(core::file!(), core::line!()).await,
+                _ => {
+                    trace!("CallArgSchema: Unknown enum: {}", enum_variant);
+                    reject_on(core::file!(), core::line!()).await
+                },
             }
         }
     }
