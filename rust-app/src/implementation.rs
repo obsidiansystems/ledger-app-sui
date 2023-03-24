@@ -12,7 +12,7 @@ use ledger_log::trace;
 use ledger_parser_combinators::async_parser::*;
 use ledger_parser_combinators::bcs::async_parser::*;
 use ledger_parser_combinators::interp::*;
-use ledger_prompts_ui::{final_accept_prompt, mk_prompt_write, ScrollerError};
+use ledger_prompts_ui::{final_accept_prompt, ScrollerError};
 use nanos_sdk::io::SyscallError;
 
 use core::convert::TryFrom;
