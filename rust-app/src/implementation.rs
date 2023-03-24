@@ -150,7 +150,7 @@ impl<BS: Clone + Readable> AsyncParser<CallArgSchema, BS> for DefaultInterp {
                 _ => {
                     trace!("CallArgSchema: Unknown enum: {}", enum_variant);
                     reject_on(core::file!(), core::line!()).await
-                },
+                }
             }
         }
     }
@@ -206,7 +206,7 @@ impl<BS: Clone + Readable> AsyncParser<CommandSchema, BS> for DefaultInterp {
                 _ => {
                     trace!("CommandSchema: Unknown enum: {}", enum_variant);
                     reject_on(core::file!(), core::line!()).await
-                },
+                }
             }
         }
     }
