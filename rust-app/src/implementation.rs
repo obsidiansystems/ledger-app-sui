@@ -97,11 +97,10 @@ impl<BS: Clone + Readable> AsyncParser<CallArgSchema, BS> for DefaultInterp {
                 <DefaultInterp as AsyncParser<ULEB128, BS>>::parse(&DefaultInterp, input).await;
             match enum_variant {
                 0 => {
-                    trace!("CallArgSchema: Pure");
-
                     let length =
                         <DefaultInterp as AsyncParser<ULEB128, BS>>::parse(&DefaultInterp, input)
                             .await;
+                    trace!("CallArgSchema: Pure: length: {}", length);
                     match length {
                         8 => CallArg::Amount(
                             <DefaultInterp as AsyncParser<Amount, BS>>::parse(
@@ -118,7 +117,6 @@ impl<BS: Clone + Readable> AsyncParser<CallArgSchema, BS> for DefaultInterp {
                             .await,
                         ),
                         _ => {
-                            trace!("CallArgSchema: OtherPure with length: {}", length);
                             for _ in 0..length {
                                 let _: [u8; 1] = input.read().await;
                             }
@@ -127,7 +125,6 @@ impl<BS: Clone + Readable> AsyncParser<CallArgSchema, BS> for DefaultInterp {
                     }
                 }
                 1 => {
-                    trace!("CallArgSchema: ObjectArg");
                     let enum_variant =
                         <DefaultInterp as AsyncParser<ULEB128, BS>>::parse(&DefaultInterp, input)
                             .await;
@@ -137,6 +134,7 @@ impl<BS: Clone + Readable> AsyncParser<CallArgSchema, BS> for DefaultInterp {
                             object_ref_parser().parse(input).await;
                         }
                         1 => {
+                            trace!("CallArgSchema: ObjectArg: SharedObject");
                             <(DefaultInterp, DefaultInterp, DefaultInterp) as AsyncParser<
                                 SharedObject,
                                 BS,
@@ -205,7 +203,10 @@ impl<BS: Clone + Readable> AsyncParser<CommandSchema, BS> for DefaultInterp {
                     .await;
                     Command::SplitCoins(v1, v2)
                 }
-                _ => reject_on(core::file!(), core::line!()).await,
+                _ => {
+                    trace!("CommandSchema: Unknown enum: {}", enum_variant);
+                    reject_on(core::file!(), core::line!()).await
+                },
             }
         }
     }
@@ -283,6 +284,7 @@ impl<BS: Clone + Readable, const PROMPT: bool> AsyncParser<ProgrammableTransacti
                 let length =
                     <DefaultInterp as AsyncParser<ULEB128, BS>>::parse(&DefaultInterp, input).await;
 
+                trace!("ProgrammableTransaction: Inputs: {}", length);
                 for i in 0..length {
                     let arg = <DefaultInterp as AsyncParser<CallArgSchema, BS>>::parse(
                         &DefaultInterp,
@@ -316,6 +318,7 @@ impl<BS: Clone + Readable, const PROMPT: bool> AsyncParser<ProgrammableTransacti
             {
                 let length =
                     <DefaultInterp as AsyncParser<ULEB128, BS>>::parse(&DefaultInterp, input).await;
+                trace!("ProgrammableTransaction: Commands: {}", length);
                 for _ in 0..length {
                     let c = <DefaultInterp as AsyncParser<CommandSchema, BS>>::parse(
                         &DefaultInterp,
