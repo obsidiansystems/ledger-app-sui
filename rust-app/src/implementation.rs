@@ -404,16 +404,6 @@ impl<BS: Clone + Readable, const PROMPT: bool> AsyncParser<TransactionKind<PROMP
                     >>::parse(&ProgrammableTransaction::<PROMPT>, input)
                     .await;
                 }
-                4 => {
-                    trace!("TransactionKind: ConsensusCommitPrologue");
-                    <(DefaultInterp, DefaultInterp, DefaultInterp) as AsyncParser<
-                        ConsensusCommitPrologue,
-                        BS,
-                    >>::parse(
-                        &(DefaultInterp, DefaultInterp, DefaultInterp), input
-                    )
-                    .await;
-                }
                 _ => {
                     trace!("TransactionKind: {}", enum_variant);
                     reject_on(core::file!(), core::line!()).await

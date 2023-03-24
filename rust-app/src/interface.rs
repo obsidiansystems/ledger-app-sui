@@ -34,7 +34,6 @@ pub type GasData<const PROMPT: bool> = (
     Amount,                         // budget
 );
 
-pub type ConsensusCommitPrologue = (EpochId, U64LE, U64LE);
 pub struct TransactionExpiration;
 pub type EpochId = U64<{ Endianness::Little }>;
 
