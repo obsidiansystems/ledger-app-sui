@@ -277,7 +277,7 @@ impl<BS: Clone + Readable, const PROMPT: bool> AsyncParser<ProgrammableTransacti
         async move {
             let mut recipient = None;
             let mut recipient_index = None;
-            let mut amounts: ArrayVec<(u64, u32), 8> = ArrayVec::new();
+            let mut amounts: ArrayVec<(u64, u32), SPLIT_COIN_ARRAY_LENGTH> = ArrayVec::new();
 
             // Handle inputs
             {
@@ -297,6 +297,7 @@ impl<BS: Clone + Readable, const PROMPT: bool> AsyncParser<ProgrammableTransacti
                                 recipient = Some(addr);
                                 recipient_index = Some(i);
                             }
+                            // Reject on multiple RecipientAddress(s)
                             _ => reject_on(core::file!(), core::line!()).await,
                         },
                         CallArg::Amount(amt) => match amounts.try_push((amt, i)) {
@@ -327,6 +328,10 @@ impl<BS: Clone + Readable, const PROMPT: bool> AsyncParser<ProgrammableTransacti
                     .await;
                     match c {
                         Command::TransferObject(_nested_results, recipient_input) => {
+                            if verified_recipient {
+                                // Reject more than one TransferObject(s)
+                                reject_on::<()>(core::file!(), core::line!()).await;
+                            }
                             match recipient_input {
                                 Argument::Input(inp_index) => {
                                     if Some(inp_index as u32) != recipient_index {
