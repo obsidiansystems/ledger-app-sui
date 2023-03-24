@@ -64,7 +64,7 @@ pub fn app_main() {
                     ins,
                     *hostio,
                     (),
-                    handle_apdu_async,
+                    |io, ins| handle_apdu_async(io, ins, idle_menu.settings),
                 );
                 match poll_rv {
                     Ok(()) => {
