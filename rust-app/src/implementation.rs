@@ -103,7 +103,7 @@ impl<BS: Clone + Readable> AsyncParser<CallArgSchema, BS> for DefaultInterp {
                         <DefaultInterp as AsyncParser<ULEB128, BS>>::parse(&DefaultInterp, input)
                             .await;
                     match length {
-                        4 => CallArg::Amount(
+                        8 => CallArg::Amount(
                             <DefaultInterp as AsyncParser<Amount, BS>>::parse(
                                 &DefaultInterp,
                                 input,
