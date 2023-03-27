@@ -5,15 +5,47 @@ import Axios from 'axios';
 import type Sui from "@mysten/ledgerjs-hw-app-sui";
 import * as blake2b from "blake2b";
 import { instantiate, Nacl } from "js-nacl";
+import { GetPublicKeyResult, buildBip32KeyPayload} from "hw-app-alamgu";
 
 let nacl : Nacl =null;
 
 instantiate(n => { nacl=n; });
 
+const getPublicKey = async function(
+  client: any,
+  path: string,
+  show_prompt: boolean,
+): Promise<GetPublicKeyResult> {
+  const cla = 0x00;
+  const ins = 0x02;
+  const p1 = 0;
+  const p2 = 0;
+  const payload = buildBip32KeyPayload(path);
+  const verify_pubkey = Buffer.alloc(1);
+  if (show_prompt) {
+    verify_pubkey.writeUInt8(1);
+  } else {
+    verify_pubkey.writeUInt8(0);
+  }
+  const response = await client.sendChunks(cla, ins, p1, p2, [payload, verify_pubkey]);
+  const keySize = response[0];
+  const publicKey = response.slice(1, keySize+1); // slice uses end index.
+  let address : Uint8Array | null = null;
+  if (response.length > keySize+2) {
+    const addressSize = response[keySize+1];
+    address = response.slice(keySize+2, keySize+2+addressSize);
+  }
+  const res: GetPublicKeyResult = {
+    publicKey: publicKey,
+    address: address,
+  };
+  return res;
+}
+
 function testTransaction(path: string, txn: Buffer, prompts: any[]) {
   return async () => {
     await sendCommandAndAccept(async (client : Sui) => {
-      const { publicKey } = await client.getPublicKey(path);
+      const { publicKey } = await getPublicKey(client, path, false);
 
       // We don't want the prompts from getPublicKey in our result
       await Axios.delete(BASE_URL + "/events");

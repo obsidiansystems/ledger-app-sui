@@ -19,6 +19,7 @@
     "node-fetch": "^3.0.0",
     "typescript": "^4.4.3",
     "@mysten/ledgerjs-hw-app-sui": "^0.0.0-experimental-20230302230029",
+    "hw-app-alamgu": "git+https://github.com/alamgu/hw-app-alamgu",
     "js-nacl": "^1.3.2",
     "blake2b": "^2.1.4",
     "@types/chai": "^4.2.22",
