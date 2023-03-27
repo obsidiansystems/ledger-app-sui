@@ -477,12 +477,9 @@ const fn gas_data_parser<BS: Clone + Readable, const PROMPT: bool>(
         ),
         |(_, _sender, gas_price, gas_budget): (_, _, u64, u64)| {
             if PROMPT {
-                scroller("Paying Gas (1/2)", |w| {
-                    Ok(write!(w, "At most {}", gas_budget,)?)
-                })?;
-                let (quotient, remainder_str) = get_amount_in_decimals(gas_price);
-                scroller("Paying Gas (2/2)", |w| {
-                    Ok(write!(w, "Price {}.{}", quotient, remainder_str.as_str())?)
+                let (quotient, remainder_str) = get_amount_in_decimals(gas_price * gas_budget);
+                scroller("Paying Gas", |w| {
+                    Ok(write!(w, "SUI {}.{}", quotient, remainder_str.as_str())?)
                 })?
             }
             Some(())
