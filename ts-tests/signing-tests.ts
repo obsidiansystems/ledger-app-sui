@@ -56,10 +56,10 @@ describe("Signing tests", function() {
          },
          {
            "header": "Amount",
-           "prompt": "0.001"
+           "prompt": "SUI 0.001"
          },
          {
-           "header": "Paying Gas",
+           "header": "Max Gas",
            "prompt": "SUI 0.000001036"
          },
          {
