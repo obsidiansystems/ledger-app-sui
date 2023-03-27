@@ -7,7 +7,10 @@
 #![cfg_attr(all(target_family = "bolos", test), no_main)]
 #![cfg_attr(target_family = "bolos", feature(custom_test_frameworks))]
 #![reexport_test_harness_main = "test_main"]
-#![cfg_attr(target_family = "bolos", test_runner(nanos_sdk::testing::sdk_test_runner))]
+#![cfg_attr(
+    target_family = "bolos",
+    test_runner(nanos_sdk::testing::sdk_test_runner)
+)]
 
 pub use ledger_log::*;
 
