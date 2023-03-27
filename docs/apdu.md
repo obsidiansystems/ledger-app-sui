@@ -1,9 +1,10 @@
 
 # APDUs
 
-The messaging format of the app is compatible with the [APDU protocol](https://developers.ledger.com/docs/nano-app/application-structure/#apdu-interpretation-loop). The `P1` and `P2` fields are reserved for future use and must be set to `0` in all messages.
+The messaging format of the app is compatible with the [APDU protocol](https://developers.ledger.com/docs/nano-app/application-structure/#apdu-interpretation-loop).
 
-All commands use `CLA = 0x00`
+All commands use `CLA = 0x00`.
+The `P1` and `P2` fields are reserved for future use and must be set to `0` in all messages.
 
 | CLA | INS | COMMAND NAME     | DESCRIPTION                                                    |
 |-----|-----|------------------|----------------------------------------------------------------|
