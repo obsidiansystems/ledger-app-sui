@@ -12,14 +12,13 @@ use ledger_log::trace;
 use ledger_parser_combinators::async_parser::*;
 use ledger_parser_combinators::bcs::async_parser::*;
 use ledger_parser_combinators::interp::*;
-use ledger_prompts_ui::{final_accept_prompt, mk_prompt_write};
+use ledger_prompts_ui::{final_accept_prompt, ScrollerError};
 use nanos_sdk::io::SyscallError;
 
 use core::convert::TryFrom;
 use core::future::Future;
 
 type SuiAddressRaw = [u8; SUI_ADDRESS_LENGTH];
-type SuiAddressRawOld = [u8; SUI_ADDRESS_LENGTH_OLD];
 
 pub struct SuiPubKeyAddress(nanos_sdk::ecc::ECPublicKey<65, 'E'>, SuiAddressRaw);
 
@@ -79,27 +78,311 @@ pub async fn get_address_apdu(io: HostIO) {
     io.result_final(&rv).await;
 }
 
-impl<const PROMPT: bool> HasOutput<SingleTransactionKind<PROMPT>>
-    for SingleTransactionKind<PROMPT>
-{
-    type Output = ();
+pub enum CallArg {
+    RecipientAddress(SuiAddressRaw),
+    Amount(u64),
+    OtherPure,
+    ObjectArg,
 }
 
-impl<BS: Clone + Readable, const PROMPT: bool> AsyncParser<SingleTransactionKind<PROMPT>, BS>
-    for SingleTransactionKind<PROMPT>
-{
+impl HasOutput<CallArgSchema> for DefaultInterp {
+    type Output = CallArg;
+}
+
+impl<BS: Clone + Readable> AsyncParser<CallArgSchema, BS> for DefaultInterp {
     type State<'c> = impl Future<Output = Self::Output> + 'c where BS: 'c;
     fn parse<'a: 'c, 'b: 'c, 'c>(&'b self, input: &'a mut BS) -> Self::State<'c> {
         async move {
             let enum_variant =
                 <DefaultInterp as AsyncParser<ULEB128, BS>>::parse(&DefaultInterp, input).await;
             match enum_variant {
-                // PaySui
-                5 => {
-                    trace!("SingleTransactionKind: PaySui");
-                    pay_sui_parser::<_, PROMPT>().parse(input).await;
+                0 => {
+                    let length =
+                        <DefaultInterp as AsyncParser<ULEB128, BS>>::parse(&DefaultInterp, input)
+                            .await;
+                    trace!("CallArgSchema: Pure: length: {}", length);
+                    match length {
+                        8 => CallArg::Amount(
+                            <DefaultInterp as AsyncParser<Amount, BS>>::parse(
+                                &DefaultInterp,
+                                input,
+                            )
+                            .await,
+                        ),
+                        32 => CallArg::RecipientAddress(
+                            <DefaultInterp as AsyncParser<Recipient, BS>>::parse(
+                                &DefaultInterp,
+                                input,
+                            )
+                            .await,
+                        ),
+                        _ => {
+                            for _ in 0..length {
+                                let _: [u8; 1] = input.read().await;
+                            }
+                            CallArg::OtherPure
+                        }
+                    }
+                }
+                1 => {
+                    let enum_variant =
+                        <DefaultInterp as AsyncParser<ULEB128, BS>>::parse(&DefaultInterp, input)
+                            .await;
+                    match enum_variant {
+                        0 => {
+                            trace!("CallArgSchema: ObjectArg: ImmOrOwnedObject");
+                            object_ref_parser().parse(input).await;
+                        }
+                        1 => {
+                            trace!("CallArgSchema: ObjectArg: SharedObject");
+                            <(DefaultInterp, DefaultInterp, DefaultInterp) as AsyncParser<
+                                SharedObject,
+                                BS,
+                            >>::parse(
+                                &(DefaultInterp, DefaultInterp, DefaultInterp), input
+                            )
+                            .await;
+                        }
+                        _ => reject_on(core::file!(), core::line!()).await,
+                    }
+                    CallArg::ObjectArg
+                }
+                _ => {
+                    trace!("CallArgSchema: Unknown enum: {}", enum_variant);
+                    reject_on(core::file!(), core::line!()).await
+                }
+            }
+        }
+    }
+}
+
+pub const TRANSFER_OBJECT_ARRAY_LENGTH: usize = 1;
+pub const SPLIT_COIN_ARRAY_LENGTH: usize = 8;
+
+pub enum Command {
+    TransferObject(ArrayVec<Argument, TRANSFER_OBJECT_ARRAY_LENGTH>, Argument),
+    SplitCoins(Argument, ArrayVec<Argument, SPLIT_COIN_ARRAY_LENGTH>),
+}
+
+impl HasOutput<CommandSchema> for DefaultInterp {
+    type Output = Command;
+}
+
+impl<BS: Clone + Readable> AsyncParser<CommandSchema, BS> for DefaultInterp {
+    type State<'c> = impl Future<Output = Self::Output> + 'c where BS: 'c;
+    fn parse<'a: 'c, 'b: 'c, 'c>(&'b self, input: &'a mut BS) -> Self::State<'c> {
+        async move {
+            let enum_variant =
+                <DefaultInterp as AsyncParser<ULEB128, BS>>::parse(&DefaultInterp, input).await;
+            match enum_variant {
+                1 => {
+                    trace!("CommandSchema: TransferObject");
+                    let v1 = <SubInterp<DefaultInterp> as AsyncParser<
+                        Vec<ArgumentSchema, TRANSFER_OBJECT_ARRAY_LENGTH>,
+                        BS,
+                    >>::parse(&SubInterp(DefaultInterp), input)
+                    .await;
+                    let v2 = <DefaultInterp as AsyncParser<ArgumentSchema, BS>>::parse(
+                        &DefaultInterp,
+                        input,
+                    )
+                    .await;
+                    Command::TransferObject(v1, v2)
+                }
+                2 => {
+                    trace!("CommandSchema: SplitCoins");
+                    let v1 = <DefaultInterp as AsyncParser<ArgumentSchema, BS>>::parse(
+                        &DefaultInterp,
+                        input,
+                    )
+                    .await;
+                    let v2 = <SubInterp<DefaultInterp> as AsyncParser<
+                        Vec<ArgumentSchema, SPLIT_COIN_ARRAY_LENGTH>,
+                        BS,
+                    >>::parse(&SubInterp(DefaultInterp), input)
+                    .await;
+                    Command::SplitCoins(v1, v2)
+                }
+                _ => {
+                    trace!("CommandSchema: Unknown enum: {}", enum_variant);
+                    reject_on(core::file!(), core::line!()).await
+                }
+            }
+        }
+    }
+}
+
+pub enum Argument {
+    GasCoin,
+    Input(u16),
+    Result(u16),
+    NestedResult(u16, u16),
+}
+
+impl HasOutput<ArgumentSchema> for DefaultInterp {
+    type Output = Argument;
+}
+
+impl<BS: Clone + Readable> AsyncParser<ArgumentSchema, BS> for DefaultInterp {
+    type State<'c> = impl Future<Output = Self::Output> + 'c where BS: 'c;
+    fn parse<'a: 'c, 'b: 'c, 'c>(&'b self, input: &'a mut BS) -> Self::State<'c> {
+        async move {
+            let enum_variant =
+                <DefaultInterp as AsyncParser<ULEB128, BS>>::parse(&DefaultInterp, input).await;
+            match enum_variant {
+                0 => {
+                    trace!("ArgumentSchema: GasCoin");
+                    Argument::GasCoin
+                }
+                1 => {
+                    trace!("ArgumentSchema: Input");
+                    Argument::Input(
+                        <DefaultInterp as AsyncParser<U16LE, BS>>::parse(&DefaultInterp, input)
+                            .await,
+                    )
+                }
+                2 => {
+                    trace!("ArgumentSchema: Result");
+                    Argument::Result(
+                        <DefaultInterp as AsyncParser<U16LE, BS>>::parse(&DefaultInterp, input)
+                            .await,
+                    )
+                }
+                3 => {
+                    trace!("ArgumentSchema: NestedResult");
+                    Argument::NestedResult(
+                        <DefaultInterp as AsyncParser<U16LE, BS>>::parse(&DefaultInterp, input)
+                            .await,
+                        <DefaultInterp as AsyncParser<U16LE, BS>>::parse(&DefaultInterp, input)
+                            .await,
+                    )
                 }
                 _ => reject_on(core::file!(), core::line!()).await,
+            }
+        }
+    }
+}
+
+impl<const PROMPT: bool> HasOutput<ProgrammableTransaction<PROMPT>>
+    for ProgrammableTransaction<PROMPT>
+{
+    type Output = ();
+}
+
+impl<BS: Clone + Readable, const PROMPT: bool> AsyncParser<ProgrammableTransaction<PROMPT>, BS>
+    for ProgrammableTransaction<PROMPT>
+{
+    type State<'c> = impl Future<Output = Self::Output> + 'c where BS: 'c;
+    fn parse<'a: 'c, 'b: 'c, 'c>(&'b self, input: &'a mut BS) -> Self::State<'c> {
+        async move {
+            let mut recipient = None;
+            let mut recipient_index = None;
+            let mut amounts: ArrayVec<(u64, u32), SPLIT_COIN_ARRAY_LENGTH> = ArrayVec::new();
+
+            // Handle inputs
+            {
+                let length =
+                    <DefaultInterp as AsyncParser<ULEB128, BS>>::parse(&DefaultInterp, input).await;
+
+                trace!("ProgrammableTransaction: Inputs: {}", length);
+                for i in 0..length {
+                    let arg = <DefaultInterp as AsyncParser<CallArgSchema, BS>>::parse(
+                        &DefaultInterp,
+                        input,
+                    )
+                    .await;
+                    match arg {
+                        CallArg::RecipientAddress(addr) => match recipient {
+                            None => {
+                                recipient = Some(addr);
+                                recipient_index = Some(i);
+                            }
+                            // Reject on multiple RecipientAddress(s)
+                            _ => reject_on(core::file!(), core::line!()).await,
+                        },
+                        CallArg::Amount(amt) => match amounts.try_push((amt, i)) {
+                            Err(_) => reject_on(core::file!(), core::line!()).await,
+                            _ => {}
+                        },
+                        _ => {}
+                    }
+                }
+            }
+
+            if recipient_index == None || amounts.is_empty() {
+                reject_on::<()>(core::file!(), core::line!()).await;
+            }
+
+            let mut verified_recipient = false;
+            let mut total_amount = 0;
+            // Handle commands
+            {
+                let length =
+                    <DefaultInterp as AsyncParser<ULEB128, BS>>::parse(&DefaultInterp, input).await;
+                trace!("ProgrammableTransaction: Commands: {}", length);
+                for _ in 0..length {
+                    let c = <DefaultInterp as AsyncParser<CommandSchema, BS>>::parse(
+                        &DefaultInterp,
+                        input,
+                    )
+                    .await;
+                    match c {
+                        Command::TransferObject(_nested_results, recipient_input) => {
+                            if verified_recipient {
+                                // Reject more than one TransferObject(s)
+                                reject_on::<()>(core::file!(), core::line!()).await;
+                            }
+                            match recipient_input {
+                                Argument::Input(inp_index) => {
+                                    if Some(inp_index as u32) != recipient_index {
+                                        trace!("TransferObject recipient mismatch");
+                                        reject_on::<()>(core::file!(), core::line!()).await;
+                                    }
+                                    verified_recipient = true;
+                                }
+                                _ => reject_on(core::file!(), core::line!()).await,
+                            }
+                        }
+                        Command::SplitCoins(_coin, input_indices) => {
+                            for arg in &input_indices {
+                                match arg {
+                                    Argument::Input(inp_index) => {
+                                        for (amt, ix) in &amounts {
+                                            if *ix == (*inp_index as u32) {
+                                                total_amount += amt;
+                                            }
+                                        }
+                                    }
+                                    _ => reject_on(core::file!(), core::line!()).await,
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            if !verified_recipient {
+                reject_on::<()>(core::file!(), core::line!()).await;
+            }
+
+            if PROMPT
+                && (|| -> Option<()> {
+                    scroller_paginated("To", |w| {
+                        Ok(write!(
+                            w,
+                            "0x{}",
+                            HexSlice(&recipient.ok_or(ScrollerError)?)
+                        )?)
+                    })?;
+
+                    let (quotient, remainder_str) = get_amount_in_decimals(total_amount);
+                    scroller_paginated("Amount", |w| {
+                        Ok(write!(w, "{quotient}.{}", remainder_str.as_str())?)
+                    })
+                })()
+                .is_none()
+            {
+                reject::<()>().await;
             }
         }
     }
@@ -119,101 +402,18 @@ impl<BS: Clone + Readable, const PROMPT: bool> AsyncParser<TransactionKind<PROMP
                 <DefaultInterp as AsyncParser<ULEB128, BS>>::parse(&DefaultInterp, input).await;
             match enum_variant {
                 0 => {
-                    trace!("TransactionKind: Single");
-                    <SingleTransactionKind<PROMPT> as AsyncParser<
-                        SingleTransactionKind<PROMPT>,
+                    trace!("TransactionKind: ProgrammableTransaction");
+                    <ProgrammableTransaction<PROMPT> as AsyncParser<
+                        ProgrammableTransaction<PROMPT>,
                         BS,
-                    >>::parse(&SingleTransactionKind::<PROMPT>, input)
+                    >>::parse(&ProgrammableTransaction::<PROMPT>, input)
                     .await;
                 }
-                _ => reject_on(core::file!(), core::line!()).await,
-            }
-        }
-    }
-}
-
-const fn pay_sui_parser<BS: Clone + Readable, const PROMPT: bool>(
-) -> impl AsyncParser<PaySui<PROMPT>, BS> + HasOutput<PaySui<PROMPT>, Output = ()> {
-    Action(
-        (SubInterp(coin_parser()), RecipientsAndAmounts::<PROMPT>),
-        |(_, _): (_, _)| {
-            trace!("PaySui Ok");
-            Some(())
-        },
-    )
-}
-
-impl<const PROMPT: bool> HasOutput<RecipientsAndAmounts<PROMPT>> for RecipientsAndAmounts<PROMPT> {
-    type Output = ();
-}
-
-impl<BS: Clone + Readable, const PROMPT: bool> AsyncParser<RecipientsAndAmounts<PROMPT>, BS>
-    for RecipientsAndAmounts<PROMPT>
-{
-    type State<'c> = impl Future<Output = Self::Output> + 'c where BS: 'c;
-    fn parse<'a: 'c, 'b: 'c, 'c>(&'b self, input: &'a mut BS) -> Self::State<'c> {
-        async move {
-            let length =
-                <DefaultInterp as AsyncParser<ULEB128, BS>>::parse(&DefaultInterp, input).await;
-            trace!("RecipientsAndAmounts length: {}", length);
-            let mut amt_bs = input.clone();
-
-            for _ in 0..length {
-                <DefaultInterp as AsyncParser<Recipient, BS>>::parse(&DefaultInterp, &mut amt_bs)
-                    .await;
-            }
-
-            let length_amt =
-                <DefaultInterp as AsyncParser<ULEB128, BS>>::parse(&DefaultInterp, &mut amt_bs)
-                    .await;
-            if length != length_amt {
-                trace!(
-                    "RecipientsAndAmounts length != length_amt: {}, {}",
-                    length,
-                    length_amt
-                );
-                reject::<()>().await;
-            }
-            for i in 0..length {
-                let recipient =
-                    <DefaultInterp as AsyncParser<Recipient, BS>>::parse(&DefaultInterp, input)
-                        .await;
-                let amount =
-                    <DefaultInterp as AsyncParser<Amount, BS>>::parse(&DefaultInterp, &mut amt_bs)
-                        .await;
-
-                if PROMPT
-                    && (|| -> Option<()> {
-                        {
-                            let mut buffer: ArrayString<16> = ArrayString::new();
-                            if length > 1 {
-                                write!(mk_prompt_write(&mut buffer), "To ({})", i + 1).ok()?;
-                            } else {
-                                write!(mk_prompt_write(&mut buffer), "To").ok()?;
-                            }
-                            scroller_paginated(&buffer, |w| {
-                                Ok(write!(w, "0x{}", HexSlice(&recipient))?)
-                            })?
-                        }
-                        {
-                            let mut buffer: ArrayString<16> = ArrayString::new();
-                            if length > 1 {
-                                write!(mk_prompt_write(&mut buffer), "Amount ({})", i + 1).ok()?;
-                            } else {
-                                write!(mk_prompt_write(&mut buffer), "Amount").ok()?;
-                            }
-                            let (quotient, remainder_str) = get_amount_in_decimals(amount);
-                            scroller_paginated(&buffer, |w| {
-                                Ok(write!(w, "{quotient}.{}", remainder_str.as_str())?)
-                            })
-                        }
-                    })()
-                    .is_none()
-                {
-                    reject::<()>().await;
+                _ => {
+                    trace!("TransactionKind: {}", enum_variant);
+                    reject_on(core::file!(), core::line!()).await
                 }
             }
-            *input = amt_bs;
         }
     }
 }
@@ -241,17 +441,49 @@ fn get_amount_in_decimals(amount: u64) -> (u64, ArrayString<12>) {
     (quotient, remainder_str)
 }
 
-const fn coin_parser<BS: Readable>(
-) -> impl AsyncParser<ObjectRef, BS> + HasOutput<ObjectRef, Output = ()> {
+impl HasOutput<TransactionExpiration> for DefaultInterp {
+    type Output = ();
+}
+
+impl<BS: Clone + Readable> AsyncParser<TransactionExpiration, BS> for DefaultInterp {
+    type State<'c> = impl Future<Output = Self::Output> + 'c where BS: 'c;
+    fn parse<'a: 'c, 'b: 'c, 'c>(&'b self, input: &'a mut BS) -> Self::State<'c> {
+        async move {
+            let enum_variant =
+                <DefaultInterp as AsyncParser<ULEB128, BS>>::parse(&DefaultInterp, input).await;
+            match enum_variant {
+                0 => {
+                    trace!("TransactionExpiration: None");
+                }
+                1 => {
+                    trace!("TransactionExpiration: Epoch");
+                    <DefaultInterp as AsyncParser<EpochId, BS>>::parse(&DefaultInterp, input).await;
+                }
+                _ => reject_on(core::file!(), core::line!()).await,
+            }
+        }
+    }
+}
+
+const fn gas_data_parser<BS: Clone + Readable, const PROMPT: bool>(
+) -> impl AsyncParser<GasData<PROMPT>, BS> + HasOutput<GasData<PROMPT>, Output = ()> {
     Action(
-        (DefaultInterp, DefaultInterp, DefaultInterp),
-        |(_obj_id, _seq, _obj_dig): (SuiAddressRawOld, u64, [u8; 33])| {
-            trace!(
-                "Coin Ok {}, {}, {}",
-                HexSlice(_obj_id.as_ref()),
-                _seq,
-                ledger_crypto_helpers::hasher::Base64Hash(_obj_dig)
-            );
+        (
+            SubInterp(object_ref_parser()),
+            DefaultInterp,
+            DefaultInterp,
+            DefaultInterp,
+        ),
+        |(_, _sender, gas_price, gas_budget): (_, _, u64, u64)| {
+            if PROMPT {
+                scroller("Paying Gas (1/2)", |w| {
+                    Ok(write!(w, "At most {}", gas_budget,)?)
+                })?;
+                let (quotient, remainder_str) = get_amount_in_decimals(gas_price);
+                scroller("Paying Gas (2/2)", |w| {
+                    Ok(write!(w, "Price {}.{}", quotient, remainder_str.as_str())?)
+                })?
+            }
             Some(())
         },
     )
@@ -270,38 +502,46 @@ const fn intent_parser<BS: Readable>(
     })
 }
 
-const fn transaction_data_parser<BS: Clone + Readable, const PROMPT: bool>(
-) -> impl AsyncParser<TransactionData<PROMPT>, BS> + HasOutput<TransactionData<PROMPT>, Output = ()>
+const fn transaction_data_v1_parser<BS: Clone + Readable, const PROMPT: bool>(
+) -> impl AsyncParser<TransactionDataV1<PROMPT>, BS> + HasOutput<TransactionDataV1<PROMPT>, Output = ()>
 {
     Action(
         (
             TransactionKind::<PROMPT>,
             DefaultInterp,
-            object_ref_parser(),
-            DefaultInterp,
+            gas_data_parser::<_, PROMPT>(),
             DefaultInterp,
         ),
-        |(_, _sender, _, gas_price, gas_budget): (_, _, _, u64, u64)| {
-            if PROMPT {
-                scroller("Paying Gas (1/2)", |w| {
-                    Ok(write!(w, "At most {}", gas_budget,)?)
-                })?;
-                let (quotient, remainder_str) = get_amount_in_decimals(gas_price);
-                scroller("Paying Gas (2/2)", |w| {
-                    Ok(write!(w, "Price {}.{}", quotient, remainder_str.as_str())?)
-                })?
-            }
-            Some(())
-        },
+        |_| Some(()),
     )
+}
+
+impl<const PROMPT: bool> HasOutput<TransactionData<PROMPT>> for TransactionData<PROMPT> {
+    type Output = ();
+}
+
+impl<BS: Clone + Readable, const PROMPT: bool> AsyncParser<TransactionData<PROMPT>, BS>
+    for TransactionData<PROMPT>
+{
+    type State<'c> = impl Future<Output = Self::Output> + 'c where BS: 'c;
+    fn parse<'a: 'c, 'b: 'c, 'c>(&'b self, input: &'a mut BS) -> Self::State<'c> {
+        async move {
+            let enum_variant =
+                <DefaultInterp as AsyncParser<ULEB128, BS>>::parse(&DefaultInterp, input).await;
+            match enum_variant {
+                0 => {
+                    trace!("TransactionData: V1");
+                    transaction_data_v1_parser::<_, PROMPT>().parse(input).await;
+                }
+                _ => reject_on(core::file!(), core::line!()).await,
+            }
+        }
+    }
 }
 
 const fn tx_parser<BS: Clone + Readable, const PROMPT: bool>(
 ) -> impl AsyncParser<IntentMessage<PROMPT>, BS> + HasOutput<IntentMessage<PROMPT>, Output = ()> {
-    Action(
-        (intent_parser(), transaction_data_parser::<_, PROMPT>()),
-        |_| Some(()),
-    )
+    Action((intent_parser(), TransactionData::<PROMPT>), |_| Some(()))
 }
 
 pub async fn sign_apdu(io: HostIO) {

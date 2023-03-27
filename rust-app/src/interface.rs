@@ -10,42 +10,57 @@ pub type SignParameters = (IntentMessage<true>, Bip32Key);
 // Sui Types
 pub type IntentMessage<const PROMPT: bool> = (Intent, TransactionData<PROMPT>);
 
-pub type TransactionData<const PROMPT: bool> = (
-    TransactionKind<PROMPT>,
-    SuiAddress, // sender
-    ObjectRef,  // gas_payment
-    Amount,     // gas_price
-    Amount,     // gas_budget
-);
+pub struct TransactionData<const PROMPT: bool>;
 
-pub struct SingleTransactionKind<const PROMPT: bool>;
+pub type TransactionDataV1<const PROMPT: bool> = (
+    TransactionKind<PROMPT>,
+    SuiAddress,            // sender
+    GasData<PROMPT>,       // gas_data
+    TransactionExpiration, // expiration
+);
 
 pub struct TransactionKind<const PROMPT: bool>;
 
+pub struct ProgrammableTransaction<const PROMPT: bool>;
+
+pub struct CommandSchema;
+pub struct ArgumentSchema;
+pub struct CallArgSchema;
+
+pub type GasData<const PROMPT: bool> = (
+    Vec<ObjectRef, { usize::MAX }>, // payment
+    SuiAddress,                     // owner
+    Amount,                         // price
+    Amount,                         // budget
+);
+
+pub struct TransactionExpiration;
+pub type EpochId = U64<{ Endianness::Little }>;
+
 pub type ObjectRef = (ObjectID, SequenceNumber, ObjectDigest);
 
-pub type Pay = (Coins, Recipients, Amounts);
-pub type PayAllSui = (Coins, Recipient);
-pub type PaySui<const PROMPT: bool> = (Coins, RecipientsAndAmounts<PROMPT>);
-
-pub struct RecipientsAndAmounts<const PROMPT: bool>;
+pub type SharedObject = (
+    ObjectID,       // id
+    SequenceNumber, // initial_shared_version
+    bool,           // mutable
+);
 
 pub type AccountAddress = SuiAddress;
 pub type ObjectID = AccountAddress;
-pub type SequenceNumber = U64<{ Endianness::Little }>;
+pub type SequenceNumber = U64LE;
 pub type ObjectDigest = SHA3_256_HASH;
 
 pub const SUI_ADDRESS_LENGTH: usize = 32;
-pub const SUI_ADDRESS_LENGTH_OLD: usize = 20;
-pub type SuiAddress = Array<Byte, SUI_ADDRESS_LENGTH_OLD>;
+pub type SuiAddress = Array<Byte, SUI_ADDRESS_LENGTH>;
 
 pub type Coins = Vec<ObjectRef, { usize::MAX }>;
 
 pub type Recipient = SuiAddress;
-pub type Recipients = Vec<Recipient, 1>;
 
-pub type Amount = U64<{ Endianness::Little }>;
-pub type Amounts = Vec<Amount, 1>;
+pub type Amount = U64LE;
+
+pub type U64LE = U64<{ Endianness::Little }>;
+pub type U16LE = U16<{ Endianness::Little }>;
 
 pub type Intent = (IntentVersion, IntentScope, AppId);
 pub type IntentVersion = ULEB128;

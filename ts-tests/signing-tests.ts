@@ -10,10 +10,9 @@ let nacl : Nacl =null;
 
 instantiate(n => { nacl=n; });
 
-function testTransaction(path: string, txn0: string, prompts: any[]) {
+function testTransaction(path: string, txn: Buffer, prompts: any[]) {
   return async () => {
     await sendCommandAndAccept(async (client : Sui) => {
-      const txn = Buffer.from(txn0, "hex");
       const { publicKey } = await client.getPublicKey(path);
 
       // We don't want the prompts from getPublicKey in our result
@@ -39,7 +38,7 @@ describe("Signing tests", function() {
   it("can sign a transaction",
      testTransaction(
        "44'/784'/0'",
-       "00000000050205546e7f126d2f40331a543b9608439b582fd0d103000000000000002080fdabcc90498e7eb8413b140c4334871eeafa5a86203fd9cfdb032f604f49e1284af431cf032b5d85324135bf9a3073e920d7f5020000000000000020a06f410c175e828c24cee84cb3bd95cff25c33fbbdcb62c6596e8e423784ffe701d08074075c7097f361e8b443e2075a852a2292e80180969800000000001643fb2578ff7191c643079a62c1cca8ec2752bc05546e7f126d2f40331a543b9608439b582fd0d103000000000000002080fdabcc90498e7eb8413b140c4334871eeafa5a86203fd9cfdb032f604f49e101000000000000002c01000000000000",
+       Buffer.from("000000000002000840420f000000000000204f2370b2a4810ad6c8e1cfd92cc8c8818fef8f59e3a80cea17871f78d850ba4b0202000101000001010200000101006fb21feead027da4873295affd6c4f3618fe176fa2fbf3e7b5ef1d9463b31e210112a6d0c44edc630d2724b1f57fea4f93308b1d22164402c65778bd99379c4733070000000000000020f2fd3c87b227f1015182fe4348ed680d7ed32bcd3269704252c03e1d0b13d30d6fb21feead027da4873295affd6c4f3618fe176fa2fbf3e7b5ef1d9463b31e2101000000000000000c0400000000000000", "hex"),
        [
          {
            "header": "Transfer",
@@ -52,16 +51,16 @@ describe("Signing tests", function() {
          },
          {
            "header": "To",
-           "prompt": "0xd08074075c7097f361e8b443e2075a852a2292e8",
+           "prompt": "0x4f2370b2a4810ad6c8e1cfd92cc8c8818fef8f59e3a80cea17871f78d850ba4b",
            "paginate": true
          },
          {
            "header": "Amount",
-           "prompt": "0.01"
+           "prompt": "0.001"
          },
          {
            "header": "Paying Gas (1/2)",
-           "prompt": "At most 300"
+           "prompt": "At most 1036"
          },
          {
            "header": "Paying Gas (2/2)",
@@ -80,180 +79,10 @@ describe("Signing tests", function() {
        ]
      ));
 
-  it("can sign a transaction with multiple recipients",
+  it("can blind-sign a legacy transaction",
      testTransaction(
        "44'/784'/0'",
-       "00000000050205546e7f126d2f40331a543b9608439b582fd0d103000000000000002080fdabcc90498e7eb8413b140c4334871eeafa5a86203fd9cfdb032f604f49e1284af431cf032b5d85324135bf9a3073e920d7f5020000000000000020a06f410c175e828c24cee84cb3bd95cff25c33fbbdcb62c6596e8e423784ffe70fd08074075c7097f361e8b443e2075a852a229281d08074075c7097f361e8b443e2075a852a229282d08074075c7097f361e8b443e2075a852a229283d08074075c7097f361e8b443e2075a852a229284d08074075c7097f361e8b443e2075a852a229285d08074075c7097f361e8b443e2075a852a229286d08074075c7097f361e8b443e2075a852a229287d08074075c7097f361e8b443e2075a852a229288d08074075c7097f361e8b443e2075a852a229289d08074075c7097f361e8b443e2075a852a22928ad08074075c7097f361e8b443e2075a852a22928bd08074075c7097f361e8b443e2075a852a22928cd08074075c7097f361e8b443e2075a852a22928dd08074075c7097f361e8b443e2075a852a22928ed08074075c7097f361e8b443e2075a852a22928f0f0100000000000000020000000000000003000000000000000400000000000000050000000000000006000000000000000700000000000000080000000000000009000000000000000a000000000000000b000000000000000c000000000000000d000000000000000e000000000000000f000000000000001643fb2578ff7191c643079a62c1cca8ec2752bc05546e7f126d2f40331a543b9608439b582fd0d103000000000000002080fdabcc90498e7eb8413b140c4334871eeafa5a86203fd9cfdb032f604f49e101000000000000002c01000000000000",
-       [
-         {
-           "header": "Transfer",
-           "prompt": "SUI"
-         },
-         {
-           "header": "From",
-           "prompt": "0x56b19e720f3bfa8caaef806afdd5dfaffd0d6ec9476323a14d1638ad734b2ba5",
-           "paginate": true
-         },
-         {
-           "header": "To (1)",
-           "prompt": "0xd08074075c7097f361e8b443e2075a852a229281",
-           "paginate": true
-         },
-         {
-           "header": "Amount (1)",
-           "prompt": "0.000000001"
-         },
-         {
-           "header": "To (2)",
-           "prompt": "0xd08074075c7097f361e8b443e2075a852a229282",
-           "paginate": true
-         },
-         {
-           "header": "Amount (2)",
-           "prompt": "0.000000002"
-         },
-         {
-           "header": "To (3)",
-           "prompt": "0xd08074075c7097f361e8b443e2075a852a229283",
-           "paginate": true
-         },
-         {
-           "header": "Amount (3)",
-           "prompt": "0.000000003"
-         },
-         {
-           "header": "To (4)",
-           "prompt": "0xd08074075c7097f361e8b443e2075a852a229284",
-           "paginate": true
-         },
-         {
-           "header": "Amount (4)",
-           "prompt": "0.000000004"
-         },
-         {
-           "header": "To (5)",
-           "prompt": "0xd08074075c7097f361e8b443e2075a852a229285",
-           "paginate": true
-         },
-         {
-           "header": "Amount (5)",
-           "prompt": "0.000000005"
-         },
-         {
-           "header": "To (6)",
-           "prompt": "0xd08074075c7097f361e8b443e2075a852a229286",
-           "paginate": true
-         },
-         {
-           "header": "Amount (6)",
-           "prompt": "0.000000006"
-         },
-         {
-           "header": "To (7)",
-           "prompt": "0xd08074075c7097f361e8b443e2075a852a229287",
-           "paginate": true
-         },
-         {
-           "header": "Amount (7)",
-           "prompt": "0.000000007"
-         },
-         {
-           "header": "To (8)",
-           "prompt": "0xd08074075c7097f361e8b443e2075a852a229288",
-           "paginate": true
-         },
-         {
-           "header": "Amount (8)",
-           "prompt": "0.000000008"
-         },
-         {
-           "header": "To (9)",
-           "prompt": "0xd08074075c7097f361e8b443e2075a852a229289",
-           "paginate": true
-         },
-         {
-           "header": "Amount (9)",
-           "prompt": "0.000000009"
-         },
-         {
-           "header": "To (10)",
-           "prompt": "0xd08074075c7097f361e8b443e2075a852a22928a",
-           "paginate": true
-         },
-         {
-           "header": "Amount (10)",
-           "prompt": "0.00000001"
-         },
-         {
-           "header": "To (11)",
-           "prompt": "0xd08074075c7097f361e8b443e2075a852a22928b",
-           "paginate": true
-         },
-         {
-           "header": "Amount (11)",
-           "prompt": "0.000000011"
-         },
-         {
-           "header": "To (12)",
-           "prompt": "0xd08074075c7097f361e8b443e2075a852a22928c",
-           "paginate": true
-         },
-         {
-           "header": "Amount (12)",
-           "prompt": "0.000000012"
-         },
-         {
-           "header": "To (13)",
-           "prompt": "0xd08074075c7097f361e8b443e2075a852a22928d",
-           "paginate": true
-         },
-         {
-           "header": "Amount (13)",
-           "prompt": "0.000000013"
-         },
-         {
-           "header": "To (14)",
-           "prompt": "0xd08074075c7097f361e8b443e2075a852a22928e",
-           "paginate": true
-         },
-         {
-           "header": "Amount (14)",
-           "prompt": "0.000000014"
-         },
-         {
-           "header": "To (15)",
-           "prompt": "0xd08074075c7097f361e8b443e2075a852a22928f",
-           "paginate": true
-         },
-         {
-           "header": "Amount (15)",
-           "prompt": "0.000000015"
-         },
-         {
-           "header": "Paying Gas (1/2)",
-           "prompt": "At most 300"
-         },
-         {
-           "header": "Paying Gas (2/2)",
-           "prompt": "Price 0.000000001"
-         },
-         {
-           "text": "Sign Transaction?",
-           "x": 19,
-           "y": 11
-         },
-         {
-           "text": "Confirm",
-           "x": 43,
-           "y": 11,
-         }
-       ]
-     ));
-
-  it("can blind sign an unknown transaction",
-     testTransaction(
-       "44'/784'/0'",
-       "00000000050205546e7f126d2f40331a543b9608439b582fd0d103000000000000002080fdabcc90498e7eb8413b140c4334871eeafa5a86203fd9cfdb032f604f49e1284af431cf032b5d85324135bf9a3073e920d7f5020000000000000020a06f410c175e828c24cee84cb3bd95cff25c33fbbdcb62c6596e8e423784ffe702d08074075c7097f361e8b443e2075a852a2292e8a08074075c7097f361e8b443e2075a852a2292e80180969800000000001643fb2578ff7191c643079a62c1cca8ec2752bc05546e7f126d2f40331a543b9608439b582fd0d103000000000000002080fdabcc90498e7eb8413b140c4334871eeafa5a86203fd9cfdb032f604f49e101000000000000002c01000000000000",
+       Buffer.from("00000000050205546e7f126d2f40331a543b9608439b582fd0d103000000000000002080fdabcc90498e7eb8413b140c4334871eeafa5a86203fd9cfdb032f604f49e1284af431cf032b5d85324135bf9a3073e920d7f5020000000000000020a06f410c175e828c24cee84cb3bd95cff25c33fbbdcb62c6596e8e423784ffe701d08074075c7097f361e8b443e2075a852a2292e80180969800000000001643fb2578ff7191c643079a62c1cca8ec2752bc05546e7f126d2f40331a543b9608439b582fd0d103000000000000002080fdabcc90498e7eb8413b140c4334871eeafa5a86203fd9cfdb032f604f49e101000000000000002c01000000000000", "hex"),
        [
          {
            "header": "WARNING",
@@ -268,7 +97,51 @@ describe("Signing tests", function() {
            "text": "Confirm",
            "x": 43,
            "y": 11,
-         }
+         },
+       ]
+     ));
+
+  it("can blind-sign a legacy transaction with multiple recipients",
+     testTransaction(
+       "44'/784'/0'",
+       Buffer.from("00000000050205546e7f126d2f40331a543b9608439b582fd0d103000000000000002080fdabcc90498e7eb8413b140c4334871eeafa5a86203fd9cfdb032f604f49e1284af431cf032b5d85324135bf9a3073e920d7f5020000000000000020a06f410c175e828c24cee84cb3bd95cff25c33fbbdcb62c6596e8e423784ffe70fd08074075c7097f361e8b443e2075a852a229281d08074075c7097f361e8b443e2075a852a229282d08074075c7097f361e8b443e2075a852a229283d08074075c7097f361e8b443e2075a852a229284d08074075c7097f361e8b443e2075a852a229285d08074075c7097f361e8b443e2075a852a229286d08074075c7097f361e8b443e2075a852a229287d08074075c7097f361e8b443e2075a852a229288d08074075c7097f361e8b443e2075a852a229289d08074075c7097f361e8b443e2075a852a22928ad08074075c7097f361e8b443e2075a852a22928bd08074075c7097f361e8b443e2075a852a22928cd08074075c7097f361e8b443e2075a852a22928dd08074075c7097f361e8b443e2075a852a22928ed08074075c7097f361e8b443e2075a852a22928f0f0100000000000000020000000000000003000000000000000400000000000000050000000000000006000000000000000700000000000000080000000000000009000000000000000a000000000000000b000000000000000c000000000000000d000000000000000e000000000000000f000000000000001643fb2578ff7191c643079a62c1cca8ec2752bc05546e7f126d2f40331a543b9608439b582fd0d103000000000000002080fdabcc90498e7eb8413b140c4334871eeafa5a86203fd9cfdb032f604f49e101000000000000002c01000000000000", "hex"),
+       [
+         {
+           "header": "WARNING",
+           "prompt": "Transaction not recognized"
+         },
+         {
+           "text": "Blind Sign Transaction?",
+           "x": 4,
+           "y": 11
+         },
+         {
+           "text": "Confirm",
+           "x": 43,
+           "y": 11,
+         },
+       ]
+     ));
+
+  it("can blind sign an unknown transaction",
+     testTransaction(
+       "44'/784'/0'",
+       Buffer.from("00000000050205546e7f126d2f40331a543b9608439b582fd0d103000000000000002080fdabcc90498e7eb8413b140c4334871eeafa5a86203fd9cfdb032f604f49e1284af431cf032b5d85324135bf9a3073e920d7f5020000000000000020a06f410c175e828c24cee84cb3bd95cff25c33fbbdcb62c6596e8e423784ffe702d08074075c7097f361e8b443e2075a852a2292e8a08074075c7097f361e8b443e2075a852a2292e80180969800000000001643fb2578ff7191c643079a62c1cca8ec2752bc05546e7f126d2f40331a543b9608439b582fd0d103000000000000002080fdabcc90498e7eb8413b140c4334871eeafa5a86203fd9cfdb032f604f49e101000000000000002c01000000000000", "hex"),
+       [
+         {
+           "header": "WARNING",
+           "prompt": "Transaction not recognized"
+         },
+         {
+           "text": "Blind Sign Transaction?",
+           "x": 4,
+           "y": 11
+         },
+         {
+           "text": "Confirm",
+           "x": 43,
+           "y": 11,
+         },
        ]
      ));
 
