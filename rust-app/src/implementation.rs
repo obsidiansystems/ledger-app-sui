@@ -378,7 +378,7 @@ impl<BS: Clone + Readable, const PROMPT: bool> AsyncParser<ProgrammableTransacti
 
                     let (quotient, remainder_str) = get_amount_in_decimals(total_amount);
                     scroller_paginated("Amount", |w| {
-                        Ok(write!(w, "{quotient}.{}", remainder_str.as_str())?)
+                        Ok(write!(w, "SUI {quotient}.{}", remainder_str.as_str())?)
                     })
                 })()
                 .is_none()
@@ -478,7 +478,7 @@ const fn gas_data_parser<BS: Clone + Readable, const PROMPT: bool>(
         |(_, _sender, gas_price, gas_budget): (_, _, u64, u64)| {
             if PROMPT {
                 let (quotient, remainder_str) = get_amount_in_decimals(gas_price * gas_budget);
-                scroller("Paying Gas", |w| {
+                scroller("Max Gas", |w| {
                     Ok(write!(w, "SUI {}.{}", quotient, remainder_str.as_str())?)
                 })?
             }
