@@ -59,6 +59,12 @@ pub async fn get_address_apdu(io: HostIO) {
         try_option(|| -> Option<()> {
             let key_bytes = ed25519_public_key_bytes(key);
 
+            scroller("Provide Public Key", |w| {
+                Ok(write!(w, "For Address {address}")?)
+            })?;
+
+            final_accept_prompt(&[])?;
+
             rv.try_push(u8::try_from(key_bytes.len()).ok()?).ok()?;
             rv.try_extend_from_slice(key_bytes).ok()?;
 
