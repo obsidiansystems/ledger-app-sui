@@ -59,12 +59,8 @@ describe("Signing tests", function() {
            "prompt": "0.001"
          },
          {
-           "header": "Paying Gas (1/2)",
-           "prompt": "At most 1036"
-         },
-         {
-           "header": "Paying Gas (2/2)",
-           "prompt": "Price 0.000000001"
+           "header": "Paying Gas",
+           "prompt": "SUI 0.000001036"
          },
          {
            "text": "Sign Transaction?",
