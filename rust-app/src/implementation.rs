@@ -1,4 +1,5 @@
 use crate::interface::*;
+use crate::settings::*;
 use crate::test_parsers::*;
 use crate::utils::*;
 use alamgu_async_block::*;
@@ -7,7 +8,7 @@ use arrayvec::ArrayVec;
 use core::fmt::Write;
 use ledger_crypto_helpers::common::{try_option, Address, HexSlice};
 use ledger_crypto_helpers::eddsa::{ed25519_public_key_bytes, eddsa_sign, with_public_keys};
-use ledger_crypto_helpers::hasher::{Blake2b, Hasher};
+use ledger_crypto_helpers::hasher::{Blake2b, Hasher, HexHash};
 use ledger_log::trace;
 use ledger_parser_combinators::async_parser::*;
 use ledger_parser_combinators::bcs::async_parser::*;
@@ -544,7 +545,7 @@ const fn tx_parser<BS: Clone + Readable, const PROMPT: bool>(
     Action((intent_parser(), TransactionData::<PROMPT>), |_| Some(()))
 }
 
-pub async fn sign_apdu(io: HostIO) {
+pub async fn sign_apdu(io: HostIO, settings: Settings) {
     let mut input = io.get_params::<2>().unwrap();
 
     // Read length, and move input[0] by one byte
@@ -592,12 +593,19 @@ pub async fn sign_apdu(io: HostIO) {
             reject::<()>().await;
         };
     } else {
-        if scroller("WARNING", |w| Ok(write!(w, "Transaction not recognized")?)).is_none() {
+        if settings.get() == 0 {
+            scroller("WARNING", |w| {
+                Ok(write!(
+                    w,
+                    "Transaction not recognized, enable blind signing to sign unknown transactions"
+                )?)
+            });
             reject::<()>().await;
-        };
-        if final_accept_prompt(&["Blind Sign Transaction?"]).is_none() {
-            reject::<()>().await;
-        };
+        } else {
+            if scroller("WARNING", |w| Ok(write!(w, "Transaction not recognized")?)).is_none() {
+                reject::<()>().await;
+            };
+        }
     }
 
     // By the time we get here, we've approved and just need to do the signature.
@@ -616,9 +624,17 @@ pub async fn sign_apdu(io: HostIO) {
                 hasher.update(&b);
             }
         }
-        let hash: [u8; SUI_ADDRESS_LENGTH] = hasher.finalize();
+        let hash: HexHash<32> = hasher.finalize();
+        if !known_txn {
+            if scroller("Transaction Hash", |w| Ok(write!(w, "0x{hash}")?)).is_none() {
+                reject::<()>().await;
+            };
+            if final_accept_prompt(&["Blind Sign Transaction?"]).is_none() {
+                reject::<()>().await;
+            };
+        }
         let path = BIP_PATH_PARSER.parse(&mut input[1].clone()).await;
-        if let Some(sig) = { eddsa_sign(&path, true, &hash).ok() } {
+        if let Some(sig) = { eddsa_sign(&path, true, &hash.0).ok() } {
             io.result_final(&sig.0[0..]).await;
         } else {
             reject::<()>().await;
@@ -630,7 +646,7 @@ pub async fn sign_apdu(io: HostIO) {
 pub type APDUsFuture = impl Future<Output = ()>;
 
 #[inline(never)]
-pub fn handle_apdu_async(io: HostIO, ins: Ins) -> APDUsFuture {
+pub fn handle_apdu_async(io: HostIO, ins: Ins, settings: Settings) -> APDUsFuture {
     trace!("Constructing future");
     async move {
         trace!("Dispatching");
@@ -649,7 +665,7 @@ pub fn handle_apdu_async(io: HostIO, ins: Ins) -> APDUsFuture {
             }
             Ins::Sign => {
                 trace!("Handling sign");
-                NoinlineFut(sign_apdu(io)).await;
+                NoinlineFut(sign_apdu(io, settings)).await;
             }
             Ins::TestParsers => {
                 NoinlineFut(test_parsers(io)).await;
