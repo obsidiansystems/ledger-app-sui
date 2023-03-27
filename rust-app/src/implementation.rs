@@ -49,15 +49,25 @@ pub type BipParserImplT =
 pub const BIP_PATH_PARSER: BipParserImplT = SubInterp(DefaultInterp);
 
 pub async fn get_address_apdu(io: HostIO) {
-    let input = io.get_params::<1>().unwrap();
+    let input = io.get_params::<2>().unwrap();
 
     let path = BIP_PATH_PARSER.parse(&mut input[0].clone()).await;
+
+    let [show_prompt]: [u8; 1] = input[1].clone().read().await;
 
     let mut rv = ArrayVec::<u8, 220>::new();
 
     if with_public_keys(&path, true, |key, address: &SuiPubKeyAddress| {
         try_option(|| -> Option<()> {
             let key_bytes = ed25519_public_key_bytes(key);
+
+            if show_prompt == 0x1 {
+                scroller("Provide Public Key", |w| {
+                    Ok(write!(w, "For Address {address}")?)
+                })?;
+
+                final_accept_prompt(&[])?;
+            }
 
             rv.try_push(u8::try_from(key_bytes.len()).ok()?).ok()?;
             rv.try_extend_from_slice(key_bytes).ok()?;
