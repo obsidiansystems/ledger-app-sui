@@ -1,6 +1,9 @@
+use core::convert::TryFrom;
 use ledger_parser_combinators::bcs::async_parser::*;
 use ledger_parser_combinators::core_parsers::*;
 use ledger_parser_combinators::endianness::*;
+use nanos_sdk::io::ApduMeta;
+use num_enum::TryFromPrimitive;
 
 // Payload for a public key request
 pub type Bip32Key = DArray<Byte, U32<{ Endianness::Little }>, 10>;
@@ -72,26 +75,27 @@ pub type AppId = ULEB128;
 pub type SHA3_256_HASH = Array<Byte, 33>;
 
 #[repr(u8)]
-#[derive(Debug)]
+#[derive(Debug, TryFromPrimitive)]
 pub enum Ins {
-    GetVersion,
-    GetPubkey,
-    Sign,
-    TestParsers,
-    GetVersionStr,
-    Exit,
+    GetVersion = 0,
+    GetPubkey = 2,
+    Sign = 3,
+    TestParsers = 0x20,
+    GetVersionStr = 0xfe,
+    Exit = 0xff,
 }
 
-impl From<u8> for Ins {
-    fn from(ins: u8) -> Ins {
-        match ins {
-            0 => Ins::GetVersion,
-            2 => Ins::GetPubkey,
-            3 => Ins::Sign,
-            0x20 => Ins::TestParsers,
-            0xfe => Ins::GetVersionStr,
-            0xff => Ins::Exit,
-            _ => panic!(),
+impl TryFrom<ApduMeta> for Ins {
+    type Error = ();
+    fn try_from(m: ApduMeta) -> Result<Ins, Self::Error> {
+        match m {
+            ApduMeta {
+                cla: 0,
+                ins,
+                p1: 0,
+                p2: 0,
+            } => Self::try_from(ins).map_err(|_| ()),
+            _ => Err(()),
         }
     }
 }
