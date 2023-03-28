@@ -12,11 +12,13 @@ ledger-crypto-helpers = { git = "https://github.com/alamgu/ledger-crypto-helpers
 ledger-log = { git = "https://github.com/alamgu/ledger-log" }
 ledger-parser-combinators = { git = "https://github.com/alamgu/ledger-parser-combinators" }
 zeroize = { version = "1.5.2", default-features = false }
+num_enum = { version = "0.5", default-features = false }
 
 # Pass --features speculos,ledger-log/log_info (or log_trace, etc) to enable
 # speculos logging and change log level.
 [features]
 default = [ ]
+# Pass --features speculos,ledger-log/log_info (or log_trace, etc) to enable speculos logging and change log level.
 speculos = [ "nanos_sdk/speculos", "ledger-log/speculos", "ledger-log/log_error", "ledger-parser-combinators/logging" ]
 extra_debug = ["ledger-log/log_trace"]
 pending_review_screen = ["nanos_sdk/pending_review_screen"]
