@@ -22,25 +22,31 @@ pub enum Ins {
     Exit,
 }
 
-impl TryFrom<ApduMeta> for Ins {
+impl TryFrom<u8> for Ins {
     type Error = ();
-    fn try_from(m: ApduMeta) -> Result<Ins, Self::Error> {
-        if m.cla != 0 {
-            return Err(());
-        }
-        if m.p1 != 0 {
-            return Err(());
-        }
-        if m.p2 != 0 {
-            return Err(());
-        }
-        match m.ins {
+    fn try_from(ins: u8) -> Result<Ins, Self::Error> {
+        match ins {
             0 => Ok(Ins::GetVersion),
             2 => Ok(Ins::GetPubkey),
             3 => Ok(Ins::Sign),
             0x20 => Ok(Ins::TestParsers),
             0xfe => Ok(Ins::GetVersionStr),
             0xff => Ok(Ins::Exit),
+            _ => Err(()),
+        }
+    }
+}
+
+impl TryFrom<ApduMeta> for Ins {
+    type Error = ();
+    fn try_from(m: ApduMeta) -> Result<Ins, Self::Error> {
+        match m {
+            ApduMeta {
+                cla: 0,
+                ins,
+                p1: 0,
+                p2: 0,
+            } => Self::try_from(ins),
             _ => Err(()),
         }
     }
