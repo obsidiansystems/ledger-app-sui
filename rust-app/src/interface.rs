@@ -2,6 +2,7 @@ use core::convert::TryFrom;
 use ledger_parser_combinators::core_parsers::*;
 use ledger_parser_combinators::endianness::*;
 use nanos_sdk::io::ApduMeta;
+use num_enum::TryFromPrimitive;
 
 // Payload for a public key request
 pub type Bip32Key = DArray<Byte, U32<{ Endianness::Little }>, 10>;
@@ -12,29 +13,14 @@ pub type SignPayload = DArray<U32<{ Endianness::Little }>, Byte, { usize::MAX }>
 pub type SignParameters = (SignPayload, Bip32Key);
 
 #[repr(u8)]
-#[derive(Debug)]
+#[derive(Debug, TryFromPrimitive)]
 pub enum Ins {
-    GetVersion,
-    GetPubkey,
-    Sign,
-    TestParsers,
-    GetVersionStr,
-    Exit,
-}
-
-impl TryFrom<u8> for Ins {
-    type Error = ();
-    fn try_from(ins: u8) -> Result<Ins, Self::Error> {
-        match ins {
-            0 => Ok(Ins::GetVersion),
-            2 => Ok(Ins::GetPubkey),
-            3 => Ok(Ins::Sign),
-            0x20 => Ok(Ins::TestParsers),
-            0xfe => Ok(Ins::GetVersionStr),
-            0xff => Ok(Ins::Exit),
-            _ => Err(()),
-        }
-    }
+    GetVersion = 0,
+    GetPubkey = 2,
+    Sign = 3,
+    TestParsers = 0x20,
+    GetVersionStr = 0xfe,
+    Exit = 0xff,
 }
 
 impl TryFrom<ApduMeta> for Ins {
@@ -46,7 +32,7 @@ impl TryFrom<ApduMeta> for Ins {
                 ins,
                 p1: 0,
                 p2: 0,
-            } => Self::try_from(ins),
+            } => Self::try_from(ins).map_err(|_| ()),
             _ => Err(()),
         }
     }
