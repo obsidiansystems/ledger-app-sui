@@ -1,5 +1,17 @@
 use crate::settings::*;
-use ledger_prompts_ui::Menu;
+use include_gif::include_gif;
+use ledger_prompts_ui::*;
+use nanos_ui::bagls::*;
+use nanos_ui::bitmaps::Glyph;
+
+#[cfg(not(target_os = "nanos"))]
+pub const APP_ICON_GLYPH: Glyph = Glyph::from_include(include_gif!("crab-small.gif"));
+#[cfg(not(target_os = "nanos"))]
+pub const APP_ICON: Icon = Icon::from(&APP_ICON_GLYPH).set_x(55).shift_v(-10);
+
+// TODO: fix nanos icon
+#[cfg(target_os = "nanos")]
+const APP_ICON: Icon = SETTINGS_ICON;
 
 pub struct IdleMenuWithSettings {
     pub idle_menu: IdleMenu,
@@ -8,6 +20,7 @@ pub struct IdleMenuWithSettings {
 
 pub enum IdleMenu {
     AppMain,
+    ShowVersion,
     Settings(Option<SettingsSubMenu>),
     Exit,
 }
@@ -31,6 +44,8 @@ impl Menu for IdleMenuWithSettings {
         use crate::menu::IdleMenu::*;
         use crate::menu::SettingsSubMenu::*;
         match self.idle_menu {
+            AppMain => self.idle_menu = Exit,
+            ShowVersion => self.idle_menu = AppMain,
             Settings(None) => self.idle_menu = AppMain,
             Settings(Some(Back)) => {
                 if self.settings.get() == 1 {
@@ -39,18 +54,26 @@ impl Menu for IdleMenuWithSettings {
                     self.idle_menu = Settings(Some(EnableBlindSigning))
                 }
             }
+            Settings(Some(_)) => self.idle_menu = Settings(Some(Back)),
             Exit => self.idle_menu = Settings(None),
-            _ => {}
         };
     }
     fn move_right(&mut self) {
         use crate::menu::IdleMenu::*;
         use crate::menu::SettingsSubMenu::*;
         match self.idle_menu {
-            AppMain => self.idle_menu = Settings(None),
+            AppMain => self.idle_menu = ShowVersion,
+            ShowVersion => self.idle_menu = Settings(None),
             Settings(None) => self.idle_menu = Exit,
+            Settings(Some(Back)) => {
+                if self.settings.get() == 1 {
+                    self.idle_menu = Settings(Some(DisableBlindSigning))
+                } else {
+                    self.idle_menu = Settings(Some(EnableBlindSigning))
+                }
+            }
             Settings(Some(_)) => self.idle_menu = Settings(Some(Back)),
-            _ => {}
+            Exit => self.idle_menu = AppMain,
         };
     }
     #[inline(never)]
@@ -59,6 +82,7 @@ impl Menu for IdleMenuWithSettings {
         use crate::menu::SettingsSubMenu::*;
         match self.idle_menu {
             AppMain => None,
+            ShowVersion => None,
             Settings(None) => {
                 if self.settings.get() == 1 {
                     self.idle_menu = Settings(Some(DisableBlindSigning))
@@ -85,16 +109,59 @@ impl Menu for IdleMenuWithSettings {
         }
     }
     #[inline(never)]
-    fn label(&self) -> &str {
+    fn label<'a>(&self) -> (MenuLabelTop<'a>, MenuLabelBottom<'a>) {
         use crate::menu::IdleMenu::*;
         use crate::menu::SettingsSubMenu::*;
         match self.idle_menu {
-            AppMain => concat!("Alamgu Example ", env!("CARGO_PKG_VERSION")),
-            Settings(None) => "Blind Signing",
-            Settings(Some(EnableBlindSigning)) => "Enable Blind Signing",
-            Settings(Some(DisableBlindSigning)) => "Disable Blind Signing",
-            Settings(Some(Back)) => "Back",
-            Exit => "Exit",
+            AppMain => (
+                MenuLabelTop::Icon(&APP_ICON),
+                MenuLabelBottom {
+                    text: "Alamgu Example",
+                    bold: true,
+                },
+            ),
+            ShowVersion => (
+                MenuLabelTop::Text("Version"),
+                MenuLabelBottom {
+                    text: env!("CARGO_PKG_VERSION"),
+                    bold: false,
+                },
+            ),
+            Settings(None) => (
+                MenuLabelTop::Icon(&SETTINGS_ICON),
+                MenuLabelBottom {
+                    text: "Settings",
+                    bold: true,
+                },
+            ),
+            Settings(Some(EnableBlindSigning)) => (
+                MenuLabelTop::Text("Blind Signing"),
+                MenuLabelBottom {
+                    text: "Disabled",
+                    bold: false,
+                },
+            ),
+            Settings(Some(DisableBlindSigning)) => (
+                MenuLabelTop::Text("Blind Signing"),
+                MenuLabelBottom {
+                    text: "Enabled",
+                    bold: false,
+                },
+            ),
+            Settings(Some(Back)) => (
+                MenuLabelTop::Icon(&BACK_ICON),
+                MenuLabelBottom {
+                    text: "Back",
+                    bold: true,
+                },
+            ),
+            Exit => (
+                MenuLabelTop::Icon(&DASHBOARD_ICON),
+                MenuLabelBottom {
+                    text: "Quit",
+                    bold: true,
+                },
+            ),
         }
     }
 }
@@ -118,11 +185,23 @@ impl Menu for BusyMenu {
         }
     }
     #[inline(never)]
-    fn label(&self) -> &str {
+    fn label<'a>(&self) -> (MenuLabelTop<'a>, MenuLabelBottom<'a>) {
         use crate::menu::BusyMenu::*;
         match self {
-            Working => "Working...",
-            Cancel => "Cancel",
+            Working => (
+                MenuLabelTop::Text("Working..."),
+                MenuLabelBottom {
+                    text: "",
+                    bold: false,
+                },
+            ),
+            Cancel => (
+                MenuLabelTop::Text("Cancel"),
+                MenuLabelBottom {
+                    text: "",
+                    bold: false,
+                },
+            ),
         }
     }
 }
