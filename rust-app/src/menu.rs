@@ -46,7 +46,7 @@ impl Menu for IdleMenuWithSettings {
         match self.idle_menu {
             AppMain => self.idle_menu = Exit,
             ShowVersion => self.idle_menu = AppMain,
-            Settings(None) => self.idle_menu = AppMain,
+            Settings(None) => self.idle_menu = ShowVersion,
             Settings(Some(Back)) => {
                 if self.settings.get() == 1 {
                     self.idle_menu = Settings(Some(DisableBlindSigning))
