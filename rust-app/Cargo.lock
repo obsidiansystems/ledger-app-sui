@@ -25,6 +25,7 @@ name = "alamgu-example"
 version = "0.0.1"
 dependencies = [
  "arrayvec",
+ "include_gif",
  "ledger-crypto-helpers",
  "ledger-log",
  "ledger-parser-combinators",

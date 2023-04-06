@@ -13,6 +13,7 @@ ledger-log = { git = "https://github.com/alamgu/ledger-log" }
 ledger-parser-combinators = { git = "https://github.com/alamgu/ledger-parser-combinators" }
 zeroize = { version = "1.5.2", default-features = false }
 num_enum = { version = "0.5", default-features = false }
+include_gif = { git = "https://github.com/LedgerHQ/sdk_include_gif" }
 
 # Pass --features speculos,ledger-log/log_info (or log_trace, etc) to enable
 # speculos logging and change log level.
