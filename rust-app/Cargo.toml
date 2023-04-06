@@ -27,7 +27,7 @@ pending_review_screen = ["nanos_sdk/pending_review_screen"]
 [target.'cfg(target_family = "bolos")'.dependencies]
 nanos_sdk = { git = "https://github.com/LedgerHQ/ledger-nanos-sdk.git" }
 nanos_ui = { git = "https://github.com/LedgerHQ/ledger-nanos-ui.git" }
-ledger-prompts-ui = { git = "https://github.com/alamgu/ledger-prompts-ui" }
+ledger-prompts-ui = { git = "https://github.com/alamgu/ledger-prompts-ui", branch = "dn-menu-arrows" }
 
 [target.'cfg(target_family = "bolos")'.dev-dependencies.nanos_sdk]
 git = "https://github.com/LedgerHQ/ledger-nanos-sdk.git"
