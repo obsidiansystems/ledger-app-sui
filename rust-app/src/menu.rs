@@ -1,7 +1,9 @@
 use crate::settings::*;
+#[cfg(not(target_os = "nanos"))]
 use include_gif::include_gif;
 use ledger_prompts_ui::*;
 use nanos_ui::bagls::*;
+#[cfg(not(target_os = "nanos"))]
 use nanos_ui::bitmaps::Glyph;
 
 #[cfg(not(target_os = "nanos"))]
