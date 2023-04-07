@@ -1,6 +1,5 @@
 use crate::interface::*;
 use crate::settings::*;
-use crate::test_parsers::*;
 use crate::utils::*;
 use alamgu_async_block::*;
 use arrayvec::ArrayString;
@@ -668,9 +667,6 @@ pub fn handle_apdu_async(io: HostIO, ins: Ins, settings: Settings) -> APDUsFutur
             Ins::Sign => {
                 trace!("Handling sign");
                 NoinlineFut(sign_apdu(io, settings)).await;
-            }
-            Ins::TestParsers => {
-                NoinlineFut(test_parsers(io)).await;
             }
             Ins::GetVersionStr => {}
             Ins::Exit => nanos_sdk::exit_app(0),
