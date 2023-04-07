@@ -475,9 +475,9 @@ const fn gas_data_parser<BS: Clone + Readable, const PROMPT: bool>(
             DefaultInterp,
             DefaultInterp,
         ),
-        |(_, _sender, gas_price, gas_budget): (_, _, u64, u64)| {
+        |(_, _sender, _gas_price, gas_budget): (_, _, u64, u64)| {
             if PROMPT {
-                let (quotient, remainder_str) = get_amount_in_decimals(gas_price * gas_budget);
+                let (quotient, remainder_str) = get_amount_in_decimals(gas_budget);
                 scroller("Max Gas", |w| {
                     Ok(write!(w, "SUI {}.{}", quotient, remainder_str.as_str())?)
                 })?
