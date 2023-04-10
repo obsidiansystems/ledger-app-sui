@@ -10,11 +10,13 @@ mod nanos {
     #[derive(Clone, Copy)]
     pub struct Settings;
 
-    impl Settings {
-        pub fn new() -> Settings {
+    impl Default for Settings {
+        fn default() -> Self {
             Settings
         }
+    }
 
+    impl Settings {
         #[inline(never)]
         pub fn get(&self) -> u8 {
             let settings = unsafe { SETTINGS.get_mut() };
