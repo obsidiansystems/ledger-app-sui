@@ -161,7 +161,7 @@ dependencies = [
 [[package]]
 name = "ledger-prompts-ui"
 version = "0.1.0"
-source = "git+https://github.com/alamgu/ledger-prompts-ui?branch=dn-menu-arrows#bc3d7f10fdd57df0b7a166993e578f9d461cebc7"
+source = "git+https://github.com/alamgu/ledger-prompts-ui#8d510e62f4d53ee999c3db510cc2e932c188de13"
 dependencies = [
  "arrayvec",
  "include_gif",
@@ -198,7 +198,7 @@ dependencies = [
 [[package]]
 name = "nanos_ui"
 version = "0.2.0"
-source = "git+https://github.com/obsidiansystems/ledger-nanos-ui?branch=nanos_icon_rework#1be54badd1b97418057924edb59c85d3c32b17b6"
+source = "git+https://github.com/LedgerHQ/ledger-nanos-ui.git#c7fe3dff2417f9a118ad176d578c5c1ee07e83cd"
 dependencies = [
  "include_gif",
  "nanos_sdk",
