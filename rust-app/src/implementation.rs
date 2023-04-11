@@ -52,7 +52,10 @@ pub const BIP_PATH_PARSER: BipParserImplT = SubInterp(DefaultInterp);
 pub const BIP32_PREFIX: [u32; 5] = nanos_sdk::ecc::make_bip32_path(b"m/44'/784'/123'/0'/0'");
 
 pub async fn get_address_apdu(io: HostIO) {
-    let input = io.get_params::<1>().unwrap();
+    let input = match io.get_params::<1>() {
+        Some(v) => v,
+        None => reject().await,
+    };
 
     let path = BIP_PATH_PARSER.parse(&mut input[0].clone()).await;
 
@@ -569,7 +572,10 @@ const fn tx_parser<BS: Clone + Readable, const PROMPT: bool>(
 }
 
 pub async fn sign_apdu(io: HostIO, settings: Settings) {
-    let mut input = io.get_params::<2>().unwrap();
+    let mut input = match io.get_params::<2>() {
+        Some(v) => v,
+        None => reject().await,
+    };
 
     // Read length, and move input[0] by one byte
     let length = usize::from_le_bytes(input[0].read().await);
