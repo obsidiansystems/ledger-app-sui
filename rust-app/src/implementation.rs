@@ -343,7 +343,11 @@ impl<BS: Clone + Readable, const PROMPT: bool> AsyncParser<ProgrammableTransacti
                                 _ => reject_on(core::file!(), core::line!()).await,
                             }
                         }
-                        Command::SplitCoins(_coin, input_indices) => {
+                        Command::SplitCoins(coin, input_indices) => {
+                            match coin {
+                                Argument::GasCoin => {}
+                                _ => reject_on(core::file!(), core::line!()).await,
+                            }
                             for arg in &input_indices {
                                 match arg {
                                     Argument::Input(inp_index) => {
