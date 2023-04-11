@@ -48,10 +48,17 @@ pub type BipParserImplT =
     impl AsyncParser<Bip32Key, ByteStream> + HasOutput<Bip32Key, Output = ArrayVec<u32, 10>>;
 pub const BIP_PATH_PARSER: BipParserImplT = SubInterp(DefaultInterp);
 
+// Need a path of length 5, as make_bip32_path panics with smaller paths
+pub const BIP32_PREFIX: [u32; 5] = nanos_sdk::ecc::make_bip32_path(b"m/44'/784'/123'/0'/0'");
+
 pub async fn get_address_apdu(io: HostIO) {
     let input = io.get_params::<1>().unwrap();
 
     let path = BIP_PATH_PARSER.parse(&mut input[0].clone()).await;
+
+    if !path.starts_with(&BIP32_PREFIX[0..2]) {
+        reject::<()>().await;
+    }
 
     let mut rv = ArrayVec::<u8, 220>::new();
 
@@ -586,6 +593,9 @@ pub async fn sign_apdu(io: HostIO, settings: Settings) {
             let mut bs = input[1].clone();
             NoinlineFut(async move {
                 let path = BIP_PATH_PARSER.parse(&mut bs).await;
+                if !path.starts_with(&BIP32_PREFIX[0..2]) {
+                    reject::<()>().await;
+                }
                 if with_public_keys(&path, true, |_, address: &SuiPubKeyAddress| {
                     try_option(|| -> Option<()> {
                         scroller_paginated("From", |w| Ok(write!(w, "{address}")?))?;
@@ -651,6 +661,9 @@ pub async fn sign_apdu(io: HostIO, settings: Settings) {
             };
         }
         let path = BIP_PATH_PARSER.parse(&mut input[1].clone()).await;
+        if !path.starts_with(&BIP32_PREFIX[0..2]) {
+            reject::<()>().await;
+        }
         if let Some(sig) = { eddsa_sign(&path, true, &hash.0).ok() } {
             io.result_final(&sig.0[0..]).await;
         } else {
