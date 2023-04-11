@@ -314,7 +314,7 @@ impl<BS: Clone + Readable, const PROMPT: bool> AsyncParser<ProgrammableTransacti
             }
 
             let mut verified_recipient = false;
-            let mut total_amount = 0;
+            let mut total_amount: u64 = 0;
             // Handle commands
             {
                 let length =
@@ -349,7 +349,13 @@ impl<BS: Clone + Readable, const PROMPT: bool> AsyncParser<ProgrammableTransacti
                                     Argument::Input(inp_index) => {
                                         for (amt, ix) in &amounts {
                                             if *ix == (*inp_index as u32) {
-                                                total_amount += amt;
+                                                match total_amount.checked_add(*amt) {
+                                                    Some(t) => total_amount = t,
+                                                    None => {
+                                                        reject_on(core::file!(), core::line!())
+                                                            .await
+                                                    }
+                                                }
                                             }
                                         }
                                     }
