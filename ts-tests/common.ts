@@ -4,10 +4,16 @@ import Transport from "./http-transport";
 import Sui from "@mysten/ledgerjs-hw-app-sui";
 import { expect } from 'chai';
 
+export const VERSION = {
+  major: 0,
+  minor: 1,
+  patch: 0,
+};
+
 const ignoredScreens = [ "Cancel", "Working...", "Quit", "Version"
 
                          /* App name and version */
-                         , "Sui", "ui", "0.1.0"
+                         , "Sui", "ui", `${VERSION.major}.${VERSION.minor}.${VERSION.patch}`
 
                          , "Settings", "Blind Signing", "Enabled", "Disabled", "Back"
                          /* The next ones are specifically for S+ in which OCR is broken */
