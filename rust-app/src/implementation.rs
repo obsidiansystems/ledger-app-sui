@@ -636,7 +636,7 @@ pub async fn sign_apdu(io: HostIO, settings: Settings) {
     }
 
     // By the time we get here, we've approved and just need to do the signature.
-    NoinlineFut((|input: ArrayVec<ByteStream, 2>| async move {
+    NoinlineFut(async move {
         let mut hasher: Blake2b = Hasher::new();
         {
             let mut txn = input[0].clone();
@@ -669,7 +669,7 @@ pub async fn sign_apdu(io: HostIO, settings: Settings) {
         } else {
             reject::<()>().await;
         }
-    })(input))
+    })
     .await
 }
 
