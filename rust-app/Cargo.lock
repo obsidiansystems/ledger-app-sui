@@ -25,6 +25,7 @@ name = "alamgu-example"
 version = "0.0.1"
 dependencies = [
  "arrayvec",
+ "include_gif",
  "ledger-crypto-helpers",
  "ledger-log",
  "ledger-parser-combinators",
@@ -160,7 +161,7 @@ dependencies = [
 [[package]]
 name = "ledger-prompts-ui"
 version = "0.1.0"
-source = "git+https://github.com/alamgu/ledger-prompts-ui#f326cb514dfd48545126a35cda71b61907ff2b0b"
+source = "git+https://github.com/alamgu/ledger-prompts-ui#8d510e62f4d53ee999c3db510cc2e932c188de13"
 dependencies = [
  "arrayvec",
  "include_gif",
@@ -197,7 +198,7 @@ dependencies = [
 [[package]]
 name = "nanos_ui"
 version = "0.2.0"
-source = "git+https://github.com/obsidiansystems/ledger-nanos-ui?branch=dn-make-from-pub#7d68e90f7a35736a44b8ab9cb620ed4d6cbc4495"
+source = "git+https://github.com/LedgerHQ/ledger-nanos-ui.git#c7fe3dff2417f9a118ad176d578c5c1ee07e83cd"
 dependencies = [
  "include_gif",
  "nanos_sdk",
