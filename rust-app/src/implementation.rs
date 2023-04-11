@@ -27,10 +27,17 @@ pub type BipParserImplT =
     impl AsyncParser<Bip32Key, ByteStream> + HasOutput<Bip32Key, Output = ArrayVec<u32, 10>>;
 pub const BIP_PATH_PARSER: BipParserImplT = SubInterp(DefaultInterp);
 
+// Need a path of length 5, as make_bip32_path panics with smaller paths
+pub const BIP32_PREFIX: [u32; 5] = nanos_sdk::ecc::make_bip32_path(b"m/44'/535348'/123'/0'/0'");
+
 pub async fn get_address_apdu(io: HostIO) {
     let input = io.get_params::<1>().unwrap();
 
     let path = BIP_PATH_PARSER.parse(&mut input[0].clone()).await;
+
+    if !path.starts_with(&BIP32_PREFIX[0..2]) {
+        reject::<()>().await;
+    }
 
     let mut rv = ArrayVec::<u8, 220>::new();
 
@@ -81,6 +88,10 @@ pub async fn sign_apdu(io: HostIO) {
     }
 
     let path = BIP_PATH_PARSER.parse(&mut input[1].clone()).await;
+
+    if !path.starts_with(&BIP32_PREFIX[0..2]) {
+        reject::<()>().await;
+    }
 
     if with_public_keys(&path, false, |_, pkh: &PKH| {
         try_option(|| -> Option<()> {
