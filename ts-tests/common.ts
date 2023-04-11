@@ -4,10 +4,16 @@ import Transport from "./http-transport";
 import { Common } from "hw-app-alamgu";
 import { expect } from 'chai';
 
+export const VERSION = {
+  major: 0,
+  minor: 0,
+  patch: 1,
+};
+
 const ignoredScreens = [ "Cancel", "Working...", "Quit", "Version"
 
                          /* App name and version */
-                         , "Alamgu Example", "0.0.1"
+                         , "Alamgu Example", `${VERSION.major}.${VERSION.minor}.${VERSION.patch}`
 
                          , "Settings", "Blind Signing", "Enabled", "Disabled", "Back"
                          /* The next ones are specifically for S+ in which OCR is broken */
