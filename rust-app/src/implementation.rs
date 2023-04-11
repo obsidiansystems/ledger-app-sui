@@ -320,7 +320,7 @@ impl<BS: Clone + Readable, const PROMPT: bool> AsyncParser<ProgrammableTransacti
                 }
             }
 
-            if recipient_index == None || amounts.is_empty() {
+            if recipient_index.is_none() || amounts.is_empty() {
                 reject_on::<()>(core::file!(), core::line!()).await;
             }
 
