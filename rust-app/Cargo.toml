@@ -46,7 +46,7 @@ git = "https://github.com/alamgu/ledger-nanos-sdk.git"
 branch = "relocating-loader-w-fixes"
 [patch."https://github.com/LedgerHQ/ledger-nanos-ui.git".nanos_ui]
 git = "https://github.com/obsidiansystems/ledger-nanos-ui"
-branch = "dn-make-from-pub"
+branch = "nanos_icon_rework"
 
 [profile.dev]
 # We need this to ensure stack usage is minimal even on speculos

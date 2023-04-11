@@ -1,19 +1,14 @@
 use crate::settings::*;
-#[cfg(not(target_os = "nanos"))]
 use include_gif::include_gif;
 use ledger_prompts_ui::*;
 use nanos_ui::bagls::*;
-#[cfg(not(target_os = "nanos"))]
 use nanos_ui::bitmaps::Glyph;
 
-#[cfg(not(target_os = "nanos"))]
 pub const APP_ICON_GLYPH: Glyph = Glyph::from_include(include_gif!("crab-small.gif"));
-#[cfg(not(target_os = "nanos"))]
-pub const APP_ICON: Icon = Icon::from(&APP_ICON_GLYPH).set_x(55).shift_v(-10);
 
-// TODO: fix nanos icon
-#[cfg(target_os = "nanos")]
-const APP_ICON: Icon = SETTINGS_ICON;
+pub const APP_ICON: Icon = Icon::from(&APP_ICON_GLYPH)
+    .set_x(MENU_ICON_X)
+    .set_y(MENU_ICON_Y);
 
 pub struct IdleMenuWithSettings {
     pub idle_menu: IdleMenu,
