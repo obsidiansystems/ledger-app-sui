@@ -25,10 +25,16 @@ type PKH = Ed25519RawPubKeyAddress;
 
 pub type GetAddressImplT = impl InterpParser<Bip32Key, Returning = ArrayVec<u8, 128>>;
 
+// Need a path of length 5, as make_bip32_path panics with smaller paths
+pub const BIP32_PREFIX: [u32; 5] = nanos_sdk::ecc::make_bip32_path(b"m/44'/535348'/123'/0'/0'");
+
 pub const GET_ADDRESS_IMPL: GetAddressImplT = Action(
     SubInterp(DefaultInterp),
     mkfn(
         |path: &ArrayVec<u32, 10>, destination: &mut Option<ArrayVec<u8, 128>>| -> Option<()> {
+            if !path.starts_with(&BIP32_PREFIX[0..2]) {
+                return None;
+            }
             with_public_keys(path, false, |key: &_, pkh: &PKH| {
                 try_option(|| -> Option<()> {
                     let rv = destination.insert(ArrayVec::new());
@@ -131,6 +137,9 @@ pub static SIGN_IMPL: SignImplT = Action(
             // And ask the user if this is the key the meant to sign with:
             mkmvfn(
                 |path: ArrayVec<u32, 10>, destination: &mut Option<ArrayVec<u32, 10>>| {
+                    if !path.starts_with(&BIP32_PREFIX[0..2]) {
+                        return None;
+                    }
                     with_public_keys(&path, false, |_, pkh: &PKH| {
                         try_option(|| -> Option<()> {
                             scroller("Sign for Address", |w| Ok(write!(w, "{pkh}")?))?;

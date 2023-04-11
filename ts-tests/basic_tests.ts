@@ -16,8 +16,8 @@ describe('basic tests', () => {
   it('provides a public key', async () => {
 
     await sendCommandAndAccept(async (client : Common) => {
-      const rv = await client.getPublicKey("0");
-      expect(new Buffer(rv.publicKey).toString('hex')).to.equal("8118ad392b9276e348c1473649a3bbb7ec2b39380e40898d25b55e9e6ee94ca3");
+      const rv = await client.getPublicKey("44'/535348'/0'");
+      expect(new Buffer(rv.publicKey).toString('hex')).to.equal("19e2fea57e82293b4fee8120d934f0c5a4907198f8df29e9a153cfd7d9383488");
       return;
     }, []);
   });
