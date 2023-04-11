@@ -432,7 +432,7 @@ fn get_amount_in_decimals(amount: u64) -> (u64, ArrayString<12>) {
             let f = u64::pow(10, factor_pow - i - 1);
             let r = rem / f;
             let _ = remainder_str.try_push(char::from(b'0' + r as u8));
-            rem = rem % f;
+            rem %= f;
             if rem == 0 {
                 break;
             }
@@ -593,20 +593,16 @@ pub async fn sign_apdu(io: HostIO, settings: Settings) {
         if final_accept_prompt(&["Sign Transaction?"]).is_none() {
             reject::<()>().await;
         };
-    } else {
-        if settings.get() == 0 {
-            scroller("WARNING", |w| {
-                Ok(write!(
-                    w,
-                    "Transaction not recognized, enable blind signing to sign unknown transactions"
-                )?)
-            });
-            reject::<()>().await;
-        } else {
-            if scroller("WARNING", |w| Ok(write!(w, "Transaction not recognized")?)).is_none() {
-                reject::<()>().await;
-            };
-        }
+    } else if settings.get() == 0 {
+        scroller("WARNING", |w| {
+            Ok(write!(
+                w,
+                "Transaction not recognized, enable blind signing to sign unknown transactions"
+            )?)
+        });
+        reject::<()>().await;
+    } else if scroller("WARNING", |w| Ok(write!(w, "Transaction not recognized")?)).is_none() {
+        reject::<()>().await;
     }
 
     // By the time we get here, we've approved and just need to do the signature.
