@@ -300,10 +300,14 @@ impl<BS: Clone + Readable, const PROMPT: bool> AsyncParser<ProgrammableTransacti
                             // Reject on multiple RecipientAddress(s)
                             _ => reject_on(core::file!(), core::line!()).await,
                         },
-                        CallArg::Amount(amt) => match amounts.try_push((amt, i)) {
-                            Err(_) => reject_on(core::file!(), core::line!()).await,
-                            _ => {}
-                        },
+                        CallArg::Amount(amt) =>
+                        {
+                            #[allow(clippy::single_match)]
+                            match amounts.try_push((amt, i)) {
+                                Err(_) => reject_on(core::file!(), core::line!()).await,
+                                _ => {}
+                            }
+                        }
                         _ => {}
                     }
                 }
@@ -366,21 +370,22 @@ impl<BS: Clone + Readable, const PROMPT: bool> AsyncParser<ProgrammableTransacti
             }
 
             if PROMPT
-                && (|| -> Option<()> {
-                    scroller_paginated("To", |w| {
-                        Ok(write!(
-                            w,
-                            "0x{}",
-                            HexSlice(&recipient.ok_or(ScrollerError)?)
-                        )?)
-                    })?;
+                && Option::<()>::is_none(
+                    &try {
+                        scroller_paginated("To", |w| {
+                            Ok(write!(
+                                w,
+                                "0x{}",
+                                HexSlice(&recipient.ok_or(ScrollerError)?)
+                            )?)
+                        })?;
 
-                    let (quotient, remainder_str) = get_amount_in_decimals(total_amount);
-                    scroller_paginated("Amount", |w| {
-                        Ok(write!(w, "SUI {quotient}.{}", remainder_str.as_str())?)
-                    })
-                })()
-                .is_none()
+                        let (quotient, remainder_str) = get_amount_in_decimals(total_amount);
+                        scroller_paginated("Amount", |w| {
+                            Ok(write!(w, "SUI {quotient}.{}", remainder_str.as_str())?)
+                        })?;
+                    },
+                )
             {
                 reject::<()>().await;
             }
@@ -552,43 +557,48 @@ pub async fn sign_apdu(io: HostIO, settings: Settings) {
     // Read length, and move input[0] by one byte
     let length = usize::from_le_bytes(input[0].read().await);
 
-    let known_txn = NoinlineFut((|mut txn: ByteStream| async move {
-        {
+    let known_txn = {
+        let mut txn = input[0].clone();
+        NoinlineFut(async move {
             trace!("Beginning check parse");
             TryFuture(tx_parser::<_, false>().parse(&mut txn))
                 .await
                 .is_some()
-        }
-    })(input[0].clone()))
-    .await;
+        })
+        .await
+    };
 
     if known_txn {
         if scroller("Transfer", |w| Ok(write!(w, "SUI")?)).is_none() {
             reject::<()>().await;
         };
-        NoinlineFut((|mut bs: ByteStream| async move {
-            let path = BIP_PATH_PARSER.parse(&mut bs).await;
-            if with_public_keys(&path, true, |_, address: &SuiPubKeyAddress| {
-                try_option(|| -> Option<()> {
-                    scroller_paginated("From", |w| Ok(write!(w, "{address}")?))?;
-                    Some(())
-                }())
+        {
+            let mut bs = input[1].clone();
+            NoinlineFut(async move {
+                let path = BIP_PATH_PARSER.parse(&mut bs).await;
+                if with_public_keys(&path, true, |_, address: &SuiPubKeyAddress| {
+                    try_option(|| -> Option<()> {
+                        scroller_paginated("From", |w| Ok(write!(w, "{address}")?))?;
+                        Some(())
+                    }())
+                })
+                .ok()
+                .is_none()
+                {
+                    reject::<()>().await;
+                }
             })
-            .ok()
-            .is_none()
-            {
-                reject::<()>().await;
-            }
-        })(input[1].clone()))
-        .await;
+            .await
+        };
 
-        NoinlineFut((|mut txn: ByteStream| async move {
-            {
+        {
+            let mut txn = input[0].clone();
+            NoinlineFut(async move {
                 trace!("Beginning parse");
                 tx_parser::<_, true>().parse(&mut txn).await;
-            }
-        })(input[0].clone()))
-        .await;
+            })
+            .await
+        };
 
         if final_accept_prompt(&["Sign Transaction?"]).is_none() {
             reject::<()>().await;
