@@ -110,7 +110,7 @@ describe("Signing tests", function() {
 
   it("should reject signing a non-SUI coin transaction, if blind signing is not enabled", async function () {
     let path = "44'/784'/0'";
-    let txn = Buffer.from("AAACAAgACT0AAAAAAAAg5y3MHATlk+Ik5cPIdEz5iPANs1jcXZHVGjh4Mb16lwkCAgABAQAAAQECAAABAQBf7Hdu8ckHv1voGOFkbT5UK6NbIlkLu/bNKcW2wkkWnwH542lOciUhRQyc57AGgam5IkfQgfAyalpIvH5/AFGXkM+BNQAAAAAAIE0VPzLGsEyYq6VcIwxfIMohG2k9PuydFfIn1BBhgZHFX+x3bvHJB79b6BjhZG0+VCujWyJZC7v2zSnFtsJJFp/oAwAAAAAAABCQLQAAAAAAAA==", "base64");
+    let txn = Buffer.from("AAAAAAADAQAe2uv1Mds+xCVK5Jv/Dv5cgEl/9DthDcpbjWcsmFpzbs6BNQAAAAAAIKPD8GQqgBpJZRV+nFDRE7rqR0Za8x0pyfLusVdpPPVRAAgADl+jHAAAAAAg5y3MHATlk+Ik5cPIdEz5iPANs1jcXZHVGjh4Mb16lwkCAgEAAAEBAQABAQIAAAECAF/sd27xyQe/W+gY4WRtPlQro1siWQu79s0pxbbCSRafAfnjaU5yJSFFDJznsAaBqbkiR9CB8DJqWki8fn8AUZeQz4E1AAAAAAAgTRU/MsawTJirpVwjDF8gyiEbaT0+7J0V8ifUEGGBkcVf7Hdu8ckHv1voGOFkbT5UK6NbIlkLu/bNKcW2wkkWn+gDAAAAAAAA8NdGAAAAAAAA", "base64");
 
     await sendCommandExpectFail(async (client : Sui) => {
       await client.signTransaction(path, txn);
