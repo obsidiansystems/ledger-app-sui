@@ -7,7 +7,7 @@ import { expect } from 'chai';
 const ignoredScreens = [ "Cancel", "Working...", "Quit", "Version"
 
                          /* App name and version */
-                         , "Sui", "ui", "0.0.1"
+                         , "Sui", "ui", "0.1.0"
 
                          , "Settings", "Blind Signing", "Enabled", "Disabled", "Back"
                          /* The next ones are specifically for S+ in which OCR is broken */
