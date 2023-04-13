@@ -80,7 +80,6 @@ pub enum Ins {
     GetVersion = 0,
     GetPubkey = 2,
     Sign = 3,
-    TestParsers = 0x20,
     GetVersionStr = 0xfe,
     Exit = 0xff,
 }

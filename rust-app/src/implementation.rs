@@ -1,6 +1,5 @@
 use crate::interface::*;
 use crate::settings::*;
-use crate::test_parsers::*;
 use crate::utils::*;
 use alamgu_async_block::*;
 use arrayvec::ArrayString;
@@ -49,10 +48,20 @@ pub type BipParserImplT =
     impl AsyncParser<Bip32Key, ByteStream> + HasOutput<Bip32Key, Output = ArrayVec<u32, 10>>;
 pub const BIP_PATH_PARSER: BipParserImplT = SubInterp(DefaultInterp);
 
+// Need a path of length 5, as make_bip32_path panics with smaller paths
+pub const BIP32_PREFIX: [u32; 5] = nanos_sdk::ecc::make_bip32_path(b"m/44'/784'/123'/0'/0'");
+
 pub async fn get_address_apdu(io: HostIO) {
-    let input = io.get_params::<1>().unwrap();
+    let input = match io.get_params::<1>() {
+        Some(v) => v,
+        None => reject().await,
+    };
 
     let path = BIP_PATH_PARSER.parse(&mut input[0].clone()).await;
+
+    if !path.starts_with(&BIP32_PREFIX[0..2]) {
+        reject::<()>().await;
+    }
 
     let mut rv = ArrayVec::<u8, 220>::new();
 
@@ -301,21 +310,25 @@ impl<BS: Clone + Readable, const PROMPT: bool> AsyncParser<ProgrammableTransacti
                             // Reject on multiple RecipientAddress(s)
                             _ => reject_on(core::file!(), core::line!()).await,
                         },
-                        CallArg::Amount(amt) => match amounts.try_push((amt, i)) {
-                            Err(_) => reject_on(core::file!(), core::line!()).await,
-                            _ => {}
-                        },
+                        CallArg::Amount(amt) =>
+                        {
+                            #[allow(clippy::single_match)]
+                            match amounts.try_push((amt, i)) {
+                                Err(_) => reject_on(core::file!(), core::line!()).await,
+                                _ => {}
+                            }
+                        }
                         _ => {}
                     }
                 }
             }
 
-            if recipient_index == None || amounts.is_empty() {
+            if recipient_index.is_none() || amounts.is_empty() {
                 reject_on::<()>(core::file!(), core::line!()).await;
             }
 
             let mut verified_recipient = false;
-            let mut total_amount = 0;
+            let mut total_amount: u64 = 0;
             // Handle commands
             {
                 let length =
@@ -344,13 +357,23 @@ impl<BS: Clone + Readable, const PROMPT: bool> AsyncParser<ProgrammableTransacti
                                 _ => reject_on(core::file!(), core::line!()).await,
                             }
                         }
-                        Command::SplitCoins(_coin, input_indices) => {
+                        Command::SplitCoins(coin, input_indices) => {
+                            match coin {
+                                Argument::GasCoin => {}
+                                _ => reject_on(core::file!(), core::line!()).await,
+                            }
                             for arg in &input_indices {
                                 match arg {
                                     Argument::Input(inp_index) => {
                                         for (amt, ix) in &amounts {
                                             if *ix == (*inp_index as u32) {
-                                                total_amount += amt;
+                                                match total_amount.checked_add(*amt) {
+                                                    Some(t) => total_amount = t,
+                                                    None => {
+                                                        reject_on(core::file!(), core::line!())
+                                                            .await
+                                                    }
+                                                }
                                             }
                                         }
                                     }
@@ -367,21 +390,22 @@ impl<BS: Clone + Readable, const PROMPT: bool> AsyncParser<ProgrammableTransacti
             }
 
             if PROMPT
-                && (|| -> Option<()> {
-                    scroller_paginated("To", |w| {
-                        Ok(write!(
-                            w,
-                            "0x{}",
-                            HexSlice(&recipient.ok_or(ScrollerError)?)
-                        )?)
-                    })?;
+                && Option::<()>::is_none(
+                    &try {
+                        scroller_paginated("To", |w| {
+                            Ok(write!(
+                                w,
+                                "0x{}",
+                                HexSlice(&recipient.ok_or(ScrollerError)?)
+                            )?)
+                        })?;
 
-                    let (quotient, remainder_str) = get_amount_in_decimals(total_amount);
-                    scroller_paginated("Amount", |w| {
-                        Ok(write!(w, "SUI {quotient}.{}", remainder_str.as_str())?)
-                    })
-                })()
-                .is_none()
+                        let (quotient, remainder_str) = get_amount_in_decimals(total_amount);
+                        scroller_paginated("Amount", |w| {
+                            Ok(write!(w, "SUI {quotient}.{}", remainder_str.as_str())?)
+                        })?;
+                    },
+                )
             {
                 reject::<()>().await;
             }
@@ -433,7 +457,7 @@ fn get_amount_in_decimals(amount: u64) -> (u64, ArrayString<12>) {
             let f = u64::pow(10, factor_pow - i - 1);
             let r = rem / f;
             let _ = remainder_str.try_push(char::from(b'0' + r as u8));
-            rem = rem % f;
+            rem %= f;
             if rem == 0 {
                 break;
             }
@@ -475,9 +499,14 @@ const fn gas_data_parser<BS: Clone + Readable, const PROMPT: bool>(
             DefaultInterp,
             DefaultInterp,
         ),
-        |(_, _sender, gas_price, gas_budget): (_, _, u64, u64)| {
+        |(_, _sender, _gas_price, gas_budget): (_, _, u64, u64)| {
+            // Gas price is per gas amount. Gas budget is total, reflecting the amount of gas *
+            // gas price. We only care about the total, not the price or amount in isolation , so we
+            // just ignore that field.
+            //
+            // C.F. https://github.com/MystenLabs/sui/pull/8676
             if PROMPT {
-                let (quotient, remainder_str) = get_amount_in_decimals(gas_price * gas_budget);
+                let (quotient, remainder_str) = get_amount_in_decimals(gas_budget);
                 scroller("Max Gas", |w| {
                     Ok(write!(w, "SUI {}.{}", quotient, remainder_str.as_str())?)
                 })?
@@ -543,70 +572,77 @@ const fn tx_parser<BS: Clone + Readable, const PROMPT: bool>(
 }
 
 pub async fn sign_apdu(io: HostIO, settings: Settings) {
-    let mut input = io.get_params::<2>().unwrap();
+    let mut input = match io.get_params::<2>() {
+        Some(v) => v,
+        None => reject().await,
+    };
 
     // Read length, and move input[0] by one byte
     let length = usize::from_le_bytes(input[0].read().await);
 
-    let known_txn = NoinlineFut((|mut txn: ByteStream| async move {
-        {
+    let known_txn = {
+        let mut txn = input[0].clone();
+        NoinlineFut(async move {
             trace!("Beginning check parse");
             TryFuture(tx_parser::<_, false>().parse(&mut txn))
                 .await
                 .is_some()
-        }
-    })(input[0].clone()))
-    .await;
+        })
+        .await
+    };
 
     if known_txn {
         if scroller("Transfer", |w| Ok(write!(w, "SUI")?)).is_none() {
             reject::<()>().await;
         };
-        NoinlineFut((|mut bs: ByteStream| async move {
-            let path = BIP_PATH_PARSER.parse(&mut bs).await;
-            if with_public_keys(&path, true, |_, address: &SuiPubKeyAddress| {
-                try_option(|| -> Option<()> {
-                    scroller_paginated("From", |w| Ok(write!(w, "{address}")?))?;
-                    Some(())
-                }())
+        {
+            let mut bs = input[1].clone();
+            NoinlineFut(async move {
+                let path = BIP_PATH_PARSER.parse(&mut bs).await;
+                if !path.starts_with(&BIP32_PREFIX[0..2]) {
+                    reject::<()>().await;
+                }
+                if with_public_keys(&path, true, |_, address: &SuiPubKeyAddress| {
+                    try_option(|| -> Option<()> {
+                        scroller_paginated("From", |w| Ok(write!(w, "{address}")?))?;
+                        Some(())
+                    }())
+                })
+                .ok()
+                .is_none()
+                {
+                    reject::<()>().await;
+                }
             })
-            .ok()
-            .is_none()
-            {
-                reject::<()>().await;
-            }
-        })(input[1].clone()))
-        .await;
+            .await
+        };
 
-        NoinlineFut((|mut txn: ByteStream| async move {
-            {
+        {
+            let mut txn = input[0].clone();
+            NoinlineFut(async move {
                 trace!("Beginning parse");
                 tx_parser::<_, true>().parse(&mut txn).await;
-            }
-        })(input[0].clone()))
-        .await;
+            })
+            .await
+        };
 
         if final_accept_prompt(&["Sign Transaction?"]).is_none() {
             reject::<()>().await;
         };
-    } else {
-        if settings.get() == 0 {
-            scroller("WARNING", |w| {
-                Ok(write!(
-                    w,
-                    "Transaction not recognized, enable blind signing to sign unknown transactions"
-                )?)
-            });
-            reject::<()>().await;
-        } else {
-            if scroller("WARNING", |w| Ok(write!(w, "Transaction not recognized")?)).is_none() {
-                reject::<()>().await;
-            };
-        }
+    } else if settings.get() == 0 {
+        scroller("WARNING", |w| {
+            Ok(write!(
+                w,
+                "Transaction not recognized, enable blind signing to sign unknown transactions"
+            )?)
+        });
+        reject::<()>().await;
+    } else if scroller("WARNING", |w| Ok(write!(w, "Transaction not recognized")?)).is_none() {
+        reject::<()>().await;
     }
 
     // By the time we get here, we've approved and just need to do the signature.
-    NoinlineFut((|input: ArrayVec<ByteStream, 2>| async move {
+    NoinlineFut(async move {
         let mut hasher: Blake2b = Hasher::new();
         {
             let mut txn = input[0].clone();
@@ -631,12 +667,15 @@ pub async fn sign_apdu(io: HostIO, settings: Settings) {
             };
         }
         let path = BIP_PATH_PARSER.parse(&mut input[1].clone()).await;
+        if !path.starts_with(&BIP32_PREFIX[0..2]) {
+            reject::<()>().await;
+        }
         if let Some(sig) = { eddsa_sign(&path, true, &hash.0).ok() } {
             io.result_final(&sig.0[0..]).await;
         } else {
             reject::<()>().await;
         }
-    })(input))
+    })
     .await
 }
 
@@ -663,9 +702,6 @@ pub fn handle_apdu_async(io: HostIO, ins: Ins, settings: Settings) -> APDUsFutur
             Ins::Sign => {
                 trace!("Handling sign");
                 NoinlineFut(sign_apdu(io, settings)).await;
-            }
-            Ins::TestParsers => {
-                NoinlineFut(test_parsers(io)).await;
             }
             Ins::GetVersionStr => {}
             Ins::Exit => nanos_sdk::exit_app(0),

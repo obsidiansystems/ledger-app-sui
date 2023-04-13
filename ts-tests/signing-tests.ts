@@ -1,4 +1,4 @@
-import { sendCommandAndAccept, BASE_URL, sendCommandExpectFail, toggleBlindSigningSettings } from "./common";
+import { VERSION, sendCommandAndAccept, BASE_URL, sendCommandExpectFail, toggleBlindSigningSettings } from "./common";
 import { expect } from 'chai';
 import { describe, it } from 'mocha';
 import Axios from 'axios';
@@ -13,6 +13,7 @@ instantiate(n => { nacl=n; });
 function testTransaction(path: string, txn: Buffer, prompts: any[]) {
   return async () => {
     await sendCommandAndAccept(async (client : Sui) => {
+
       const { publicKey } = await client.getPublicKey(path);
 
       // We don't want the prompts from getPublicKey in our result
@@ -108,14 +109,46 @@ describe("Signing tests", function() {
     await toggleBlindSigningSettings();
   });
 
-  it("should reject signing an unknown transaction, if blind signing is not enabled", async function () {
+  it("should reject signing a non-SUI coin transaction, if blind signing is not enabled", async function () {
     let path = "44'/784'/0'";
-    let txn0 = "00000000050205546e7f126d2f40331a543b9608439b582fd0d103000000000000002080fdabcc90498e7eb8413b140c4334871eeafa5a86203fd9cfdb032f604f49e1284af431cf032b5d85324135bf9a3073e920d7f5020000000000000020a06f410c175e828c24cee84cb3bd95cff25c33fbbdcb62c6596e8e423784ffe702d08074075c7097f361e8b443e2075a852a2292e8a08074075c7097f361e8b443e2075a852a2292e80180969800000000001643fb2578ff7191c643079a62c1cca8ec2752bc05546e7f126d2f40331a543b9608439b582fd0d103000000000000002080fdabcc90498e7eb8413b140c4334871eeafa5a86203fd9cfdb032f604f49e101000000000000002c01000000000000";
+    let txn = Buffer.from("AAAAAAADAQAe2uv1Mds+xCVK5Jv/Dv5cgEl/9DthDcpbjWcsmFpzbs6BNQAAAAAAIKPD8GQqgBpJZRV+nFDRE7rqR0Za8x0pyfLusVdpPPVRAAgADl+jHAAAAAAg5y3MHATlk+Ik5cPIdEz5iPANs1jcXZHVGjh4Mb16lwkCAgEAAAEBAQABAQIAAAECAF/sd27xyQe/W+gY4WRtPlQro1siWQu79s0pxbbCSRafAfnjaU5yJSFFDJznsAaBqbkiR9CB8DJqWki8fn8AUZeQz4E1AAAAAAAgTRU/MsawTJirpVwjDF8gyiEbaT0+7J0V8ifUEGGBkcVf7Hdu8ckHv1voGOFkbT5UK6NbIlkLu/bNKcW2wkkWn+gDAAAAAAAA8NdGAAAAAAAA", "base64");
 
     await sendCommandExpectFail(async (client : Sui) => {
-      const txn = Buffer.from(txn0, "hex");
       await client.signTransaction(path, txn);
     });
+  });
+
+  it("should reject signing an unknown transaction, if blind signing is not enabled", async function () {
+    let path = "44'/784'/0'";
+    let txn = Buffer.from("00000000050205546e7f126d2f40331a543b9608439b582fd0d103000000000000002080fdabcc90498e7eb8413b140c4334871eeafa5a86203fd9cfdb032f604f49e1284af431cf032b5d85324135bf9a3073e920d7f5020000000000000020a06f410c175e828c24cee84cb3bd95cff25c33fbbdcb62c6596e8e423784ffe702d08074075c7097f361e8b443e2075a852a2292e8a08074075c7097f361e8b443e2075a852a2292e80180969800000000001643fb2578ff7191c643079a62c1cca8ec2752bc05546e7f126d2f40331a543b9608439b582fd0d103000000000000002080fdabcc90498e7eb8413b140c4334871eeafa5a86203fd9cfdb032f604f49e101000000000000002c01000000000000", "hex");
+
+    await sendCommandExpectFail(async (client : Sui) => {
+      await client.signTransaction(path, txn);
+    });
+  });
+
+  it("Rejects a blind sign with mismatching lengths", async function () {
+    let path = "44'/784'/0'";
+    let txn = Buffer.from("00000000050205546e7f126d2f40331a543b9608439b582fd0d103000000000000002080fdabcc90498e7eb8413b140c4334871eeafa5a86203fd9cfdb032f604f49e1284af431cf032b5d85324135bf9a3073e920d7f5020000000000000020a06f410c175e828c24cee84cb3bd95cff25c33fbbdcb62c6596e8e423784ffe702d08074075c7097f361e8b443e2075a852a2292e8a08074075c7097f361e8b443e2075a852a2292e80180969800000000001643fb2578ff7191c643079a62c1cca8ec2752bc05546e7f126d2f40331a543b9608439b582fd0d103000000000000002080fdabcc90498e7eb8413b140c4334871eeafa5a86203fd9cfdb032f604f49e101000000000000002c01000000000000", "hex");
+
+    await toggleBlindSigningSettings();
+    await Axios.delete(BASE_URL + "/events");
+    await sendCommandExpectFail(async (client : any) => {
+      client.oldSendChunks = client.sendChunks;
+      client.sendChunks = (cla, ins, p1, p2, payload) => {
+        payload[0][3]=payload[0][3]+20; // Add 20*2^24 to the transaction length, so we'll run out of input.
+        let rv = client.oldSendChunks(cla, ins, p1, p2, payload);
+        return rv;
+      }
+      await client.signTransaction(path, txn);
+    });
+    // Check that the app is still running and has not crashed.
+    await sendCommandAndAccept(
+	    async client => { let { publicKey } = await client.getPublicKey(path); expect(publicKey.length>0).to.equal(true); }
+	    , []);
+    await Axios.delete(BASE_URL + "/events");
+    // reset back to disabled
+    await toggleBlindSigningSettings();
   });
 });
 
@@ -123,9 +156,9 @@ describe("get version tests", function() {
   it("can get app version", async () => {
     await sendCommandAndAccept(async (client : any) => {
       var rv = await client.getVersion();
-      expect(rv.major).to.equal(0);
-      expect(rv.minor).to.equal(0);
-      expect(rv.patch).to.equal(1);
+      expect(rv.major).to.equal(VERSION.major);
+      expect(rv.minor).to.equal(VERSION.minor);
+      expect(rv.patch).to.equal(VERSION.patch);
       }, []);
     });
 });

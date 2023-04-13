@@ -1,9 +1,11 @@
 #![no_std]
 #![allow(incomplete_features)]
+#![feature(stmt_expr_attributes)]
 #![feature(adt_const_params)]
 #![feature(str_internals)]
 #![feature(type_alias_impl_trait)]
 #![feature(const_mut_refs)]
+#![feature(try_blocks)]
 #![cfg_attr(all(target_family = "bolos", test), no_main)]
 #![cfg_attr(target_family = "bolos", feature(custom_test_frameworks))]
 #![reexport_test_harness_main = "test_main"]
@@ -31,9 +33,6 @@ pub mod interface;
 
 #[cfg(all(target_family = "bolos"))]
 pub mod utils;
-
-#[cfg(all(target_family = "bolos"))]
-pub mod test_parsers;
 
 #[cfg(all(target_family = "bolos"))]
 pub mod implementation;
