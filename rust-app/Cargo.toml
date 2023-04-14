@@ -1,6 +1,6 @@
 [package]
 name = "sui"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Ericson2314", "dfordivam", "dbzguy56"]
 edition = "2018"
 autobins = false
