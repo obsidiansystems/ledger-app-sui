@@ -23,7 +23,7 @@ dependencies = [
 [[package]]
 name = "alamgu-async-block"
 version = "0.1.0"
-source = "git+https://github.com/alamgu/alamgu-async-block?branch=prompt-queueing#56c1e971d31325133899229540af789f32d9d225"
+source = "git+https://github.com/alamgu/alamgu-async-block?branch=prompt-queueing#deba3f7f09a859ad3d06bda98a00637ea2ab8bf6"
 dependencies = [
  "arrayvec",
  "ledger-log",
@@ -321,7 +321,7 @@ checksum = "f9ec002c35e86791825ed294b50008eea9ddfc8def4420124fbc6b08db834957"
 
 [[package]]
 name = "sui"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "alamgu-async-block",
  "arrayvec",
