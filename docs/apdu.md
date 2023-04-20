@@ -9,6 +9,7 @@ The `P1` and `P2` fields are reserved for future use and must be set to `0` in a
 | CLA | INS | COMMAND NAME     | DESCRIPTION                                                    |
 |-----|-----|------------------|----------------------------------------------------------------|
 | 00  | 00  | GET_VERSION      | Gets the app version in machine readable format (bytes)        |
+| 00  | 01  | VERIFY_ADDRESS   | Shows the Address on device for a BIP32 path                   |
 | 00  | 02  | GET_PUBKEY       | Gets the Public Key and Address for a BIP32 path               |
 | 00  | 03  | SIGN_JSON_TX     | Sign a Transaction specified in JSON                           |
 | 00  | 04  | SIGN_TX_HASH     | Sign a Transaction Hash (requires Blind Signing to be enabled) |
@@ -37,6 +38,37 @@ Returns the version of the app currently running on the Ledger in machine readab
 | `1`          | Minor version   |
 | `1`          | Patch version   |
 | `<variable>` | Name of the app |
+
+### VERIFY_ADDRESS
+
+Shows the address for the given derivation path, and returns the public key and the address.
+
+#### Encoding
+
+**Command**
+
+| *CLA* | *INS* |
+|-------|-------|
+| 00    | 01    |
+
+**Input data**
+
+| Length | Name              | Description                         |
+|--------|-------------------|-------------------------------------|
+| `1`    | `n`               | Number of derivation steps          |
+| `4`    | `bip32_path[0]`   | First derivation step (big endian)  |
+| `4`    | `bip32_path[1]`   | Second derivation step (big endian) |
+|        | ...               |                                     |
+| `4`    | `bip32_path[n-1]` | `n`-th derivation step (big endian) |
+
+**Output data**
+
+| Length       | Description                  |
+|--------------|------------------------------|
+| `1`          | The length of the public key |
+| `<variable>` | Public key                   |
+| `1`          | The length of the address    |
+| `<variable>` | Address                      |
 
 ### GET_PUBKEY
 
