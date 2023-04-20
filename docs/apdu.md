@@ -9,7 +9,7 @@ The `P1` and `P2` fields are reserved for future use and must be set to `0` in a
 | CLA | INS | COMMAND NAME     | DESCRIPTION                                                    |
 |-----|-----|------------------|----------------------------------------------------------------|
 | 00  | 00  | GET_VERSION      | Gets the app version in machine readable format (bytes)        |
-| 00  | 02  | GET_PUBKEY       | Gets the Public Key (after obtaining user confirmation)        |
+| 00  | 02  | GET_PUBKEY       | Gets the Public Key and Address for a BIP32 path               |
 | 00  | 03  | SIGN_JSON_TX     | Sign a Transaction specified in JSON                           |
 | 00  | 04  | SIGN_TX_HASH     | Sign a Transaction Hash (requires Blind Signing to be enabled) |
 | 00  | 10  | MAKE_TRANSFER_TX | Build a transfer transaction and sign it                       |
@@ -40,7 +40,7 @@ Returns the version of the app currently running on the Ledger in machine readab
 
 ### GET_PUBKEY
 
-Returns the public key at the given derivation path.
+Returns the public key and the address for the given derivation path.
 
 #### Encoding
 
@@ -66,6 +66,8 @@ Returns the public key at the given derivation path.
 |--------------|------------------------------|
 | `1`          | The length of the public key |
 | `<variable>` | Public key                   |
+| `1`          | The length of the address    |
+| `<variable>` | Address                      |
 
 ### SIGN_JSON_TX
 
