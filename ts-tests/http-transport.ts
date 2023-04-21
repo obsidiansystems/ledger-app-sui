@@ -37,7 +37,7 @@ export default class HttpTransport extends Transport {
     });
     
     if (response.status !== 200) {
-      throw (TransportError(
+      throw (new TransportError(
         "failed to communicate to server. code=" + response.status,
         "HttpTransportStatus" + response.status
       ) as any);
