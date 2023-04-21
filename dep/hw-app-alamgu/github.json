@@ -1,8 +1,8 @@
 {
   "owner": "alamgu",
   "repo": "hw-app-alamgu",
-  "branch": "dn-verify-addr",
+  "branch": "main",
   "private": false,
-  "rev": "ac2846bb5681acaa243157bf16c5ca4fe6ce5c19",
-  "sha256": "16x0f4pzf152rspjcvcjjm85arzk83pn226sgi9i3fnfnq763f16"
+  "rev": "b09f5f9af05509309ac21402a4b59067d10652ec",
+  "sha256": "1nyybr4wi4ahmhrx1r50fwrwxqhyls2lj5s48gmyv08hg8zayz15"
 }
