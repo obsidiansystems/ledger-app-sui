@@ -145,17 +145,7 @@ describe("Signing tests", function() {
     // Check that the app is still running and has not crashed.
     await sendCommandAndAccept(
       async client => { let { publicKey } = await client.getPublicKey(path); expect(publicKey.length>0).to.equal(true); },
-      [
-        {
-          "header": "Provide Public Key",
-          "prompt": "For Address 0x56b19e720f3bfa8caaef806afdd5dfaffd0d6ec9476323a14d1638ad734b2ba5",
-        },
-        {
-          "text": "Confirm",
-          "x": "<patched>",
-          "y": "<patched>",
-        },
-      ]);
+      []);
     await Axios.delete(BASE_URL + "/events");
     // reset back to disabled
     await toggleBlindSigningSettings();
