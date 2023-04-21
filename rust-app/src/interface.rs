@@ -78,6 +78,7 @@ pub type SHA3_256_HASH = Array<Byte, 33>;
 #[derive(Debug, TryFromPrimitive)]
 pub enum Ins {
     GetVersion = 0,
+    VerifyAddress = 1,
     GetPubkey = 2,
     Sign = 3,
     GetVersionStr = 0xfe,
