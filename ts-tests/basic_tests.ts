@@ -31,8 +31,17 @@ describe('basic tests', () => {
       return;
     }, [
       {
+        "header": "Provide Public Key",
+        "prompt": "",
+      },
+      {
         "header": "Address",
         "prompt": "19e2fea57e82293b4fee8120d934f0c5a4907198f8df29e9a153cfd7d9383488",
+      },
+      {
+        "text": "Confirm",
+        "x": "<patched>",
+        "y": "<patched>",
       },
     ]);
   });
