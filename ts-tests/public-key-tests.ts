@@ -23,8 +23,8 @@ describe('public key tests', () => {
 
   it('does address verification', async () => {
 
-    await sendCommandAndAccept(async (client : Common) => {
-      const rv = await client.verifyAddress("44'/784'/0'");
+    await sendCommandAndAccept(async (client : Sui) => {
+      const rv = await client.getPublicKey("44'/784'/0'", true);
       expect(new Buffer(rv.publicKey).toString('hex')).to.equal("6fc6f39448ad7af0953b78b16d0f840e6fe718ba4a89384239ff20ed088da2fa");
       expect(new Buffer(rv.address).toString('hex')).to.equal("56b19e720f3bfa8caaef806afdd5dfaffd0d6ec9476323a14d1638ad734b2ba5");
       return;
