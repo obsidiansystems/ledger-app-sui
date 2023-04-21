@@ -40,7 +40,7 @@ pub const fn get_address_impl<const PROMPT: bool>() -> GetAddressImplT {
                     try_option(|| -> Option<()> {
                         if PROMPT {
                             scroller("Provide Public Key", |_w| Ok(()))?;
-                            scroller("Address", |w| Ok(write!(w, "{pkh}")?))?;
+                            scroller_paginated("Address", |w| Ok(write!(w, "{pkh}")?))?;
                             final_accept_prompt(&[])?;
                         }
 
