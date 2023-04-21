@@ -152,9 +152,18 @@ fn handle_apdu(comm: &mut io::Comm, ins: Ins, parser: &mut ParsersState) -> Resu
             ]);
             comm.append(b"alamgu example");
         }
-        Ins::GetPubkey => {
-            run_parser_apdu::<_, Bip32Key>(parser, get_get_address_state, &GET_ADDRESS_IMPL, comm)?
-        }
+        Ins::VerifyAddress => run_parser_apdu::<_, Bip32Key>(
+            parser,
+            get_get_address_state::<true>,
+            &get_address_impl::<true>(),
+            comm,
+        )?,
+        Ins::GetPubkey => run_parser_apdu::<_, Bip32Key>(
+            parser,
+            get_get_address_state::<false>,
+            &get_address_impl::<false>(),
+            comm,
+        )?,
         Ins::Sign => {
             run_parser_apdu::<_, SignParameters>(parser, get_sign_state, &SIGN_IMPL, comm)?
         }
