@@ -536,7 +536,7 @@ he@1.2.0:
 
 "hw-app-alamgu@git+https://github.com/alamgu/hw-app-alamgu":
   version "0.1.0"
-  resolved "git+https://github.com/alamgu/hw-app-alamgu#663017ad9a58d435722affcf370cebf468e9ce6d"
+  resolved "git+https://github.com/alamgu/hw-app-alamgu#b09f5f9af05509309ac21402a4b59067d10652ec"
   dependencies:
     "@ledgerhq/hw-transport" "^6.3.0"
     fast-sha256 "^1.3.0"
