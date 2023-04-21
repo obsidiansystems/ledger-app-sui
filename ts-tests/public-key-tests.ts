@@ -30,8 +30,18 @@ describe('public key tests', () => {
       return;
     }, [
       {
+        "header": "Provide Public Key",
+        "prompt": "",
+      },
+      {
         "header": "Address",
         "prompt": "0x56b19e720f3bfa8caaef806afdd5dfaffd0d6ec9476323a14d1638ad734b2ba5",
+        "paginate": true,
+      },
+      {
+        "text": "Confirm",
+        "x": 43,
+        "y": 11,
       },
     ]);
   });

@@ -68,7 +68,9 @@ pub async fn get_address_apdu(io: HostIO, prompt: bool) {
     if with_public_keys(&path, true, |key, address: &SuiPubKeyAddress| {
         try_option(|| -> Option<()> {
             if prompt {
-                scroller("Address", |w| Ok(write!(w, "{address}")?))?;
+                scroller("Provide Public Key", |_w| Ok(()))?;
+                scroller_paginated("Address", |w| Ok(write!(w, "{address}")?))?;
+                final_accept_prompt(&[])?;
             }
 
             let key_bytes = ed25519_public_key_bytes(key);
