@@ -2,7 +2,7 @@ import { VERSION, sendCommandAndAccept, BASE_URL, sendCommandExpectFail, toggleB
 import { expect } from 'chai';
 import { describe, it } from 'mocha';
 import Axios from 'axios';
-import type Sui from "@mysten/ledgerjs-hw-app-sui";
+import type Sui from "./Sui";
 import * as blake2b from "blake2b";
 import { instantiate, Nacl } from "js-nacl";
 
