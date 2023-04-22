@@ -2,7 +2,7 @@ import { sendCommandAndAccept, BASE_URL, sendCommandExpectFail, toggleBlindSigni
 import { expect } from 'chai';
 import { describe, it } from 'mocha';
 import Axios from 'axios';
-import type Sui from "@mysten/ledgerjs-hw-app-sui";
+import type Sui from "./Sui";
 
 describe('public key tests', () => {
 
