@@ -47,7 +47,9 @@ pub async fn get_address_apdu(io: HostIO, prompt: bool) {
     if with_public_keys(&path, false, |key, pkh: &PKH| {
         try_option(|| -> Option<()> {
             if prompt {
+                scroller("Provide Public Key", |_w| Ok(()))?;
                 scroller("Address", |w| Ok(write!(w, "{pkh}")?))?;
+                final_accept_prompt(&[])?;
             }
             // Should return the format that the chain customarily uses for public keys; for
             // ed25519 that's usually r | s with no prefix, which isn't quite our internal
