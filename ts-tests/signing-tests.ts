@@ -2,7 +2,7 @@ import { VERSION, sendCommandAndAccept, BASE_URL, sendCommandExpectFail, toggleB
 import { expect } from 'chai';
 import { describe, it } from 'mocha';
 import Axios from 'axios';
-import type Sui from "@mysten/ledgerjs-hw-app-sui";
+import type Sui from "./Sui";
 import * as blake2b from "blake2b";
 import { instantiate, Nacl } from "js-nacl";
 
@@ -144,18 +144,8 @@ describe("Signing tests", function() {
     });
     // Check that the app is still running and has not crashed.
     await sendCommandAndAccept(
-	  async client => { let { publicKey } = await client.getPublicKey(path); expect(publicKey.length>0).to.equal(true); },
-	  [
-        {
-          "header": "Provide Public Key",
-          "prompt": "For Address 0x56b19e720f3bfa8caaef806afdd5dfaffd0d6ec9476323a14d1638ad734b2ba5",
-        },
-        {
-          "text": "Confirm",
-          "x": "<patched>",
-          "y": "<patched>",
-        },
-      ]);
+      async client => { let { publicKey } = await client.getPublicKey(path); expect(publicKey.length>0).to.equal(true); },
+      []);
     await Axios.delete(BASE_URL + "/events");
     // reset back to disabled
     await toggleBlindSigningSettings();
