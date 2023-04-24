@@ -41,8 +41,8 @@ describe('basic tests', () => {
       },
       {
         "text": "Confirm",
-        "x": "<patched>",
-        "y": "<patched>",
+        "x": 43,
+        "y": 11,
       },
     ]);
   });
