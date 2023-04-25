@@ -1,4 +1,5 @@
 use crate::interface::*;
+use crate::settings::*;
 use crate::test_parsers::*;
 use crate::utils::*;
 use alamgu_async_block::*;
@@ -82,7 +83,7 @@ const fn hasher_parser(
     ObserveBytes(Hasher::new, Hasher::update, DropInterp)
 }
 
-pub async fn sign_apdu(io: HostIO) {
+pub async fn sign_apdu(io: HostIO, settings: Settings) {
     let mut input = match io.get_params::<2>() {
         Some(v) => v,
         None => reject().await,
@@ -117,6 +118,24 @@ pub async fn sign_apdu(io: HostIO) {
         reject::<()>().await;
     }
 
+    // The example app doesn't have a parser; every transaction is rejected
+    // unless we are blind signing.
+    let known_txn = false;
+
+    if known_txn {
+        unimplemented!();
+    } else if settings.get() == 0 {
+        scroller("WARNING", |w| {
+            Ok(write!(
+                w,
+                "Transaction not recognized, enable blind signing to sign unknown transactions"
+            )?)
+        });
+        reject::<()>().await;
+    } else if scroller("WARNING", |w| Ok(write!(w, "Transaction not recognized")?)).is_none() {
+        reject::<()>().await;
+    }
+
     // By the time we get here, we've approved and just need to do the signature.
     if let Some(sig) = { eddsa_sign(&path, false, &hash.deref().0).ok() } {
         io.result_final(&sig.0[0..]).await;
@@ -128,7 +147,7 @@ pub async fn sign_apdu(io: HostIO) {
 pub type APDUsFuture = impl Future<Output = ()>;
 
 #[inline(never)]
-pub fn handle_apdu_async(io: HostIO, ins: Ins) -> APDUsFuture {
+pub fn handle_apdu_async(io: HostIO, ins: Ins, settings: Settings) -> APDUsFuture {
     trace!("Constructing future");
     async move {
         trace!("Dispatching");
@@ -150,7 +169,7 @@ pub fn handle_apdu_async(io: HostIO, ins: Ins) -> APDUsFuture {
             }
             Ins::Sign => {
                 trace!("Handling sign");
-                NoinlineFut(sign_apdu(io)).await;
+                NoinlineFut(sign_apdu(io, settings)).await;
             }
             Ins::TestParsers => {
                 NoinlineFut(test_parsers(io)).await;
