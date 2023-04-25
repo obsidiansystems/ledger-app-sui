@@ -1,10 +1,11 @@
 use crate::interface::*;
+use crate::settings::*;
 use crate::test_parsers::*;
 use crate::utils::*;
 use alamgu_async_block::*;
 use arrayvec::ArrayVec;
 use core::fmt::Write;
-use ledger_crypto_helpers::common::{try_option, Address};
+use ledger_crypto_helpers::common::{try_option, Address, CryptographyError};
 use ledger_crypto_helpers::eddsa::{
     ed25519_public_key_bytes, eddsa_sign, with_public_keys, Ed25519RawPubKeyAddress,
 };
@@ -67,8 +68,7 @@ pub async fn get_address_apdu(io: HostIO, prompt: bool) {
             Some(())
         }())
     })
-    .ok()
-    .is_none()
+    .is_err()
     {
         reject::<()>().await;
     }
@@ -82,7 +82,7 @@ const fn hasher_parser(
     ObserveBytes(Hasher::new, Hasher::update, DropInterp)
 }
 
-pub async fn sign_apdu(io: HostIO) {
+pub async fn sign_apdu(io: HostIO, settings: Settings) {
     let mut input = match io.get_params::<2>() {
         Some(v) => v,
         None => reject().await,
@@ -94,27 +94,49 @@ pub async fn sign_apdu(io: HostIO) {
     let hash: Zeroizing<Base64Hash<32>> =
         hasher_parser().parse(&mut txn, length).await.0.finalize();
 
-    if scroller("Transaction hash", |w| Ok(write!(w, "{}", hash.deref())?)).is_none() {
-        reject::<()>().await;
-    }
-
     let path = BIP_PATH_PARSER.parse(&mut input[1].clone()).await;
 
     if !path.starts_with(&BIP32_PREFIX[0..2]) {
         reject::<()>().await;
     }
 
-    if with_public_keys(&path, false, |_, pkh: &PKH| {
-        try_option(|| -> Option<()> {
-            scroller("Sign for Address", |w| Ok(write!(w, "{pkh}")?))?;
-            final_accept_prompt(&["Sign Transaction?"])?;
-            Some(())
-        }())
-    })
-    .ok()
-    .is_none()
-    {
+    // The example app doesn't have a parser; every transaction is rejected
+    // unless we are blind signing.
+    let known_txn = false;
+
+    if known_txn {
+        if final_accept_prompt(&["Sign Transaction?"]).is_none() {
+            reject::<()>().await;
+        };
+    } else if settings.get() == 0 {
+        scroller("WARNING", |w| {
+            Ok(write!(
+                w,
+                "Transaction not recognized, enable blind signing to sign unknown transactions"
+            )?)
+        });
         reject::<()>().await;
+    } else {
+        if scroller("WARNING", |w| Ok(write!(w, "Transaction not recognized")?)).is_none() {
+            reject::<()>().await;
+        }
+
+        if scroller("Transaction hash", |w| Ok(write!(w, "{}", hash.deref())?)).is_none() {
+            reject::<()>().await;
+        }
+
+        if with_public_keys(&path, false, |_, pkh: &PKH| {
+            scroller("Sign for Address", |w| Ok(write!(w, "{pkh}")?))
+                .ok_or(CryptographyError::NoneError)
+        })
+        .is_err()
+        {
+            reject::<()>().await;
+        }
+
+        if final_accept_prompt(&["Blind Sign Transaction?"]).is_none() {
+            reject::<()>().await;
+        };
     }
 
     // By the time we get here, we've approved and just need to do the signature.
@@ -128,7 +150,7 @@ pub async fn sign_apdu(io: HostIO) {
 pub type APDUsFuture = impl Future<Output = ()>;
 
 #[inline(never)]
-pub fn handle_apdu_async(io: HostIO, ins: Ins) -> APDUsFuture {
+pub fn handle_apdu_async(io: HostIO, ins: Ins, settings: Settings) -> APDUsFuture {
     trace!("Constructing future");
     async move {
         trace!("Dispatching");
@@ -150,7 +172,7 @@ pub fn handle_apdu_async(io: HostIO, ins: Ins) -> APDUsFuture {
             }
             Ins::Sign => {
                 trace!("Handling sign");
-                NoinlineFut(sign_apdu(io)).await;
+                NoinlineFut(sign_apdu(io, settings)).await;
             }
             Ins::TestParsers => {
                 NoinlineFut(test_parsers(io)).await;
