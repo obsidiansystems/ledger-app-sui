@@ -47,16 +47,16 @@ describe("Signing tests", function() {
    const txn = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
     const prompts = [
       {
+        "header": "WARNING",
+        "prompt": "Transaction not recognized"
+      },
+      {
         "header": "Transaction hash",
         "prompt": "yC9c_Zn3cjRXV89tJaT4WjCjXsFF4UQWn2Aq2sHjY-4",
       },
       {
         "header": "Sign for Address",
         "prompt": "19e2fea57e82293b4fee8120d934f0c5a4907198f8df29e9a153cfd7d9383488",
-      },
-      {
-        "header": "WARNING",
-        "prompt": "Transaction not recognized"
       },
       {
         "text": "Blind Sign Transaction?",

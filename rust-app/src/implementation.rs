@@ -5,7 +5,7 @@ use crate::utils::*;
 use alamgu_async_block::*;
 use arrayvec::ArrayVec;
 use core::fmt::Write;
-use ledger_crypto_helpers::common::{try_option, Address};
+use ledger_crypto_helpers::common::{try_option, Address, CryptographyError};
 use ledger_crypto_helpers::eddsa::{
     ed25519_public_key_bytes, eddsa_sign, with_public_keys, Ed25519RawPubKeyAddress,
 };
@@ -68,8 +68,7 @@ pub async fn get_address_apdu(io: HostIO, prompt: bool) {
             Some(())
         }())
     })
-    .ok()
-    .is_none()
+    .is_err()
     {
         reject::<()>().await;
     }
@@ -95,25 +94,9 @@ pub async fn sign_apdu(io: HostIO, settings: Settings) {
     let hash: Zeroizing<Base64Hash<32>> =
         hasher_parser().parse(&mut txn, length).await.0.finalize();
 
-    if scroller("Transaction hash", |w| Ok(write!(w, "{}", hash.deref())?)).is_none() {
-        reject::<()>().await;
-    }
-
     let path = BIP_PATH_PARSER.parse(&mut input[1].clone()).await;
 
     if !path.starts_with(&BIP32_PREFIX[0..2]) {
-        reject::<()>().await;
-    }
-
-    if with_public_keys(&path, false, |_, pkh: &PKH| {
-        try_option(|| -> Option<()> {
-            scroller("Sign for Address", |w| Ok(write!(w, "{pkh}")?))?;
-            Some(())
-        }())
-    })
-    .ok()
-    .is_none()
-    {
         reject::<()>().await;
     }
 
@@ -137,6 +120,20 @@ pub async fn sign_apdu(io: HostIO, settings: Settings) {
         if scroller("WARNING", |w| Ok(write!(w, "Transaction not recognized")?)).is_none() {
             reject::<()>().await;
         }
+
+        if scroller("Transaction hash", |w| Ok(write!(w, "{}", hash.deref())?)).is_none() {
+            reject::<()>().await;
+        }
+
+        if with_public_keys(&path, false, |_, pkh: &PKH| {
+            scroller("Sign for Address", |w| Ok(write!(w, "{pkh}")?))
+                .ok_or(CryptographyError::NoneError)
+        })
+        .is_err()
+        {
+            reject::<()>().await;
+        }
+
         if final_accept_prompt(&["Blind Sign Transaction?"]).is_none() {
             reject::<()>().await;
         };
