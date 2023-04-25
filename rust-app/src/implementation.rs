@@ -108,7 +108,6 @@ pub async fn sign_apdu(io: HostIO, settings: Settings) {
     if with_public_keys(&path, false, |_, pkh: &PKH| {
         try_option(|| -> Option<()> {
             scroller("Sign for Address", |w| Ok(write!(w, "{pkh}")?))?;
-            final_accept_prompt(&["Sign Transaction?"])?;
             Some(())
         }())
     })
@@ -123,7 +122,9 @@ pub async fn sign_apdu(io: HostIO, settings: Settings) {
     let known_txn = false;
 
     if known_txn {
-        unimplemented!();
+        if final_accept_prompt(&["Sign Transaction?"]).is_none() {
+            reject::<()>().await;
+        };
     } else if settings.get() == 0 {
         scroller("WARNING", |w| {
             Ok(write!(
@@ -132,8 +133,13 @@ pub async fn sign_apdu(io: HostIO, settings: Settings) {
             )?)
         });
         reject::<()>().await;
-    } else if scroller("WARNING", |w| Ok(write!(w, "Transaction not recognized")?)).is_none() {
-        reject::<()>().await;
+    } else {
+        if scroller("WARNING", |w| Ok(write!(w, "Transaction not recognized")?)).is_none() {
+            reject::<()>().await;
+        }
+        if final_accept_prompt(&["Blind Sign Transaction?"]).is_none() {
+            reject::<()>().await;
+        };
     }
 
     // By the time we get here, we've approved and just need to do the signature.

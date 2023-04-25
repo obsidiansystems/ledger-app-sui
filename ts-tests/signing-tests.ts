@@ -55,8 +55,12 @@ describe("Signing tests", function() {
         "prompt": "19e2fea57e82293b4fee8120d934f0c5a4907198f8df29e9a153cfd7d9383488",
       },
       {
-        "text": "Sign Transaction?",
-        "x": 19,
+        "header": "WARNING",
+        "prompt": "Transaction not recognized"
+      },
+      {
+        "text": "Blind Sign Transaction?",
+        "x": 4,
         "y": 11,
       },
       {
@@ -64,10 +68,6 @@ describe("Signing tests", function() {
         "x": 43,
         "y": 11,
       },
-      {
-        "header": "WARNING",
-        "prompt": "Transaction not recognized"
-      }
     ];
 
     await toggleBlindSigningSettings();
