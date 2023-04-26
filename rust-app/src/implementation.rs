@@ -110,13 +110,13 @@ impl InterpParser<SignPayload> for HashDArrayAndDrop {
             }
             Some(_) => chunk,
         };
-        let remaining_len = state.0.unwrap();
+        let remaining_len = state.0.expect("should be set");
         if remaining_len > remaining_chunk.len() {
             state.0 = Some(remaining_len - remaining_chunk.len());
             state.1.update(remaining_chunk);
             Err((None, &[]))
         } else {
-            state.1.update(&remaining_chunk[0..remaining_len]);
+            state.1.update(&remaining_chunk[..remaining_len]);
             *destination = Some(state.1);
             Ok(&remaining_chunk[remaining_len..])
         }
@@ -206,7 +206,7 @@ pub fn get_get_address_state<const PROMPT: bool>(
     match s {
         ParsersState::GetAddressState(ref mut a) => a,
         _ => {
-            panic!("")
+            unreachable!("Should be impossible because assignment right above")
         }
     }
 }
@@ -227,7 +227,7 @@ pub fn get_sign_state(
     match s {
         ParsersState::SignState(ref mut a) => a,
         _ => {
-            panic!("")
+            unreachable!("Should be impossible because assignment right above")
         }
     }
 }
@@ -248,7 +248,7 @@ pub fn get_test_parsers_state(
     match s {
         ParsersState::TestParsersState(ref mut a) => a,
         _ => {
-            panic!("")
+            unreachable!("Should be impossible because assignment right above")
         }
     }
 }
