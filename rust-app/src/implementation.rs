@@ -51,7 +51,7 @@ pub const BIP_PATH_PARSER: BipParserImplT = SubInterp(DefaultInterp);
 // Need a path of length 5, as make_bip32_path panics with smaller paths
 pub const BIP32_PREFIX: [u32; 5] = nanos_sdk::ecc::make_bip32_path(b"m/44'/784'/123'/0'/0'");
 
-pub async fn get_address_apdu(io: HostIO) {
+pub async fn get_address_apdu(io: HostIO, prompt: bool) {
     let input = match io.get_params::<1>() {
         Some(v) => v,
         None => reject().await,
@@ -67,13 +67,13 @@ pub async fn get_address_apdu(io: HostIO) {
 
     if with_public_keys(&path, true, |key, address: &SuiPubKeyAddress| {
         try_option(|| -> Option<()> {
+            if prompt {
+                scroller("Provide Public Key", |_w| Ok(()))?;
+                scroller_paginated("Address", |w| Ok(write!(w, "{address}")?))?;
+                final_accept_prompt(&[])?;
+            }
+
             let key_bytes = ed25519_public_key_bytes(key);
-
-            scroller("Provide Public Key", |w| {
-                Ok(write!(w, "For Address {address}")?)
-            })?;
-
-            final_accept_prompt(&[])?;
 
             rv.try_push(u8::try_from(key_bytes.len()).ok()?).ok()?;
             rv.try_extend_from_slice(key_bytes).ok()?;
@@ -702,8 +702,11 @@ pub fn handle_apdu_async(io: HostIO, ins: Ins, settings: Settings) -> APDUsFutur
                 let _ = rv.try_extend_from_slice(APP_NAME.as_bytes());
                 io.result_final(&rv).await;
             }
+            Ins::VerifyAddress => {
+                NoinlineFut(get_address_apdu(io, true)).await;
+            }
             Ins::GetPubkey => {
-                NoinlineFut(get_address_apdu(io)).await;
+                NoinlineFut(get_address_apdu(io, false)).await;
             }
             Ins::Sign => {
                 trace!("Handling sign");
