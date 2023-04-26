@@ -49,7 +49,7 @@ pub async fn get_address_apdu(io: HostIO, prompt: bool) {
         try_option(|| -> Option<()> {
             if prompt {
                 scroller("Provide Public Key", |_w| Ok(()))?;
-                scroller("Address", |w| Ok(write!(w, "{pkh}")?))?;
+                scroller_paginated("Address", |w| Ok(write!(w, "{pkh}")?))?;
                 final_accept_prompt(&[])?;
             }
             // Should return the format that the chain customarily uses for public keys; for
