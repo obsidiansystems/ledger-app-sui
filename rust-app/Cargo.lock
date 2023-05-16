@@ -207,8 +207,8 @@ dependencies = [
 
 [[package]]
 name = "nanos_sdk"
-version = "0.2.0"
-source = "git+https://github.com/alamgu/ledger-nanos-sdk.git?branch=relocating-loader-w-fixes#1133b2708311093cbce5b067295ae0fb6f9c48ce"
+version = "0.2.1"
+source = "git+https://github.com/alamgu/ledger-nanos-sdk.git?branch=relocating-loader-w-fixes#11f8be8678716c13bd629cfcf6b4341788a37e7f"
 dependencies = [
  "cc",
  "num-traits",
