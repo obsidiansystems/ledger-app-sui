@@ -27,7 +27,7 @@ rustflags = [
   "-C", "embed-bitcode",
   "--emit=metadata,link,obj,llvm-ir,llvm-bc"
 ]
-runner = "./speculos-wrapper -m nanox -a 1 "
+runner = "./speculos-wrapper -m nanox -a 5 "
 
 [alias]
 tt = "test --features extra_debug"
