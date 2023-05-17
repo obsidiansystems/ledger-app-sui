@@ -1,12 +1,12 @@
 {
-  "alamgu-async-block 0.1.0 (git+https://github.com/alamgu/alamgu-async-block?branch=prompt-queueing#deba3f7f09a859ad3d06bda98a00637ea2ab8bf6)": "0h4ckkarly2c1aa5xccf1igq3x4qg95axqkxdw81wbg7551wh6dl",
+  "alamgu-async-block 0.1.0 (git+https://github.com/alamgu/alamgu-async-block?branch=prompt-queueing#34cd15c408afd06b13ef4a9418db22956750ec9a)": "0z2zqndz2ih97v2118ndn32a9b5iahlxl8v3cp48isvd8gyzsawh",
   "enum-init 0.1.0 (git+https://github.com/alamgu/enum-init#5706da92215f1a5816d704229f8924d95d954a77)": "0vh10l6glg4fry3z8am9skdlg2xcs0maqz5f24awwd9vl4ac6fv6",
   "include_gif 0.1.0 (git+https://github.com/LedgerHQ/sdk_include_gif#699d28c6157518c4493899e2eeaa8af08346e5e7)": "185gra3i4s8cbmdhrxk2fyww0l6zlmyf2l04zbkvl9n9b6hd04pl",
-  "ledger-crypto-helpers 0.2.0 (git+https://github.com/alamgu/ledger-crypto-helpers#0f4beea77b87cb665496120b8fb7d935ff08cba3)": "1xvhcralindwh7r98l8bj1vph4wmjrhjr9wp1m95jy3dpkacpbqq",
+  "ledger-crypto-helpers 0.2.0 (git+https://github.com/alamgu/ledger-crypto-helpers#e1e41f64055df391e5b37ec84b2366c8c72c501d)": "1q2v1yjndn8ikyi6wf28r7w09hvg3ln307ilh84qzrxi0jjab8lh",
   "ledger-log 0.2.0 (git+https://github.com/alamgu/ledger-log#a417ebe6a426bbc6f92e92272c944b89765c384d)": "1qg502avfqiy30k17xi8gwwnawx5p53v0rcd3c566s4s5ga746jb",
-  "ledger-parser-combinators 0.1.0 (git+https://github.com/alamgu/ledger-parser-combinators?branch=async-split-take-2#6b0db550fc8a33021c9fd44ab77db0903a758a05)": "1jn7966lrjm14v2wm07kcgj9rim1flq8cx7bv1dbb8s38apn6b9g",
+  "ledger-parser-combinators 0.1.0 (git+https://github.com/alamgu/ledger-parser-combinators?branch=async-split-take-2#8b76275b157b71094e6d399b0a7a1ce7773c5ef2)": "15bfg6mdnmjxv7gr28hvpb1zdrc84zcg8kwsr2ml21cn8d145h7x",
   "ledger-prompts-ui 0.1.0 (git+https://github.com/alamgu/ledger-prompts-ui#8d510e62f4d53ee999c3db510cc2e932c188de13)": "1ckza8qvivhk5jpc9cq31yny7kwj9rw35x1lsjgr1v5wjvgyx1i7",
-  "nanos_sdk 0.2.0 (git+https://github.com/alamgu/ledger-nanos-sdk.git?branch=relocating-loader-w-fixes#975537f0bff0f349a7e59b4e315a0760710cd7c2)": "0czcsnlqr6yqlacxibjv2cnl55vyiqks6qwi29mv76lx8101hhgc",
+  "nanos_sdk 0.2.1 (git+https://github.com/alamgu/ledger-nanos-sdk.git?branch=relocating-loader-w-fixes#11f8be8678716c13bd629cfcf6b4341788a37e7f)": "0z8sbsgr2y2nx4pg32qrqx16wbplm7af2zf89sn65wsvkpiw30fr",
   "nanos_ui 0.2.0 (git+https://github.com/LedgerHQ/ledger-nanos-ui.git#c7fe3dff2417f9a118ad176d578c5c1ee07e83cd)": "0j0p2vqph3yzrq9cq6838qk3fw2mz4h6inqwkk4kahp0g3z3q8kv",
   "testmacro 0.1.0 (git+https://github.com/yhql/testmacro#29a16cb8718d61b67c6c391e60c8347c064e921e)": "0agl46ilx2psfvwvg8iwfmq203xapw435h03qskxqf5dnwhy1kir",
   "trie-enum 0.1.0 (git+https://github.com/alamgu/trie-enum#0dedf0d0a941fc47b830d25d008f5ea42fdd3db4)": "0pcqn250n8ma94zy39blgvx8mxmdk1k6wzz03zs6bb4wfcv1y7pz"

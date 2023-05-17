@@ -85,8 +85,7 @@ pub async fn get_address_apdu(io: HostIO, prompt: bool) {
             Some(())
         }())
     })
-    .ok()
-    .is_none()
+    .is_err()
     {
         reject::<()>().await;
     }

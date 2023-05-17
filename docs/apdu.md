@@ -144,4 +144,5 @@ Sign a Transaction, using the key for the given derivation path
 | 0x6982 | `SW_NOTHING_RECEIVED`         | No input was received by the app                           |
 | 0x6D00 | `SW_ERROR`                    | Error has occured due to bad input or user rejectected     |
 | 0x6E00 | `SW_CLA_OR_INS_NOT_SUPPORTED` | No command exists for the `CLA` and `INS`                  |
+| 0x6E01 | `SW_BAD_LEN`                  | Length mismatch in inputs                                  |
 | 0x9000 | `SW_OK`                       | Success, or continue if more input from client is expected |
