@@ -63,6 +63,7 @@ pub fn app_main() {
                     PinMut::as_mut(&mut states.0.borrow_mut()),
                     ins,
                     *hostio,
+                    (),
                     |io, ins| handle_apdu_async(io, ins, idle_menu.settings),
                 );
                 match poll_rv {
