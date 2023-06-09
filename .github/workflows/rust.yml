@@ -6,8 +6,8 @@ on:
   pull_request:
     branches: [ main, develop, develop-sync ]
   workflow_dispatch:
-    inputs: 
-      name: 
+    inputs:
+      name:
         description: 'Manually triggered'
 
 env:
