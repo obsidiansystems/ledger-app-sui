@@ -55,11 +55,17 @@ overflow-checks = false
 opt-level = 3
 overflow-checks = false
 
-[package.metadata.nanos]
+[package.metadata.ledger]
 name = "Alamgu Example"
-api_level = "1"
 path = ["44'/535348'"]
 curve = ["ed25519"]
 flags = "0"
+
+[package.metadata.ledger.nanos]
 icon = "crab.gif"
-icon_small = "crab-small.gif"
+
+[package.metadata.ledger.nanox]
+icon = "crab-small.gif"
+
+[package.metadata.ledger.nanosplus]
+icon = "crab-small.gif"
