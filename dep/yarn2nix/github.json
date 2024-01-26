@@ -3,6 +3,6 @@
   "repo": "yarn2nix-profpatsch",
   "branch": "jg-at-fix",
   "private": false,
-  "rev": "c236050255b395bfb894557ee5a6443d4b1a03a4",
-  "sha256": "1ybagrqxv0ffisrmjndxc4404padxwfrsfr6p0p6bjws4zzib2hd"
+  "rev": "be6d8a527024e732eab00e7ebca16a6da27a3bc3",
+  "sha256": "1jf9z6n5kcxpv0h3q14s9xw46pq6apazwm73zsszmh84ysj79d64"
 }
