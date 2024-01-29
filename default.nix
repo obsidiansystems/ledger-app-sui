@@ -21,7 +21,7 @@ rec {
       dontBuild = true;
       installPhase = ''
         mkdir -p "$out/bin"
-        cp "${sdkSrc}/scripts/link_wrap.sh" "$out/bin"
+        cp "${sdkSrc}/ledger_device_sdk/scripts/link_wrap.sh" "$out/bin"
         chmod +x "$out/bin/link_wrap.sh"
       '';
     };
@@ -36,7 +36,7 @@ rec {
         # modified arguemnts.
         (pkgs: (collection.buildRustCrateForPkgsLedger pkgs).override {
           defaultCrateOverrides = pkgs.defaultCrateOverrides // {
-            nanos_sdk = attrs: {
+            ledger_device_sdk = attrs: {
               passthru = (attrs.passthru or {}) // {
                 link_wrap = makeLinkerScript {
                   pkgs = pkgs.buildPackages;
