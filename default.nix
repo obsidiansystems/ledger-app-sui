@@ -45,13 +45,13 @@ rec {
               };
             };
             ${appName} = attrs: let
-              sdk = lib.findFirst (p: lib.hasPrefix "rust_nanos_sdk" p.name) (builtins.throw "no sdk!") attrs.dependencies;
+              sdk = lib.findFirst (p: lib.hasPrefix "rust_ledger_device_sdk" p.name) (builtins.throw "no sdk!") attrs.dependencies;
             in {
               preHook = collection.gccLibsPreHook;
               extraRustcOpts = attrs.extraRustcOpts or [] ++ [
                 "-C" "linker=${sdk.link_wrap}/bin/link_wrap.sh"
-                "-C" "link-arg=-T${sdk.lib}/lib/nanos_sdk.out/link.ld"
-                "-C" "link-arg=-T${sdk.lib}/lib/nanos_sdk.out/${device}_layout.ld"
+                "-C" "link-arg=-T${sdk.lib}/lib/ledger_device_sdk.out/link.ld"
+                "-C" "link-arg=-T${sdk.lib}/lib/ledger_device_sdk.out/${device}_layout.ld"
               ];
               passthru = (attrs.passthru or {}) // { inherit sdk; };
             };
