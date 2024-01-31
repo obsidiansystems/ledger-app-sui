@@ -1,8 +1,8 @@
 use crate::settings::*;
 use include_gif::include_gif;
 use ledger_prompts_ui::*;
-use nanos_ui::bagls::*;
-use nanos_ui::bitmaps::Glyph;
+use ledger_device_sdk::ui::bagls::*;
+use ledger_device_sdk::ui::bitmaps::Glyph;
 
 pub const APP_ICON_GLYPH: Glyph = Glyph::from_include(include_gif!("crab-small.gif"));
 
@@ -153,7 +153,7 @@ impl Menu for IdleMenuWithSettings {
                 },
             ),
             Exit => (
-                MenuLabelTop::Icon(&DASHBOARD_ICON),
+                MenuLabelTop::Icon(&ledger_prompts_ui::DASHBOARD_ICON),
                 MenuLabelBottom {
                     text: "Quit",
                     bold: true,

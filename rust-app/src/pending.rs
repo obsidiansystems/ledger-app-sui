@@ -1,5 +1,5 @@
-use nanos_sdk::{buttons::ButtonEvent, io};
-use nanos_ui::ui;
+use ledger_device_sdk::{buttons::ButtonEvent, io};
+use ledger_device_sdk::ui;
 
 use crate::interface::Ins;
 

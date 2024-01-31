@@ -21,7 +21,7 @@ rec {
       dontBuild = true;
       installPhase = ''
         mkdir -p "$out/bin"
-        cp "${sdkSrc}/scripts/link_wrap.sh" "$out/bin"
+        cp "${sdkSrc}/ledger_device_sdk/scripts/link_wrap.sh" "$out/bin"
         chmod +x "$out/bin/link_wrap.sh"
       '';
     };
@@ -36,7 +36,7 @@ rec {
         # modified arguemnts.
         (pkgs: (collection.buildRustCrateForPkgsLedger pkgs).override {
           defaultCrateOverrides = pkgs.defaultCrateOverrides // {
-            nanos_sdk = attrs: {
+            ledger_device_sdk = attrs: {
               passthru = (attrs.passthru or {}) // {
                 link_wrap = makeLinkerScript {
                   pkgs = pkgs.buildPackages;
@@ -45,13 +45,13 @@ rec {
               };
             };
             ${appName} = attrs: let
-              sdk = lib.findFirst (p: lib.hasPrefix "rust_nanos_sdk" p.name) (builtins.throw "no sdk!") attrs.dependencies;
+              sdk = lib.findFirst (p: lib.hasPrefix "rust_ledger_device_sdk" p.name) (builtins.throw "no sdk!") attrs.dependencies;
             in {
               preHook = collection.gccLibsPreHook;
               extraRustcOpts = attrs.extraRustcOpts or [] ++ [
                 "-C" "linker=${sdk.link_wrap}/bin/link_wrap.sh"
-                "-C" "link-arg=-T${sdk.lib}/lib/nanos_sdk.out/link.ld"
-                "-C" "link-arg=-T${sdk.lib}/lib/nanos_sdk.out/${device}_layout.ld"
+                "-C" "link-arg=-T${sdk.lib}/lib/ledger_device_sdk.out/link.ld"
+                "-C" "link-arg=-T${sdk.lib}/lib/ledger_device_sdk.out/${device}_layout.ld"
               ];
               passthru = (attrs.passthru or {}) // { inherit sdk; };
             };
@@ -220,8 +220,8 @@ rec {
 
     speculosDeviceFlags = {
       nanos = [ "-m" "nanos" ];
-      nanosplus = [ "-m" "nanosp" "-a" "1" ];
-      nanox = [ "-m" "nanox" "-a" "5" ];
+      nanosplus = [ "-m" "nanosp" ];
+      nanox = [ "-m" "nanox" ];
     }.${device} or (throw "Unknown target device: `${device}'");
 
     speculosCmd = [
