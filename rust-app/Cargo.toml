@@ -11,7 +11,7 @@ arrayvec = { version = "0.7.2", default-features = false }
 ledger-crypto-helpers = { git = "https://github.com/alamgu/ledger-crypto-helpers" }
 ledger-log = { git = "https://github.com/alamgu/ledger-log" }
 ledger-parser-combinators = { git = "https://github.com/alamgu/ledger-parser-combinators", branch="async-split-take-2" }
-alamgu-async-block = { git = "https://github.com/alamgu/alamgu-async-block", branch = "prompt-queueing" }
+alamgu-async-block = { git = "https://github.com/alamgu/alamgu-async-block" }
 zeroize = { version = "1.5.2", default-features = false }
 num_enum = { version = "0.5", default-features = false }
 pin-cell = "0.2.0"
