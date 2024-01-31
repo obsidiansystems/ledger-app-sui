@@ -178,7 +178,7 @@ pub fn handle_apdu_async(io: HostIO, ins: Ins, settings: Settings) -> APDUsFutur
                 NoinlineFut(test_parsers(io)).await;
             }
             Ins::GetVersionStr => {}
-            Ins::Exit => nanos_sdk::exit_app(0),
+            Ins::Exit => ledger_device_sdk::exit_app(0),
         }
     }
 }
