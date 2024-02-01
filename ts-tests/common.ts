@@ -58,6 +58,8 @@ const processPrompts = function(prompts: any[]) {
   let rv = [];
   for (var ii in i) {
     const value = i[ii];
+    delete value.w;
+    delete value.h;
     if(value["y"] == 0 || value["y"] == 1) { // S is 1, S+ is somehow 0
       if(value["text"] != header) {
         if(header || prompt) rv.push({ header, prompt });

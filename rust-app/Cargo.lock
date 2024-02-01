@@ -23,7 +23,7 @@ dependencies = [
 [[package]]
 name = "alamgu-async-block"
 version = "0.1.0"
-source = "git+https://github.com/alamgu/alamgu-async-block?branch=prompt-queueing#4bb1c594acdf46a0a7a1687305f296ec7f5e7a58"
+source = "git+https://github.com/alamgu/alamgu-async-block#4bb1c594acdf46a0a7a1687305f296ec7f5e7a58"
 dependencies = [
  "arrayvec",
  "ledger-log",
@@ -143,7 +143,7 @@ dependencies = [
 [[package]]
 name = "ledger-parser-combinators"
 version = "0.1.0"
-source = "git+https://github.com/alamgu/ledger-parser-combinators?branch=async-split-take-2#8b76275b157b71094e6d399b0a7a1ce7773c5ef2"
+source = "git+https://github.com/alamgu/ledger-parser-combinators?branch=async-split-take-2#fd4d713e9a58983e2d2b00f8291a20137140dfa7"
 dependencies = [
  "arrayvec",
  "bstringify",
@@ -188,7 +188,7 @@ dependencies = [
 [[package]]
 name = "nanos_sdk"
 version = "0.2.1"
-source = "git+https://github.com/alamgu/ledger-nanos-sdk.git?branch=relocating-loader-w-fixes#2a246a56d76b83c615b687c8b6b31a5fc1a3e311"
+source = "git+https://github.com/alamgu/ledger-nanos-sdk.git?branch=relocating-loader-w-fixes#94ded0075046753e42447da2a111c336dea8439f"
 dependencies = [
  "cc",
  "num-traits",

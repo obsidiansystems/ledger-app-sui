@@ -76,6 +76,7 @@ rec {
   in collection.ledgerPkgs.runCommandCC "${appName}-${device}-tar-src" {
     nativeBuildInputs = [
       alamgu.cargo-ledger
+      alamgu.ledgerctl
       alamgu.ledgerRustPlatform.rust.cargo
     ];
     strictDeps = true;
@@ -86,7 +87,7 @@ rec {
     mkdir src
     touch src/main.rs
 
-    cargo-ledger --use-prebuilt ${appExe} --hex-next-to-json ledger ${device}
+    cargo ledger --use-prebuilt ${appExe} --hex-next-to-json build ${device}
 
     dest=$out/${appName}-${device}
     mkdir -p $dest/dep
