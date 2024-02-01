@@ -11,8 +11,6 @@ do
     mkdir -p $OUT_DIR/$device
 done
 
-docker build -t alamgu-docker:latest ./docker
-
 # Build apps using nightly
 docker run \
   --env APP_NAME \
@@ -21,7 +19,7 @@ docker run \
   --env HOST_UID=$(id -u) \
   --env HOST_GID=$(id -g) \
   --rm -ti -v "$(realpath .):/app" \
-  alamgu-docker:latest \
+  ghcr.io/ledgerhq/ledger-app-builder/ledger-app-builder:latest \
   docker/run-build-in-docker.sh
 
 # Run tests
