@@ -222,7 +222,7 @@ dependencies = [
 [[package]]
 name = "include_gif"
 version = "1.0.1"
-source = "git+https://github.com/alamgu/ledger-nanos-sdk.git?branch=relocating-loader-new-sdk#94b1c1305174c0c19163baef22d00013620ba1f7"
+source = "git+https://github.com/alamgu/ledger-nanos-sdk.git?branch=relocating-loader-new-sdk#0d9e34e7d8bf5258ae430a3af00990322b5f92a5"
 dependencies = [
  "gif",
  "syn 1.0.107",
