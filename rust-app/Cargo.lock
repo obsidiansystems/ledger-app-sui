@@ -283,7 +283,7 @@ dependencies = [
 [[package]]
 name = "ledger_device_sdk"
 version = "1.4.3"
-source = "git+https://github.com/alamgu/ledger-nanos-sdk.git?branch=relocating-loader-new-sdk#94b1c1305174c0c19163baef22d00013620ba1f7"
+source = "git+https://github.com/alamgu/ledger-nanos-sdk.git?branch=relocating-loader-new-sdk#0d9e34e7d8bf5258ae430a3af00990322b5f92a5"
 dependencies = [
  "include_gif",
  "ledger_secure_sdk_sys",
@@ -296,7 +296,7 @@ dependencies = [
 [[package]]
 name = "ledger_secure_sdk_sys"
 version = "1.1.0"
-source = "git+https://github.com/alamgu/ledger-nanos-sdk.git?branch=relocating-loader-new-sdk#94b1c1305174c0c19163baef22d00013620ba1f7"
+source = "git+https://github.com/alamgu/ledger-nanos-sdk.git?branch=relocating-loader-new-sdk#0d9e34e7d8bf5258ae430a3af00990322b5f92a5"
 dependencies = [
  "bindgen",
  "cc",
