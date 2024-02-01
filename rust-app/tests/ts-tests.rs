@@ -3,7 +3,7 @@
 #![test_runner(crate::my_runner)]
 #![no_main]
 
-use nanos_sdk::exit_app;
+use ledger_device_sdk::exit_app;
 
 use sui::main_nanos::*;
 

@@ -9,7 +9,7 @@ rustflags = [
   "-C", "embed-bitcode",
   "--emit=metadata,link,obj,llvm-ir,llvm-bc"
 ]
-runner = "./speculos-wrapper -m nanosp -a 1 "
+runner = "./speculos-wrapper -m nanosp "
 
 [target.nanos]
 rustflags = [
@@ -27,7 +27,7 @@ rustflags = [
   "-C", "embed-bitcode",
   "--emit=metadata,link,obj,llvm-ir,llvm-bc"
 ]
-runner = "./speculos-wrapper -m nanox -a 5 "
+runner = "./speculos-wrapper -m nanox "
 
 [alias]
 tt = "test --features extra_debug"

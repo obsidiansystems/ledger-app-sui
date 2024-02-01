@@ -49,7 +49,7 @@ pub type BipParserImplT =
 pub const BIP_PATH_PARSER: BipParserImplT = SubInterp(DefaultInterp);
 
 // Need a path of length 5, as make_bip32_path panics with smaller paths
-pub const BIP32_PREFIX: [u32; 5] = nanos_sdk::ecc::make_bip32_path(b"m/44'/784'/123'/0'/0'");
+pub const BIP32_PREFIX: [u32; 5] = ledger_device_sdk::ecc::make_bip32_path(b"m/44'/784'/123'/0'/0'");
 
 pub async fn get_address_apdu(io: HostIO, prompt: bool) {
     let input = match io.get_params::<1>() {
@@ -712,7 +712,7 @@ pub fn handle_apdu_async(io: HostIO, ins: Ins, settings: Settings) -> APDUsFutur
                 NoinlineFut(sign_apdu(io, settings)).await;
             }
             Ins::GetVersionStr => {}
-            Ins::Exit => nanos_sdk::exit_app(0),
+            Ins::Exit => ledger_device_sdk::exit_app(0),
         }
     }
 }
