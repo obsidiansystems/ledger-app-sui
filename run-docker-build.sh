@@ -2,8 +2,8 @@
 set -eu
 
 export APP_NAME=`grep name rust-app/Cargo.toml | cut -d '"' -f2 | head -n1`
-export RUST_NANOS_SDK_REV=`grep ledger-nanos-sdk rust-app/Cargo.lock | cut -d '"' -f2 | cut -d '#' -f2`
-export RUST_NANOS_SDK_GIT=`grep ledger-nanos-sdk rust-app/Cargo.lock | cut -d '?' -f1 | cut -d '+' -f2`
+export RUST_NANOS_SDK_REV=`grep ledger-nanos-sdk rust-app/Cargo.lock | cut -d '"' -f2 | cut -d '#' -f2 | head -n1`
+export RUST_NANOS_SDK_GIT=`grep ledger-nanos-sdk rust-app/Cargo.lock | cut -d '?' -f1 | cut -d '+' -f2 | head -n1`
 
 OUT_DIR="./docker-outputs"
 for device in nanos nanosplus nanox
