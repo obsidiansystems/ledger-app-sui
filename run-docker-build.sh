@@ -2,8 +2,8 @@
 set -eu
 
 export APP_NAME=`grep name rust-app/Cargo.toml | cut -d '"' -f2 | head -n1`
-export RUST_NANOS_SDK_REV=`grep ledger-nanos-sdk rust-app/Cargo.lock | cut -d '"' -f2 | cut -d '#' -f2`
-export RUST_NANOS_SDK_GIT=`grep ledger-nanos-sdk rust-app/Cargo.lock | cut -d '?' -f1 | cut -d '+' -f2`
+export RUST_NANOS_SDK_REV=`grep ledger-nanos-sdk rust-app/Cargo.lock | cut -d '"' -f2 | cut -d '#' -f2 | head -n1`
+export RUST_NANOS_SDK_GIT=`grep ledger-nanos-sdk rust-app/Cargo.lock | cut -d '?' -f1 | cut -d '+' -f2 | head -n1`
 
 OUT_DIR="./docker-outputs"
 for device in nanos nanosplus nanox
@@ -25,8 +25,8 @@ docker run \
 # Run tests
 # The speculos-wrapper need to be invoked from a dir further down, as it refers to "../ts-tests"
 nix-shell -A nanos.rustShell --run "cd $OUT_DIR; ../speculos-wrapper -m nanos ../$OUT_DIR/nanos/$APP_NAME"
-nix-shell -A nanosplus.rustShell --run "cd $OUT_DIR; ../speculos-wrapper -m nanosp -a 1 ../$OUT_DIR/nanosplus/$APP_NAME"
-nix-shell -A nanox.rustShell --run "cd $OUT_DIR; ../speculos-wrapper -m nanox -a 5 ../$OUT_DIR/nanox/$APP_NAME"
+nix-shell -A nanosplus.rustShell --run "cd $OUT_DIR; ../speculos-wrapper -m nanosp ../$OUT_DIR/nanosplus/$APP_NAME"
+nix-shell -A nanox.rustShell --run "cd $OUT_DIR; ../speculos-wrapper -m nanox ../$OUT_DIR/nanox/$APP_NAME"
 
 echo "Tests done!"
 

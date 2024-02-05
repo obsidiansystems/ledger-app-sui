@@ -7,7 +7,7 @@ use crate::test_parsers::*;
 use ledger_log::{info, trace};
 use ledger_parser_combinators::interp_parser::OOB;
 use ledger_prompts_ui::{handle_menu_button_event, show_menu};
-use nanos_sdk::io;
+use ledger_device_sdk::io;
 
 #[allow(dead_code)]
 pub fn app_main() {
@@ -60,7 +60,7 @@ pub fn app_main() {
                     ParsersState::NoState => {
                         if let Some(DoExitApp) = handle_menu_button_event(&mut idle_menu, btn) {
                             info!("Exiting app at user direction via root menu");
-                            nanos_sdk::exit_app(0)
+                            ledger_device_sdk::exit_app(0)
                         }
                     }
                     _ => {
@@ -81,7 +81,7 @@ pub fn app_main() {
 }
 
 use arrayvec::ArrayVec;
-use nanos_sdk::io::Reply;
+use ledger_device_sdk::io::Reply;
 
 use ledger_parser_combinators::interp_parser::{InterpParser, ParserCommon};
 fn run_parser_apdu<P: InterpParser<A, Returning = ArrayVec<u8, 128>>, A>(
@@ -175,7 +175,7 @@ fn handle_apdu(comm: &mut io::Comm, ins: Ins, parser: &mut ParsersState) -> Resu
         Ins::GetVersionStr => {
             comm.append(concat!("Alamgu Example ", env!("CARGO_PKG_VERSION")).as_ref());
         }
-        Ins::Exit => nanos_sdk::exit_app(0),
+        Ins::Exit => ledger_device_sdk::exit_app(0),
     }
     Ok(())
 }
