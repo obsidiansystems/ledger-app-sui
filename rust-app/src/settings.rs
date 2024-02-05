@@ -1,7 +1,7 @@
 #[cfg(target_os = "nanos")]
 mod nanos {
-    use nanos_sdk::nvm::*;
-    use nanos_sdk::NVMData;
+    use ledger_device_sdk::nvm::*;
+    use ledger_device_sdk::NVMData;
 
     // This is necessary to store the object in NVM and not in RAM
     #[link_section = ".nvm_data"]

@@ -16,37 +16,34 @@ zeroize = { version = "1.5.2", default-features = false }
 num_enum = { version = "0.5", default-features = false }
 pin-cell = "0.2.0"
 pin-project = "1.0.10"
-include_gif = { git = "https://github.com/LedgerHQ/sdk_include_gif" }
+include_gif = "1.0.1"
 
 # Pass --features speculos,ledger-log/log_info (or log_trace, etc) to enable
 # speculos logging and change log level.
 [features]
 default = [ ]
 # Pass --features speculos,ledger-log/log_info (or log_trace, etc) to enable speculos logging and change log level.
-speculos = [ "nanos_sdk/speculos", "ledger-log/speculos", "ledger-log/log_error", "ledger-parser-combinators/logging" ]
+speculos = [ "ledger_device_sdk/speculos", "ledger-log/speculos", "ledger-log/log_error", "ledger-parser-combinators/logging" ]
 extra_debug = ["ledger-log/log_trace"]
-pending_review_screen = ["nanos_sdk/pending_review_screen"]
+pending_review_screen = ["ledger_device_sdk/pending_review_screen"]
 
 [target.'cfg(target_family = "bolos")'.dependencies]
-nanos_sdk = { git = "https://github.com/LedgerHQ/ledger-nanos-sdk.git" }
-nanos_ui = { git = "https://github.com/LedgerHQ/ledger-nanos-ui.git" }
+ledger_device_sdk = "1.4.3"
 ledger-prompts-ui = { git = "https://github.com/alamgu/ledger-prompts-ui" }
 
-[target.'cfg(target_family = "bolos")'.dev-dependencies.nanos_sdk]
-git = "https://github.com/LedgerHQ/ledger-nanos-sdk.git"
+[target.'cfg(target_family = "bolos")'.dev-dependencies.ledger_device_sdk]
+version = "1.4.3"
 features = [ "speculos" ]
-
-[dev-dependencies]
-testmacro = { git = "https://github.com/yhql/testmacro" }
 
 [[bin]]
 name = "alamgu-example"
 test = false
 path = "bin-src/main.rs"
 
-[patch."https://github.com/LedgerHQ/ledger-nanos-sdk.git".nanos_sdk]
-git = "https://github.com/alamgu/ledger-nanos-sdk.git"
-branch = "relocating-loader-w-fixes"
+[patch.crates-io]
+ledger_device_sdk = { git = "https://github.com/alamgu/ledger-nanos-sdk.git", branch = "relocating-loader-new-sdk" }
+ledger_secure_sdk_sys = { git = "https://github.com/alamgu/ledger-nanos-sdk.git", branch = "relocating-loader-new-sdk" }
+include_gif = { git = "https://github.com/alamgu/ledger-nanos-sdk.git", branch = "relocating-loader-new-sdk" }
 
 [profile.dev]
 # We need this to ensure stack usage is minimal even on speculos
