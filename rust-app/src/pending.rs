@@ -1,5 +1,5 @@
-use ledger_device_sdk::{buttons::ButtonEvent, io};
 use ledger_device_sdk::ui;
+use ledger_device_sdk::{buttons::ButtonEvent, io};
 
 use crate::interface::Ins;
 

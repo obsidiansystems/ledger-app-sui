@@ -1,0 +1,20 @@
+diff --git a/ledger_secure_sdk_sys/build.rs b/ledger_secure_sdk_sys/build.rs
+index 9b09f6f..1bb878f 100644
+--- a/ledger_secure_sdk_sys/build.rs
++++ b/ledger_secure_sdk_sys/build.rs
+@@ -446,6 +446,7 @@ impl SDKBuilder {
+         command.compile("ledger-secure-sdk");
+     }
+ 
++    #[cfg(feature = "generate_bindings")]
+     fn generate_bindings(&self) {
+         let bsdk = self.bolos_sdk.display().to_string();
+         let args = [
+@@ -533,6 +534,7 @@ fn main() {
+     sdk_builder.bolos_sdk().unwrap();
+     sdk_builder.cxdefines();
+     sdk_builder.build_c_sdk();
++    #[cfg(feature = "generate_bindings")]
+     sdk_builder.generate_bindings();
+ }
+ 

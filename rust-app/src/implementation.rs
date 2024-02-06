@@ -29,7 +29,8 @@ pub type BipParserImplT =
 pub const BIP_PATH_PARSER: BipParserImplT = SubInterp(DefaultInterp);
 
 // Need a path of length 5, as make_bip32_path panics with smaller paths
-pub const BIP32_PREFIX: [u32; 5] = ledger_device_sdk::ecc::make_bip32_path(b"m/44'/535348'/123'/0'/0'");
+pub const BIP32_PREFIX: [u32; 5] =
+    ledger_device_sdk::ecc::make_bip32_path(b"m/44'/535348'/123'/0'/0'");
 
 pub async fn get_address_apdu(io: HostIO, prompt: bool) {
     let input = match io.get_params::<1>() {
