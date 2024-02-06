@@ -26,7 +26,8 @@ type PKH = Ed25519RawPubKeyAddress;
 pub type GetAddressImplT = impl InterpParser<Bip32Key, Returning = ArrayVec<u8, 128>>;
 
 // Need a path of length 5, as make_bip32_path panics with smaller paths
-pub const BIP32_PREFIX: [u32; 5] = ledger_device_sdk::ecc::make_bip32_path(b"m/44'/535348'/123'/0'/0'");
+pub const BIP32_PREFIX: [u32; 5] =
+    ledger_device_sdk::ecc::make_bip32_path(b"m/44'/535348'/123'/0'/0'");
 
 pub const fn get_address_impl<const PROMPT: bool>() -> GetAddressImplT {
     Action(

@@ -1,8 +1,8 @@
 use crate::settings::*;
 use include_gif::include_gif;
-use ledger_prompts_ui::*;
 use ledger_device_sdk::ui::bagls::*;
 use ledger_device_sdk::ui::bitmaps::Glyph;
+use ledger_prompts_ui::*;
 
 pub const APP_ICON_GLYPH: Glyph = Glyph::from_include(include_gif!("crab-small.gif"));
 
