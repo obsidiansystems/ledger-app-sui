@@ -21,7 +21,10 @@ rec {
       dontBuild = true;
       installPhase = ''
         mkdir -p "$out/bin"
-        cp "${sdkSrc}/ledger_device_sdk/scripts/link_wrap.sh" "$out/bin"
+        cp "${sdkSrc}/ledger_device_sdk/link_wrap.sh" "$out/bin"
+        substituteInPlace $out/bin/link_wrap.sh \
+          --replace 'llvm-objcopy' '$OBJCOPY' \
+          --replace 'llvm-nm' '$NM'
         chmod +x "$out/bin/link_wrap.sh"
       '';
     };
