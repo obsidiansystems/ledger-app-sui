@@ -21,13 +21,18 @@ rec {
       dontBuild = true;
       installPhase = ''
         mkdir -p "$out/bin"
-        cp "${sdkSrc}/ledger_device_sdk/scripts/link_wrap.sh" "$out/bin"
+        cp "${sdkSrc}/ledger_device_sdk/link_wrap.sh" "$out/bin"
+        substituteInPlace $out/bin/link_wrap.sh \
+          --replace 'llvm-objcopy' '$OBJCOPY' \
+          --replace 'llvm-nm' '$NM'
         chmod +x "$out/bin/link_wrap.sh"
       '';
     };
 
   makeApp = { rootFeatures ? [ "default" ], release ? true, device }:
     let collection = alamgu.perDevice.${device};
+        ledger-secure-sdk-path = import ./dep/ledger-secure-sdk-${device}/thunk.nix;
+        bindings = ./ledger_secure_sdk_sys-bindings/${device}/bindings.rs;
     in import app-nix {
       inherit rootFeatures release;
       pkgs = collection.ledgerPkgs;
@@ -54,6 +59,45 @@ rec {
                 "-C" "link-arg=-T${sdk.lib}/lib/ledger_device_sdk.out/${device}_layout.ld"
               ];
               passthru = (attrs.passthru or {}) // { inherit sdk; };
+            };
+
+            # HACK: Dont do bindgen in ledger_secure_sdk_sys, patch the build.rs and inject pre-generated bindings.rs
+            ledger_secure_sdk_sys = attrs: {
+              patches = [ ./disable-generate-bindings.patch ];
+              postUnpack = ''
+                substituteInPlace $sourceRoot/ledger_secure_sdk_sys/src/lib.rs \
+                  --replace "concat!(env!(\"OUT_DIR\"), \"/bindings.rs\")" "\"./bindings.rs\""
+                cp ${bindings} $sourceRoot/ledger_secure_sdk_sys/src/bindings.rs
+              '';
+              preConfigure = ''
+                export LEDGER_SDK_PATH="${ledger-secure-sdk-path}"
+              '';
+            };
+
+            # HACK: Dont build bindgen, and other packages
+            rustix = attrs: {
+              buildPhase = ''
+                touch "$out"
+              '';
+              installPhase = ''
+                touch "$out"
+              '';
+            };
+            which = attrs: {
+              buildPhase = ''
+                touch "$out"
+              '';
+              installPhase = ''
+                touch "$out"
+              '';
+            };
+            bindgen = attrs: {
+              buildPhase = ''
+                touch "$out"
+              '';
+              installPhase = ''
+                touch "$out"
+              '';
             };
           };
         })

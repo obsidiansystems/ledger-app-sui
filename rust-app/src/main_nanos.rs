@@ -5,12 +5,12 @@ use crate::settings::*;
 
 use alamgu_async_block::*;
 
+use ledger_device_sdk::io;
 use ledger_log::{info, trace};
 use ledger_prompts_ui::{handle_menu_button_event, show_menu};
 
 use core::cell::RefCell;
 use core::pin::Pin;
-use ledger_device_sdk::io;
 use pin_cell::*;
 
 #[allow(dead_code)]
