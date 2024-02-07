@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.2.1
+
+Update SDK
+
 ## 0.2.0
 
 There are now separate APDUs for getting public keys with an without prompts.
