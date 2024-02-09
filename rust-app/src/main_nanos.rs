@@ -107,7 +107,7 @@ pub fn app_main() {
                 if UxEvent::Event.request() != BOLOS_UX_OK {
                     UxEvent::block();
                     // Redisplay application menu here
-                    menu(&states, &idle_menu, &busy_menu);
+                    menu(states.borrow(), &idle_menu, &busy_menu);
                 }
                 //trace!("Ignoring ticker event");
             }
