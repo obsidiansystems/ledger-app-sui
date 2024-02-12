@@ -6,6 +6,7 @@ use crate::settings::*;
 use alamgu_async_block::*;
 
 use ledger_device_sdk::io;
+use ledger_device_sdk::uxapp::{UxEvent, BOLOS_UX_OK};
 use ledger_log::{info, trace};
 use ledger_prompts_ui::{handle_menu_button_event, show_menu};
 
@@ -103,6 +104,11 @@ pub fn app_main() {
                 trace!("Button done");
             }
             io::Event::Ticker => {
+                if UxEvent::Event.request() != BOLOS_UX_OK {
+                    UxEvent::block();
+                    // Redisplay application menu here
+                    menu(states.borrow(), &idle_menu, &busy_menu);
+                }
                 //trace!("Ignoring ticker event");
             }
         }
