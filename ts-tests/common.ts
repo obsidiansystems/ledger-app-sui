@@ -7,7 +7,7 @@ import { expect } from 'chai';
 export const VERSION = {
   major: 0,
   minor: 2,
-  patch: 0,
+  patch: 1,
 };
 
 const ignoredScreens = [ "Cancel", "Working...", "Quit", "Version"
@@ -42,6 +42,15 @@ const setAcceptAutomationRules = async function() {
         ],
       },
       {
+        "text": " Confirm", // On S+/X there is an extra space
+        "actions": [
+          [ "button", 1, true ],
+          [ "button", 2, true ],
+          [ "button", 2, false ],
+          [ "button", 1, false ],
+        ],
+      },
+      {
         "actions": [
           [ "button", 2, true ],
           [ "button", 2, false ],
@@ -60,7 +69,7 @@ const processPrompts = function(prompts: any[]) {
     const value = i[ii];
     delete value.w;
     delete value.h;
-    if(value["y"] == 0 || value["y"] == 1) { // S is 1, S+ is somehow 0
+    if(value["y"] == 3 || value["y"] == 4) { // S is 4, S+ is somehow 3
       if(value["text"] != header) {
         if(header || prompt) rv.push({ header, prompt });
         header = value["text"];
@@ -74,6 +83,9 @@ const processPrompts = function(prompts: any[]) {
       prompt += value["text"];
     } else {
       if(header || prompt) rv.push({ header, prompt });
+      if(value["text"] == " Confirm") { // On S+/X there is an extra space
+        value["text"] = "Confirm";
+      }
       rv.push(value);
       header = "";
       prompt = "";

@@ -11,7 +11,7 @@
 #![reexport_test_harness_main = "test_main"]
 #![cfg_attr(
     target_family = "bolos",
-    test_runner(nanos_sdk::testing::sdk_test_runner)
+    test_runner(ledger_device_sdk::testing::sdk_test_runner)
 )]
 #![feature(cfg_version)]
 #![cfg_attr(all(not(version("1.65"))), feature(generic_associated_types))]
@@ -25,7 +25,7 @@ mod pending;
 #[cfg(all(target_family = "bolos", test))]
 #[no_mangle]
 extern "C" fn sample_main() {
-    use nanos_sdk::exit_app;
+    use ledger_device_sdk::exit_app;
     test_main();
     exit_app(0);
 }
@@ -57,9 +57,9 @@ pub fn exiting_panic(_info: &PanicInfo) -> ! {
     //let mut comm = io::Comm::new();
     //comm.reply(io::StatusWords::Panic);
     error!("Panicking: {:?}\n", _info);
-    nanos_sdk::exit_app(1)
+    ledger_device_sdk::exit_app(1)
 }
 
 ///// Custom type used to implement tests
 //#[cfg(all(target_family = "bolos", test))]
-//use nanos_sdk::TestType;
+//use ledger_device_sdk::TestType;

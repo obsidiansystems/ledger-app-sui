@@ -1,8 +1,8 @@
 {
   "owner": "alamgu",
   "repo": "ledger-nanos-sdk",
-  "branch": "relocating-loader-w-fixes",
+  "branch": "alamgu-branch",
   "private": false,
-  "rev": "27c4df41a062cfc5382ef733a7f26aff10d6c6f7",
-  "sha256": "0zg82w7xj66caxw6zf1qslz5znfhpjl16ajjc1dn7f5m9h4lfg7c"
+  "rev": "52edd548d7456a844b3919969b330e1e21b8e2fa",
+  "sha256": "1dnlav7883wi7y7m4lhjj9gx4nypa99iwa2acnbydq55pdd1mn6y"
 }

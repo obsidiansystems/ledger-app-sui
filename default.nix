@@ -21,13 +21,18 @@ rec {
       dontBuild = true;
       installPhase = ''
         mkdir -p "$out/bin"
-        cp "${sdkSrc}/scripts/link_wrap.sh" "$out/bin"
+        cp "${sdkSrc}/ledger_device_sdk/link_wrap.sh" "$out/bin"
+        substituteInPlace $out/bin/link_wrap.sh \
+          --replace 'llvm-objcopy' '$OBJCOPY' \
+          --replace 'llvm-nm' '$NM'
         chmod +x "$out/bin/link_wrap.sh"
       '';
     };
 
   makeApp = { rootFeatures ? [ "default" ], release ? true, device }:
     let collection = alamgu.perDevice.${device};
+        ledger-secure-sdk-path = import ./dep/ledger-secure-sdk-${device}/thunk.nix;
+        bindings = ./ledger_secure_sdk_sys-bindings/${device}/bindings.rs;
     in import app-nix {
       inherit rootFeatures release;
       pkgs = collection.ledgerPkgs;
@@ -36,7 +41,7 @@ rec {
         # modified arguemnts.
         (pkgs: (collection.buildRustCrateForPkgsLedger pkgs).override {
           defaultCrateOverrides = pkgs.defaultCrateOverrides // {
-            nanos_sdk = attrs: {
+            ledger_device_sdk = attrs: {
               passthru = (attrs.passthru or {}) // {
                 link_wrap = makeLinkerScript {
                   pkgs = pkgs.buildPackages;
@@ -45,15 +50,54 @@ rec {
               };
             };
             ${appName} = attrs: let
-              sdk = lib.findFirst (p: lib.hasPrefix "rust_nanos_sdk" p.name) (builtins.throw "no sdk!") attrs.dependencies;
+              sdk = lib.findFirst (p: lib.hasPrefix "rust_ledger_device_sdk" p.name) (builtins.throw "no sdk!") attrs.dependencies;
             in {
               preHook = collection.gccLibsPreHook;
               extraRustcOpts = attrs.extraRustcOpts or [] ++ [
                 "-C" "linker=${sdk.link_wrap}/bin/link_wrap.sh"
-                "-C" "link-arg=-T${sdk.lib}/lib/nanos_sdk.out/link.ld"
-                "-C" "link-arg=-T${sdk.lib}/lib/nanos_sdk.out/${device}_layout.ld"
+                "-C" "link-arg=-T${sdk.lib}/lib/ledger_device_sdk.out/link.ld"
+                "-C" "link-arg=-T${sdk.lib}/lib/ledger_device_sdk.out/${device}_layout.ld"
               ];
               passthru = (attrs.passthru or {}) // { inherit sdk; };
+            };
+
+            # HACK: Dont do bindgen in ledger_secure_sdk_sys, patch the build.rs and inject pre-generated bindings.rs
+            ledger_secure_sdk_sys = attrs: {
+              patches = [ ./disable-generate-bindings.patch ];
+              postUnpack = ''
+                substituteInPlace $sourceRoot/ledger_secure_sdk_sys/src/lib.rs \
+                  --replace "concat!(env!(\"OUT_DIR\"), \"/bindings.rs\")" "\"./bindings.rs\""
+                cp ${bindings} $sourceRoot/ledger_secure_sdk_sys/src/bindings.rs
+              '';
+              preConfigure = ''
+                export LEDGER_SDK_PATH="${ledger-secure-sdk-path}"
+              '';
+            };
+
+            # HACK: Dont build bindgen, and other packages
+            rustix = attrs: {
+              buildPhase = ''
+                touch "$out"
+              '';
+              installPhase = ''
+                touch "$out"
+              '';
+            };
+            which = attrs: {
+              buildPhase = ''
+                touch "$out"
+              '';
+              installPhase = ''
+                touch "$out"
+              '';
+            };
+            bindgen = attrs: {
+              buildPhase = ''
+                touch "$out"
+              '';
+              installPhase = ''
+                touch "$out"
+              '';
             };
           };
         })
@@ -220,8 +264,8 @@ rec {
 
     speculosDeviceFlags = {
       nanos = [ "-m" "nanos" ];
-      nanosplus = [ "-m" "nanosp" "-a" "1" ];
-      nanox = [ "-m" "nanox" "-a" "5" ];
+      nanosplus = [ "-m" "nanosp" ];
+      nanox = [ "-m" "nanox" ];
     }.${device} or (throw "Unknown target device: `${device}'");
 
     speculosCmd = [

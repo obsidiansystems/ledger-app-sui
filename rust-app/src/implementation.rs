@@ -8,22 +8,24 @@ use core::fmt::Write;
 use ledger_crypto_helpers::common::{try_option, Address, HexSlice};
 use ledger_crypto_helpers::eddsa::{ed25519_public_key_bytes, eddsa_sign, with_public_keys};
 use ledger_crypto_helpers::hasher::{Blake2b, Hasher, HexHash};
+use ledger_device_sdk::io::SyscallError;
 use ledger_log::trace;
 use ledger_parser_combinators::async_parser::*;
 use ledger_parser_combinators::bcs::async_parser::*;
 use ledger_parser_combinators::interp::*;
 use ledger_prompts_ui::{final_accept_prompt, ScrollerError};
-use nanos_sdk::io::SyscallError;
 
 use core::convert::TryFrom;
 use core::future::Future;
 
 type SuiAddressRaw = [u8; SUI_ADDRESS_LENGTH];
 
-pub struct SuiPubKeyAddress(nanos_sdk::ecc::ECPublicKey<65, 'E'>, SuiAddressRaw);
+pub struct SuiPubKeyAddress(ledger_device_sdk::ecc::ECPublicKey<65, 'E'>, SuiAddressRaw);
 
-impl Address<SuiPubKeyAddress, nanos_sdk::ecc::ECPublicKey<65, 'E'>> for SuiPubKeyAddress {
-    fn get_address(key: &nanos_sdk::ecc::ECPublicKey<65, 'E'>) -> Result<Self, SyscallError> {
+impl Address<SuiPubKeyAddress, ledger_device_sdk::ecc::ECPublicKey<65, 'E'>> for SuiPubKeyAddress {
+    fn get_address(
+        key: &ledger_device_sdk::ecc::ECPublicKey<65, 'E'>,
+    ) -> Result<Self, SyscallError> {
         let key_bytes = ed25519_public_key_bytes(key);
         let mut tmp = ArrayVec::<u8, 33>::new();
         let _ = tmp.try_push(0); // SIGNATURE_SCHEME_TO_FLAG['ED25519']
@@ -49,7 +51,8 @@ pub type BipParserImplT =
 pub const BIP_PATH_PARSER: BipParserImplT = SubInterp(DefaultInterp);
 
 // Need a path of length 5, as make_bip32_path panics with smaller paths
-pub const BIP32_PREFIX: [u32; 5] = nanos_sdk::ecc::make_bip32_path(b"m/44'/784'/123'/0'/0'");
+pub const BIP32_PREFIX: [u32; 5] =
+    ledger_device_sdk::ecc::make_bip32_path(b"m/44'/784'/123'/0'/0'");
 
 pub async fn get_address_apdu(io: HostIO, prompt: bool) {
     let input = match io.get_params::<1>() {
@@ -712,7 +715,7 @@ pub fn handle_apdu_async(io: HostIO, ins: Ins, settings: Settings) -> APDUsFutur
                 NoinlineFut(sign_apdu(io, settings)).await;
             }
             Ins::GetVersionStr => {}
-            Ins::Exit => nanos_sdk::exit_app(0),
+            Ins::Exit => ledger_device_sdk::exit_app(0),
         }
     }
 }

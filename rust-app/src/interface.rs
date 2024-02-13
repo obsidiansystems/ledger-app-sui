@@ -1,8 +1,8 @@
 use core::convert::TryFrom;
+use ledger_device_sdk::io::{ApduHeader, StatusWords};
 use ledger_parser_combinators::bcs::async_parser::*;
 use ledger_parser_combinators::core_parsers::*;
 use ledger_parser_combinators::endianness::*;
-use nanos_sdk::io::ApduHeader;
 use num_enum::TryFromPrimitive;
 
 // Payload for a public key request
@@ -86,7 +86,7 @@ pub enum Ins {
 }
 
 impl TryFrom<ApduHeader> for Ins {
-    type Error = ();
+    type Error = StatusWords;
     fn try_from(m: ApduHeader) -> Result<Ins, Self::Error> {
         match m {
             ApduHeader {
@@ -94,8 +94,8 @@ impl TryFrom<ApduHeader> for Ins {
                 ins,
                 p1: 0,
                 p2: 0,
-            } => Self::try_from(ins).map_err(|_| ()),
-            _ => Err(()),
+            } => Self::try_from(ins).map_err(|_| StatusWords::BadIns),
+            _ => Err(StatusWords::BadIns),
         }
     }
 }
