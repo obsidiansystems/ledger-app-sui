@@ -16,7 +16,7 @@ pub fn app_main() {
     let mut states = ParsersState::NoState;
     let mut idle_menu = IdleMenuWithSettings {
         idle_menu: IdleMenu::AppMain,
-        settings: Settings::default(),
+        settings: Settings,
     };
     let mut busy_menu = BusyMenu::Working;
 
