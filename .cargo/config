@@ -7,7 +7,6 @@ rustflags = [
   "-C", "codegen-units=1",
   "-C", "save-temps", # Fixes incremental builds by keeping .bc and .ll files
   "-C", "embed-bitcode",
-  "--emit=metadata,link,obj,llvm-ir,llvm-bc"
 ]
 runner = "./speculos-wrapper -m nanosp "
 
@@ -16,7 +15,6 @@ rustflags = [
   "-C", "codegen-units=1",
   "-C", "save-temps", # Fixes incremental builds by keeping .bc and .ll files
   "-C", "embed-bitcode",
-  "--emit=metadata,link,obj,llvm-ir,llvm-bc"
 ]
 runner = "./speculos-wrapper -m nanos "
 
@@ -25,7 +23,6 @@ rustflags = [
   "-C", "codegen-units=1",
   "-C", "save-temps", # Fixes incremental builds by keeping .bc and .ll files
   "-C", "embed-bitcode",
-  "--emit=metadata,link,obj,llvm-ir,llvm-bc"
 ]
 runner = "./speculos-wrapper -m nanox "
 
