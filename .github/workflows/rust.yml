@@ -1,4 +1,4 @@
-name: Rust
+name: rustfmt
 
 on:
   push:
@@ -18,10 +18,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - uses: actions-rs/toolchain@v1
         with:
-          toolchain: nightly-2023-05-15
+          toolchain: nightly-2023-11-10
           override: true
           components: rust-src, rustfmt
       - run: rustup component add rustfmt
@@ -30,72 +30,3 @@ jobs:
         with:
           command: fmt
           args: --manifest-path rust-app/Cargo.toml --all -- --check
-  clippy:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        device: [nanos, nanox, nanosplus]
-    env:
-      OBJCOPY: arm-none-eabi-objcopy
-      NM: arm-none-eabi-nm
-    steps:
-      - name: arm-none-eabi-gcc
-        uses: fiam/arm-none-eabi-gcc@v1.0.3
-        with:
-          release: '9-2019-q4'
-      - name: Checkout
-        uses: actions/checkout@v3
-      - name: Checkout SDK (targets)
-        uses: actions/checkout@v3
-        with:
-          repository: 'alamgu/ledger-nanos-sdk'
-          ref: memory-fixes
-          path: rsdk
-      - uses: actions-rs/toolchain@v1
-        with:
-          toolchain: nightly-2023-05-15
-          override: true
-          components: rust-src, clippy
-      - run: rustup component add clippy
-      - name: Remove --emit from config before clippy
-        # otherwise it does not work
-        run: sed -i '/--emit/d' ./.cargo/config
-      - name: Cargo clippy
-        uses: actions-rs/cargo@v1
-        with:
-          command: clippy
-          args: --manifest-path rust-app/Cargo.toml -Z build-std=core -Z build-std-features=compiler-builtins-mem --target ./rsdk/${{ matrix.device }}.json
-  build:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        device: [nanos, nanox, nanosplus]
-    env:
-      OBJCOPY: arm-none-eabi-objcopy
-      NM: arm-none-eabi-nm
-    steps:
-      - name: arm-none-eabi-gcc
-        uses: fiam/arm-none-eabi-gcc@v1.0.3
-        with:
-          release: '9-2019-q4'
-      - name: Checkout
-        uses: actions/checkout@v3
-      - name: Checkout SDK (targets)
-        uses: actions/checkout@v3
-        with:
-          repository: 'alamgu/ledger-nanos-sdk'
-          ref: memory-fixes
-          path: rsdk
-      - name: Install clang
-        run: sudo apt-get update && sudo apt install -y clang
-      - uses: actions-rs/toolchain@v1
-        with:
-          toolchain: nightly-2023-05-15
-          override: true
-          components: rust-src
-      - run: echo "$PWD/rsdk/scripts" >> $GITHUB_PATH
-      - name: Cargo build
-        uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --manifest-path rust-app/Cargo.toml -Z build-std=core -Z build-std-features=compiler-builtins-mem --target ./rsdk/${{ matrix.device }}.json
