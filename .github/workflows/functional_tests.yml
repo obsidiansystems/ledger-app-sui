@@ -82,7 +82,7 @@ jobs:
       - name: Install yarn
         uses: borales/actions-yarn@v4
         with:
-          cmd: install # will run `yarn install` command
+          cmd: help # No-op, do yarn install later
           dir: 'ts-tests'
 
       - name: Install tests dependencies
@@ -97,4 +97,14 @@ jobs:
           speculos --api-port 5005 ${{ needs.call_get_app_metadata.outputs.build_directory }}/build/${BIN_DIR_NAME}/bin/app.elf --display headless &
           sleep 5
           cd ts-tests
+          echo "Doing yarn install"
+          retries=0
+          max_retries=10
+          while [ $retries -lt $max_retries ]; do
+            yarn install && break || {
+              echo "yarn install attempt $retries failed. Retrying..."
+              retries=$((retries+1))
+              sleep  1
+            }
+          done
           yarn run test
