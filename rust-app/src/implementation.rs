@@ -8,7 +8,7 @@ use core::fmt::Write;
 use ledger_crypto_helpers::common::{try_option, Address, HexSlice};
 use ledger_crypto_helpers::eddsa::{ed25519_public_key_bytes, eddsa_sign, with_public_keys};
 use ledger_crypto_helpers::hasher::{Blake2b, Hasher, HexHash};
-use ledger_device_sdk::io::SyscallError;
+use ledger_device_sdk::io::{StatusWords, SyscallError};
 use ledger_log::trace;
 use ledger_parser_combinators::async_parser::*;
 use ledger_parser_combinators::bcs::async_parser::*;
@@ -57,13 +57,13 @@ pub const BIP32_PREFIX: [u32; 5] =
 pub async fn get_address_apdu(io: HostIO, prompt: bool) {
     let input = match io.get_params::<1>() {
         Some(v) => v,
-        None => reject().await,
+        None => reject(SyscallError::InvalidParameter as u16).await,
     };
 
     let path = BIP_PATH_PARSER.parse(&mut input[0].clone()).await;
 
     if !path.starts_with(&BIP32_PREFIX[0..2]) {
-        reject::<()>().await;
+        reject::<()>(SyscallError::InvalidParameter as u16).await;
     }
 
     let mut rv = ArrayVec::<u8, 220>::new();
@@ -90,7 +90,7 @@ pub async fn get_address_apdu(io: HostIO, prompt: bool) {
     })
     .is_err()
     {
-        reject::<()>().await;
+        reject::<()>(StatusWords::UserCancelled as u16).await;
     }
 
     io.result_final(&rv).await;
@@ -582,7 +582,7 @@ const fn tx_parser<BS: Clone + Readable, const PROMPT: bool>(
 pub async fn sign_apdu(io: HostIO, settings: Settings) {
     let mut input = match io.get_params::<2>() {
         Some(v) => v,
-        None => reject().await,
+        None => reject(SyscallError::InvalidParameter as u16).await,
     };
 
     // Read length, and move input[0] by one byte
@@ -635,7 +635,7 @@ pub async fn sign_apdu(io: HostIO, settings: Settings) {
         };
 
         if final_accept_prompt(&["Sign Transaction?"]).is_none() {
-            reject::<()>().await;
+            reject::<()>(StatusWords::UserCancelled as u16).await;
         };
     } else if settings.get() == 0 {
         scroller("WARNING", |w| {
