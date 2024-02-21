@@ -10,6 +10,7 @@ use ledger_crypto_helpers::eddsa::{
     ed25519_public_key_bytes, eddsa_sign, with_public_keys, Ed25519RawPubKeyAddress,
 };
 use ledger_crypto_helpers::hasher::{Base64Hash, Blake2b, Hasher};
+use ledger_device_sdk::io::{StatusWords, SyscallError};
 use ledger_log::trace;
 use ledger_parser_combinators::async_parser::*;
 use ledger_parser_combinators::core_parsers::*;
@@ -35,13 +36,13 @@ pub const BIP32_PREFIX: [u32; 5] =
 pub async fn get_address_apdu(io: HostIO, prompt: bool) {
     let input = match io.get_params::<1>() {
         Some(v) => v,
-        None => reject().await,
+        None => reject(SyscallError::InvalidParameter as u16).await,
     };
 
     let path = BIP_PATH_PARSER.parse(&mut input[0].clone()).await;
 
     if !path.starts_with(&BIP32_PREFIX[0..2]) {
-        reject::<()>().await;
+        reject::<()>(SyscallError::InvalidParameter as u16).await;
     }
 
     let mut rv = ArrayVec::<u8, 220>::new();
@@ -71,7 +72,7 @@ pub async fn get_address_apdu(io: HostIO, prompt: bool) {
     })
     .is_err()
     {
-        reject::<()>().await;
+        reject::<()>(StatusWords::UserCancelled as u16).await;
     }
 
     io.result_final(&rv).await;
@@ -86,7 +87,7 @@ const fn hasher_parser(
 pub async fn sign_apdu(io: HostIO, settings: Settings) {
     let mut input = match io.get_params::<2>() {
         Some(v) => v,
-        None => reject().await,
+        None => reject(SyscallError::InvalidParameter as u16).await,
     };
 
     let length = usize::from_le_bytes(input[0].read().await);
@@ -98,7 +99,7 @@ pub async fn sign_apdu(io: HostIO, settings: Settings) {
     let path = BIP_PATH_PARSER.parse(&mut input[1].clone()).await;
 
     if !path.starts_with(&BIP32_PREFIX[0..2]) {
-        reject::<()>().await;
+        reject::<()>(SyscallError::InvalidParameter as u16).await;
     }
 
     // The example app doesn't have a parser; every transaction is rejected
@@ -107,7 +108,7 @@ pub async fn sign_apdu(io: HostIO, settings: Settings) {
 
     if known_txn {
         if final_accept_prompt(&["Sign Transaction?"]).is_none() {
-            reject::<()>().await;
+            reject::<()>(StatusWords::UserCancelled as u16).await;
         };
     } else if settings.get() == 0 {
         scroller("WARNING", |w| {
@@ -116,14 +117,14 @@ pub async fn sign_apdu(io: HostIO, settings: Settings) {
                 "Transaction not recognized, enable blind signing to sign unknown transactions"
             )?)
         });
-        reject::<()>().await;
+        reject::<()>(SyscallError::NotSupported as u16).await;
     } else {
         if scroller("WARNING", |w| Ok(write!(w, "Transaction not recognized")?)).is_none() {
-            reject::<()>().await;
+            reject::<()>(StatusWords::UserCancelled as u16).await;
         }
 
         if scroller("Transaction hash", |w| Ok(write!(w, "{}", hash.deref())?)).is_none() {
-            reject::<()>().await;
+            reject::<()>(StatusWords::UserCancelled as u16).await;
         }
 
         if with_public_keys(&path, false, |_, pkh: &PKH| {
@@ -132,11 +133,11 @@ pub async fn sign_apdu(io: HostIO, settings: Settings) {
         })
         .is_err()
         {
-            reject::<()>().await;
+            reject::<()>(StatusWords::UserCancelled as u16).await;
         }
 
         if final_accept_prompt(&["Blind Sign Transaction?"]).is_none() {
-            reject::<()>().await;
+            reject::<()>(StatusWords::UserCancelled as u16).await;
         };
     }
 
@@ -144,7 +145,7 @@ pub async fn sign_apdu(io: HostIO, settings: Settings) {
     if let Some(sig) = { eddsa_sign(&path, false, &hash.deref().0).ok() } {
         io.result_final(&sig.0[0..]).await;
     } else {
-        reject::<()>().await;
+        reject::<()>(SyscallError::Unspecified as u16).await;
     }
 }
 
