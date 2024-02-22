@@ -32,7 +32,7 @@ rec {
   makeApp = { rootFeatures ? [ "default" ], release ? true, device }:
     let collection = alamgu.perDevice.${device};
         ledger-secure-sdk-path = import ./dep/ledger-secure-sdk-${device}/thunk.nix;
-        bindings = ./ledger_secure_sdk_sys-bindings/${device}/bindings.rs;
+        bindings = (alamgu.thunkSource ./dep/ledger_secure_sdk_sys-bindings) + "/${device}/bindings.rs";
     in import app-nix {
       inherit rootFeatures release;
       pkgs = collection.ledgerPkgs;
