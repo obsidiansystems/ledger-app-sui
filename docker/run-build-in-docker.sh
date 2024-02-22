@@ -18,7 +18,7 @@ cd rust-app
 # $RUST_NIGHTLY is set in ledger-app-builder
 for device in nanos nanosplus nanox
 do
-   cargo +$RUST_NIGHTLY build --target-dir=$TARGET_DIR --release --target=$device.json -Z build-std=core
+   cargo +$RUST_NIGHTLY build --target-dir=$TARGET_DIR --release --target=$RUST_NANOS_SDK/ledger_device_sdk/$device.json -Z build-std=core
    cp $TARGET_DIR/$device/release/$APP_NAME $OUT_DIR/$device
    chown $HOST_UID:$HOST_GID $OUT_DIR/$device/$APP_NAME
 done

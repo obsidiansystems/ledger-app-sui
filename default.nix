@@ -234,6 +234,9 @@ rec {
           sdkSrc = alamgu.thunkSource ./dep/ledger-nanos-sdk;
         })
       ];
+      shellHook = old.shellHook + ''
+        export TARGET_JSON="${alamgu.thunkSource ./dep/ledger-nanos-sdk}/ledger_device_sdk/${device}.json"
+      '';
     });
 
     archiveSource = makeArchiveSource { inherit appExe device; };
