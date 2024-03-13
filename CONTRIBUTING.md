@@ -59,7 +59,7 @@ Using Nix, from the root level of this repo, run:
 ```bash
 nix-shell -A $DEVICE.rustShell
 cd rust-app/
-cargo test --target=$DEVICE.json
+cargo test --target=$TARGET_JSON
 ```
 
 ## Deploying development builds to real hardware

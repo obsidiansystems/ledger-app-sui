@@ -21,7 +21,11 @@ rec {
       dontBuild = true;
       installPhase = ''
         mkdir -p "$out/bin"
-        cp "${sdkSrc}/ledger_device_sdk/link_wrap.sh" "$out/bin"
+        if [ -d "${sdkSrc}" ]; then
+            cp "${sdkSrc}/ledger_device_sdk/link_wrap.sh" "$out/bin"
+        else
+            cd "$out/bin"; tar xf "${sdkSrc}" --wildcards "*link_wrap.sh" --transform='s:.*/::'
+        fi
         substituteInPlace $out/bin/link_wrap.sh \
           --replace 'llvm-objcopy' '$OBJCOPY' \
           --replace 'llvm-nm' '$NM'
@@ -32,7 +36,7 @@ rec {
   makeApp = { rootFeatures ? [ "default" ], release ? true, device }:
     let collection = alamgu.perDevice.${device};
         ledger-secure-sdk-path = import ./dep/ledger-secure-sdk-${device}/thunk.nix;
-        bindings = ./ledger_secure_sdk_sys-bindings/${device}/bindings.rs;
+        bindings = (alamgu.thunkSource ./dep/ledger_secure_sdk_sys-bindings) + "/${device}/bindings.rs";
     in import app-nix {
       inherit rootFeatures release;
       pkgs = collection.ledgerPkgs;
@@ -65,9 +69,9 @@ rec {
             ledger_secure_sdk_sys = attrs: {
               patches = [ ./disable-generate-bindings.patch ];
               postUnpack = ''
-                substituteInPlace $sourceRoot/ledger_secure_sdk_sys/src/lib.rs \
+                substituteInPlace $sourceRoot/src/lib.rs \
                   --replace "concat!(env!(\"OUT_DIR\"), \"/bindings.rs\")" "\"./bindings.rs\""
-                cp ${bindings} $sourceRoot/ledger_secure_sdk_sys/src/bindings.rs
+                cp ${bindings} $sourceRoot/src/bindings.rs
               '';
               preConfigure = ''
                 export LEDGER_SDK_PATH="${ledger-secure-sdk-path}"
@@ -234,6 +238,9 @@ rec {
           sdkSrc = alamgu.thunkSource ./dep/ledger-nanos-sdk;
         })
       ];
+      shellHook = old.shellHook + ''
+        export TARGET_JSON="${alamgu.thunkSource ./dep/ledger-nanos-sdk}/ledger_device_sdk/${device}.json"
+      '';
     });
 
     archiveSource = makeArchiveSource { inherit appExe device; };
