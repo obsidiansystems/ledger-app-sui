@@ -22,11 +22,11 @@ Install the Sui app on your Ledger device to manage SUI Tokens with the [Sui Wal
 
 ### **3. Obtain Ledger Account Number**
 
-- Open the Sui app on your Ledger device, the screen will display "Sui  0.1.0".
+- Open the Sui app on your Ledger device, the screen will display "Sui  0.2.7".
 
 - Open the Sui wallet and select "Connect to Ledger device".
 
-- Enter the derivation path (default `m/44'/784'/0'/0/0`).
+- Enter the derivation path (default `m/44'/784'/0'/0'/0'`, and `m/44'/784'/1'/0'/0'` for the second, and so on).
 
 - You can use this account to receive Sui tokens.
 
